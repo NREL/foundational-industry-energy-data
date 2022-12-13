@@ -1,0 +1,68 @@
+# Conversions
+---
+basic_units: # Unit conversions for EF numerator UOM to emissions UOM 
+  LB_to_TON: 0.0005
+  MILLIGRM_to_LB: 2.2046E-6
+  MILLIGRM_to_TON: 1.1023E-8  # 0.0022046/1000/2000
+  G_to_LB: 0.0022046
+  TON_to_LB: 2000
+  MEGAGRAM_to_TON: 1.102
+  BTU_to_MJ: 1.055E-9
+  HP-HR_to_MJ: 2.685
+  KW-HR_to_MJ: 3.6
+energy_ghg_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-factors-hub
+  diesel:
+    GAL_to_MJ: 145.59  # 0.138 MMBtu/gal * 1055 MJ/MMBtu
+    MJ_to_KGCO2: 
+  natural_gas:  
+    FT3_to_MJ: 1.08243  # 0.001026 MMBtu/standard cubic foot * 1055 MJ/MMBtu
+    THERM_to_MJ: 105.5  # 0.1 MMBtu/therm * 1055 MJ/MMBtu
+    MJ_to_KGCO2: 
+  anthracite:
+    TON_to_MJ:
+    MJ_to_KGCO2: 
+  bituminous:
+    TON_to_MJ: 
+    MJ_to_KGCO2: 
+  subbituminous:
+    TON_TO_MJ:
+    MJ_to_KGCO2: 
+  lignite:
+    TON_TO_MJ:
+    MJ_to_KGCO2: 
+  mixed_coking:
+    TON_TO_MJ:
+    MJ_to_KGCO2: 
+  mixed_ind:  # Mixed industrial sector
+    TON_TO_MJ:
+    MJ_to_KGCO2: 
+  bfg:  # Big Fri... er, Blast Furnace Gas
+    FT3_TO_MJ:
+    MJ_to_KGCO2: 
+  fuel_gas:
+    TON_TO_MJ:
+    MJ_to_KGCO2: 
+  landfill_gas:
+    FT3_to_MJ:
+    MJ_to_KGCO2:
+  propane:
+    GAL_to_MJ:
+    MJ_to_KGCO2:
+  residual_oil:
+    GAL_to_MJ:
+    MJ_to_KGCO2:
+  waste_oil:
+    GAL_to_MJ:
+    MJ_to_KGCO2:
+  wood_res:
+    TON_TO_MJ:
+    MJ_to_KGCO2: 
+  ag_byprod:
+    TON_TO_MJ:
+    MJ_to_KGCO2: 
+
+  
+ghg_efs:
+  - 
+
+    
