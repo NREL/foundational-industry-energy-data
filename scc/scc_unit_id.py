@@ -7,8 +7,28 @@ import logging
 
 class SCC_ID:
     """
+    Use descriptions of SCC code levels to identify unit type and fuel type 
+    indicated by a complete SCC code (e.g., 30190003). 
+    > The U.S. EPA uses Source Classification Codes (SCCs) to 
+    classify different types of activities that generate emissions. 
+    Each SCC represents a unique source category-specific process or 
+    function that emits air pollutants. The SCCs are used as a primary
+    identifying data element in EPA’s WebFIRE (where SCCs are
+    used to link emissions factors to an emission process), 
+    the National Emissions Inventory (NEI), and other EPA databases.
+
+    Eight digit SCC codes, such as ABBCCCDD, are structured as follows:
+
+    A: Level 1
+    BB: Level 2
+    CCC: Level 3
+    DD: Level 4 
+
+    See SCC documentation for additional information:
+    https://sor-scc-api.epa.gov/sccwebservices/sccsearch/docs/SCC-IntroToSCCs_2021.pdf
 
     """
+
     def __init__(self):
 
         self._scc_data = pd.read_csv(
@@ -22,19 +42,24 @@ class SCC_ID:
     def id_external_combustion(self, scc_level_two, scc_level_three,
                                scc_level_four):
         """
-        Method for identifying unit type and fuel type under the
-        "External Combustion"
-        SCC Level One. See ... for SCC documentation.
+        Method for identifying relevant unit and fuel types under 
+        SCC Level 1 External Combustion (1)
 
         Parameters
         ----------
         scc_level_two : str
-            s
+            Description of level 2 SCC code.
 
         scc_level_three : str
+            Description of level 3 SCC code.
 
-        scc_level_four : str 
+        scc_level_four : str
+            Description of level 4 SCC code.
 
+        Returns
+        -------
+        unit_type : str
+        fuel_type : str
         """
 
         other_fuels = [
@@ -101,16 +126,19 @@ class SCC_ID:
 
     def id_ice(self, scc_level_two, scc_level_three, scc_level_four):
         """
-        Use SCC levels to identify unit type and fuel type indicated by a SCC code.
+        Method for identifying relevant unit and fuel types under 
+        SCC Level 1 Internal Combustion Engines (2)
 
         Parameters
         ----------
         scc_level_two : str
-            s
+            Description of level 2 SCC code.
 
         scc_level_three : str
+            Description of level 3 SCC code.
 
-        scc_level_four : str 
+        scc_level_four : str
+            Description of level 4 SCC code.
 
         Returns
         -------
@@ -118,7 +146,8 @@ class SCC_ID:
         fuel_type : str
         """
 
-        if scc_level_two in ['Electric Generation', 'Industrial', 'Commercial/Institutional',
+        if scc_level_two in ['Electric Generation', 'Industrial',
+                             'Commercial/Institutional',
                              'Marine Vessels, Commercial', 'Railroad Equipment'
                             ]:
 
@@ -157,16 +186,20 @@ class SCC_ID:
     def id_stationary_fuel_combustion(self, scc_level_two, scc_level_three,
                                       scc_level_four):
         """
-        Use SCC levels to identify unit type and fuel type indicated by a SCC code.
-
+        Method for identifying relevant unit and fuel types under 
+        SCC Level 1 Stationary Source Fuel Combustion (21; note this is 
+        a 10-digit SCC code)
+    
         Parameters
         ----------
         scc_level_two : str
-            s
+            Description of level 2 SCC code.
 
         scc_level_three : str
+            Description of level 3 SCC code.
 
         scc_level_four : str
+            Description of level 4 SCC code.
 
         Returns
         -------
@@ -203,7 +236,24 @@ class SCC_ID:
     def id_chemical_evaporation(self, scc_level_two, scc_level_three, 
                                 scc_level_four):
         """
-        
+        Method for identifying relevant unit and fuel types under 
+        SCC Level 1 Chemical Evaporation (4)
+
+        Parameters
+        ----------
+        scc_level_two : str
+            Description of level 2 SCC code.
+
+        scc_level_three : str
+            Description of level 3 SCC code.
+
+        scc_level_four : str
+            Description of level 4 SCC code.
+
+        Returns
+        -------
+        unit_type : str
+        fuel_type : str
         """
 
         if (scc_level_two == 'Surface Coating Operations') & \
@@ -255,7 +305,24 @@ class SCC_ID:
     def id_industrial_processes(self, scc_level_two, scc_level_three,
                                 scc_level_four):
         """
-        
+        Method for identifying relevant unit and fuel types under 
+        SCC Level 1 Industrial Processes (3)
+
+        Parameters
+        ----------
+        scc_level_two : str
+            Description of level 2 SCC code.
+
+        scc_level_three : str
+            Description of level 3 SCC code.
+
+        scc_level_four : str
+            Description of level 4 SCC code.
+
+        Returns
+        -------
+        unit_type : str
+        fuel_type : str
         """
 
         if 'Commercial Cooking' in scc_level_three:
@@ -280,9 +347,10 @@ class SCC_ID:
 
         elif (scc_level_two != 'In-process Fuel Use') & \
             (any([x in scc_level_four.lower() for x in [
-            'calciner', 'evaporator', 'furnace', 'dryer', 'kiln', 'oven',
-            'incinerator', 'distillation'
-            ]])):
+                'calciner', 'evaporator', 'furnace', 'dryer', 'kiln', 'oven',
+                'incinerator', 'distillation', 'heater', 'broil', 'flare',
+                'stove', 'steam'
+                ]])):
 
             unit_type = scc_level_four
 
@@ -334,30 +402,35 @@ class SCC_ID:
         id_methods = {
             'ext_comb': {
                 'level_one': 'External Combustion',
+                'leve_one_code':1,
                 'func': self.id_external_combustion,
                 'columns': ['scc_level_two', 'scc_level_three',
                             'scc_level_four']
                 },
             'sta_comb': {
                 'level_one': 'Stationary Source Fuel Combustion',
+                'level_one_code': 21,
                 'func': self.id_stationary_fuel_combustion,
                 'columns': ['scc_level_two', 'scc_level_three',
                             'scc_level_four']
                 },
             'int_comb': {
                 'level_one': 'Internal Combustion Engines',
+                'level_one_code': 2,
                 'func': self.id_ice,
                 'columns': ['scc_level_two', 'scc_level_three',
                             'scc_level_four']
                 },
             'che_evap': {
                 'level_one': 'Chemical Evaporation',
+                'level_one_code': 4,
                 'func': self.id_chemical_evaporation,
                 'columns': ['scc_level_two', 'scc_level_three',
                             'scc_level_four']
                 },
             'ind_proc': {
                 'level_one': 'Industrial Processes',
+                'level_one_code': 3,
                 'func': self.id_industrial_processes,
                 'columns': ['scc_level_two', 'scc_level_three',
                             'scc_level_four']
