@@ -31,7 +31,13 @@
                        "vintage": ,
                        "production_tonnes": ,
                        "production_million_USD":, 
-                       "ann_op_hours":
+                       "ann_op_hours":,
+                       "ghgrp_id":,
+                       "nei_id": ,
+                       "energy_MJ": [
+                                    {"natural_gas": 78,
+                                     "elec": 88
+                                    }
                        }
                       ],
     "process_char": [
