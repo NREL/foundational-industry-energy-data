@@ -12,7 +12,16 @@ Process for automatically populating the foundational industry energy dataset.
     Fields: annual total GHG emissions (MTCO2eq), plant capacity (tonnes), ...
     **Need to figure out if unit information is obtained from GHGRP or NEI.** Will need to develop some sort of algorithm to decide. 
 3. For NEI facilities,
-    1. Use SCC codes to parse unit and fuel types
-    2. Use WebFire emissions factors and SCC codes to back out combustion energy and througput
+    1. Pull out unique unit IDs
+    2. Use SCC codes to parse unit and fuel types for each unique unit ID. 
+    3. **Which emissions to use?**
+    4. Use WebFire emissions factors and SCC codes to back out combustion energy and througput
 4. Assign average production and energy intensity values for all remaining facilities
 5. ...
+
+## APIs
+
+* SCC
+* Emissions factors (WebFires)
+* GHGRP
+* FRS
