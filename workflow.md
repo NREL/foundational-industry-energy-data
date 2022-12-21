@@ -19,9 +19,9 @@ Process for automatically populating the foundational industry energy dataset.
 4. Assign average production and energy intensity values for all remaining facilities
 5. ...
 
-## APIs
+## APIs/Web Services
 
-* SCC
-* Emissions factors (WebFires)
-* GHGRP
-* FRS
+* [SCCs](https://ofmpub.epa.gov/sccwebservices/)
+* [Emissions factors (WebFIRE)](https://cfpub.epa.gov/webfire/efwebservices/efwebservice.html)
+* [GHGRP](https://www.epa.gov/enviro/envirofacts-data-service-api)
+* [FRS](https://www.epa.gov/frs/frs-rest-services)
