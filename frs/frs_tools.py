@@ -2,6 +2,7 @@ import requests
 import re
 import io
 import json
+import gzip
 import logging
 import os
 import zipfile
@@ -477,10 +478,10 @@ class FRS:
 
         # for i in frs_dict.keys():
         #     for j, k in enumerate(self._json_format.keys()):
-        #         frs_dict[i][j] = frs_data_df.loc[i, self._json_format[k]].to_dict()
+        #         frs_dict[i][j] = frs_data_df.loc[i, self._json_format[k]].to_dict() 
 
         if save_path:
-            with open(os.path.join(save_path, 'found_ind_data.json'), 'w') as f:
+            with gzip.open(os.path.join(save_path, 'found_ind_data.json.gz'), 'wt', encoding="ascii") as f:
                 json.dump(frs_dict, f)
 
         else:
