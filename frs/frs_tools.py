@@ -330,7 +330,7 @@ class FRS:
 
             dups = data[~data.index.isin(data_unique.index)]
             dups = dups.groupby('REGISTRY_ID').apply(
-                lambda x: x['NAICS_CODE'].values
+                lambda x: x['NAICS_CODE'].to_list()
                 )
             dups.name = 'NAICS_CODE_additional'
 
@@ -396,6 +396,12 @@ class FRS:
                 lambda x: FRS.fix_code(x)
                 )
 
+        if frs_data_df.index.name == 'REGISTRY_ID':
+            pass
+
+        else:
+            frs_data_df.set_index('REGISTRY_ID', inplace=True)
+
         # Must first transpose DF
         frs_data_df = frs_data_df.T
         frs_data_df.index.name = 'VARIABLE'
@@ -413,13 +419,11 @@ class FRS:
         val_dict = \
             {k: frs_data_df.xs(k).to_dict() for k in self._json_format.keys()}  # nested dict, e.g., {'site' : {1000: {NAICS_CODE: 2111}}}
 
-        frs_dict = dict.fromkeys(
-            frs_data_df.columns, [dict.fromkeys(list(val_dict.keys()))]
-            )
-
-        for facid in frs_dict.keys():
-            for cat in val_dict.keys():
-                frs_dict[facid][0][cat] = val_dict[cat][facid]
+        # Previous approach used dict.fromkeys, which didn't work for setting values from
+        # val_dict
+        frs_dict = {
+            k: [{c: v[k]} for c, v in val_dict.items()] for k in frs_data_df.columns
+            }
 
         if save_path:
             with gzip.open(os.path.join(save_path, 'found_ind_data.json.gz'), 'wt', encoding="ascii") as f:
