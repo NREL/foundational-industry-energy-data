@@ -1,6 +1,5 @@
 import requests
 import re
-import io
 import json
 import gzip
 import logging
@@ -17,14 +16,16 @@ from collections import OrderedDict
 logging.basicConfig(level=logging.INFO)
 
 
-# download bulk FRS file
 class FRS:
     """
+    Class for extracting relevant facility-level
+    data from EPA's Facility Registration Service data.
     """
     def __init__(self):
 
         self._frs_data_path = '../data/FRS'
 
+        # Names of relevant FRS data files and columns.
         self._names_columns = OrderedDict({
             'FACILITY': [
                 'REGISTRY_ID', 'PRIMARY_NAME', 'LOCATION_ADDRESS',
@@ -43,7 +44,7 @@ class FRS:
             #     ],
             })
 
-
+        # Dictionary of relevant data categories (keys) and variables (values)
         self._json_format = OrderedDict({
             'site': [
                 'CITY_NAME', 'COUNTY_NAME', 'FIPS_CODE', 'STATE_CODE',
@@ -190,14 +191,8 @@ class FRS:
             zf.extractall(os.path.abspath(self._frs_data_path))
             logging.info("File unzipped.")
 
-    def test_naics(naics_code):
+        return
 
-        n2d = str(naics_code)[0:2]
-        try:
-            n2d = int(n2d)
-
-        except ValueError:
-            print(naics_code, n2d)
 
     @staticmethod
     def fix_code(code):
@@ -319,7 +314,6 @@ class FRS:
             # Assume that a facility with any industry NAICS
             # code (i.e., 11, 21, 23, 31-33) is 
             # an industrial facility
-
             all_naics = pd.DataFrame(
                 data.NAICS_CODE.unique(), columns=['NAICS_CODE']
                 )
@@ -346,28 +340,6 @@ class FRS:
                 )
 
             data.drop(['ind'], axis=1, inplace=True)
-
-
-            # # Keep only industry NAICS
-            # ind_naics = pd.DataFrame(
-            #     data.NAICS_CODE.unique(), columns=['NAICS_CODE']
-            #     )
-
-            # ind_naics = pd.DataFrame(
-            #     ind_naics[
-            #         ind_naics.apply(
-            #             lambda x: int(
-            #                 str(x['NAICS_CODE'])[0:2]
-            #                 ) in [11, 21, 23, 31, 32, 33],
-            #             axis=1
-            #             )
-            #         ]
-            #     )
-
-            # data = pd.merge(
-            #     data, ind_naics, on='NAICS_CODE',
-            #     how='inner'
-            #     )
 
         # elif name == 'PROGRAM':
 
@@ -409,25 +381,10 @@ class FRS:
 
         Returns
         -------
+        frs_json : json, optional.
+            Dictionary of facility data extracted from FRS in 
+            JSON format.
         """
-
-
-        # for i in frs_data_df.index:
-        #     for k in self._json_format.keys():
-        #         if frs_data_df.at[i, 'index'] in self._json_format[k]:
-        #             frs_data_df.at[i, 'cat'] = k
-        #         else:
-        #             continue
-        
-        # frs_dict = dict.fromkeys(
-        #     frs_data_df.index.values,
-        #     [dict.fromkeys([x]) for x in self._json_format.keys()]
-        #     )
-        """""
-        test_dict = {'Gfg' : 4, 'is' : 5, 'best' : 9} 
-        test_list = [8, 3, 2]
-        res = {idx : {key: test_dict[key]} for idx, key in zip(test_list, test_dict)}
-        """""
 
         # Fix formatting
         fix_codes = ['NAICS_CODE', 'POSTAL_CODE', 'CONGRESSIONAL_DIST_NUM',
@@ -439,7 +396,6 @@ class FRS:
                 lambda x: FRS.fix_code(x)
                 )
 
-        # Version to use
         # Must first transpose DF
         frs_data_df = frs_data_df.T
         frs_data_df.index.name = 'VARIABLE'
@@ -451,44 +407,31 @@ class FRS:
                     frs_data_df.at[i, 'CATEGORY'] = cat
                 else:
                     continue
-        
+
         frs_data_df.set_index(['CATEGORY', 'VARIABLE'], inplace=True)
-    
+
         val_dict = \
             {k: frs_data_df.xs(k).to_dict() for k in self._json_format.keys()}  # nested dict, e.g., {'site' : {1000: {NAICS_CODE: 2111}}}
 
         frs_dict = dict.fromkeys(
             frs_data_df.columns, [dict.fromkeys(list(val_dict.keys()))]
             )
-    
+
         for facid in frs_dict.keys():
             for cat in val_dict.keys():
                 frs_dict[facid][0][cat] = val_dict[cat][facid]
 
-        # frs_dict = {fid : [{cat : val_dict[cat][fid]}] for fid, cat in itertools.product(
-        #     frs_data_df.columns, _json_format.keys()
-        #     )}
-
-        # frs_dict = dict.fromkeys(
-        #     test.columns,
-        #     [dict.fromkeys([k for k in _json_format.keys()],
-        #         [l_frs.xs(k).T.to_dict(orient='records') for k in _json_format.keys()]
-        #         )]
-        #     )
-
-        # for i in frs_dict.keys():
-        #     for j, k in enumerate(self._json_format.keys()):
-        #         frs_dict[i][j] = frs_data_df.loc[i, self._json_format[k]].to_dict() 
-
         if save_path:
             with gzip.open(os.path.join(save_path, 'found_ind_data.json.gz'), 'wt', encoding="ascii") as f:
-                json.dump(frs_dict, f)
+                json.dump(frs_dict, f, sort_keys=True, indent=4)
 
         else:
             pass
 
         if ret:
-            return json.dump(frs_dict)
+            frs_json = json.dump(frs_dict)
+
+            return frs_json
 
         else:
             pass
