@@ -1,1 +1,3 @@
 /data/FRS
+*.pyc
+*.pkl
