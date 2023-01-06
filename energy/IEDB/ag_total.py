@@ -25,7 +25,7 @@ class Ag:
         self._usda_key = usda_api_key
         self._eia_key = eia_api_key
         self._census_year = 2017
-        self._survey_year = 2017
+        self._survey_year = 2018
 
         self._region_file = pd.read_csv(
             os.path.abspath('energy/IEDB/input_region.csv')
@@ -57,7 +57,7 @@ class Ag:
                 'agg_level_desc': 'COUNTY',
                 'short_desc': 'FARM OPERATIONS - NUMBER OF OPERATIONS',
                 'domain_desc': 'NAICS CLASSIFICATION',
-                'year': self._survey_year
+                'year': self._census_year
                 },
             'gasoline': {
                 'source_desc': 'SURVEY',
@@ -163,7 +163,6 @@ class Ag:
 
         try:
             err = r.json()['error'][0]
-            logging.error(f'ERROR: {err}')
 
         except KeyError:
             usda_data = pd.DataFrame(r.json()['data'], columns=data_cols)
@@ -172,7 +171,6 @@ class Ag:
         usda_data.loc[:, 'year'] = params['year']
 
         # Split the column of NAICS codes:
-
         if params['agg_level_desc'] == 'REGION : MULTI-STATE':
             usda_data[['region', 'a']] = usda_data.region.str.split(
                 ',', expand=True
@@ -221,11 +219,6 @@ class Ag:
             else:
                 pass
 
-            # elif params['agg_level_desc'] == 'REGION : MULTI-STATE':
-
-            #     usda_data.loc[:, 'expense_frac'] = \
-            #         usda_data['expense_$'] / usda_data['expense_$'].sum()
-
         else:
 
             usda_data = usda_data.query("NAICS != '1119'")
@@ -235,7 +228,8 @@ class Ag:
                 ).astype(int)
 
             # Create COUNTY_FIPS column to match mfg data
-            usda_data.loc[:, 'COUNTY_FIPS'] = usda_data.fipstate.add(usda_data.county_ansi)
+            usda_data.loc[:, 'COUNTY_FIPS'] = \
+                usda_data.fipstate.add(usda_data.county_ansi)
             usda_data.update(usda_data.COUNTY_FIPS.astype('int'))
 
             # Drop Aleutian Islands
@@ -251,11 +245,17 @@ class Ag:
 
         return usda_data
 
-    def get_usda_elec(self):
+    def get_usda_elec(self, usda_census_elec):
         """
-        Separate method to get USDA survey results for electricity expenditures. 
-        There does not appear to be a way to use the NASS API to obtain these
-        data.
+        Separate method to get USDA survey results for electricity
+        expenditures. There does not appear to be a way to use the 
+        NASS API to obtain these data.
+
+        Parameters
+        ----------
+        usda_census_elec : pandas.DataFrame
+            Dataframe of Census electricity data. Used to allocate 
+            State-level electricity data to NAICS code.
 
         Returns
         -------
@@ -288,56 +288,62 @@ class Ag:
         usda_elec = usda_elec.pivot_table(
             index=['state', 'region'], columns='Year',
             values='Amount'  # Expenditures in $1,000
-            ).reset_index(drop=False)
+            ).reset_index(['region'], drop=False)
+
+        usda_elec = usda_elec[year].multiply(
+            usda_census_elec.set_index(['state', 'NAICS']).expense_frac, axis=0
+            ).reset_index()
+
+        usda_elec.loc[:, 'fuel_type'] = 'electricity'
 
         return usda_elec
 
-    def calc_fuel_fraction(self, usda_data):
-            """
+    # def calc_fuel_fraction(self, usda_data):
+    #     """
 
-            Parameters
-            ----------
-            usda_data : dict of pandas.DataFrames
+    #     Parameters
+    #     ----------
+    #     usda_data : dict of pandas.DataFrames
 
-            Returns
-            -------
-            state_fuel : pandas.Dictionary
-            """
+    #     Returns
+    #     -------
+    #     state_fuel : pandas.Dictionary
+    #     """
 
-            region_fuel = pd.concat(
-                    [usda_data[k] for k in usda_data.keys() if k in ['gasoline', 'diesel', 'lp_gas', 'other']],
-                    axis=0, ignore_index=True
-                    )
-            region_fuel.set_index(['region', 'fuel_type'], inplace=True)
-            region_fuel.loc[:, 'fuel_type_frac'] = region_fuel['expense_$'].divide(
-                    region_fuel['expense_$'].sum(level='region')
-                    )
+    #     region_fuel = pd.concat(
+    #             [usda_data[k] for k in usda_data.keys() if k in ['gasoline', 'diesel', 'lp_gas', 'other']],
+    #             axis=0, ignore_index=True
+    #             )
+    #     region_fuel.set_index(['region', 'fuel_type'], inplace=True)
+    #     region_fuel.loc[:, 'fuel_type_frac'] = region_fuel['expense_$'].divide(
+    #             region_fuel['expense_$'].sum(level='region')
+    #             )
 
-            region_file = self._region_file[
-                ['state', 'state_abbr', 'state_code', 'region']
-                ].copy(deep=True)
+    #     region_file = self._region_file[
+    #         ['state', 'state_abbr', 'state_code', 'region']
+    #         ].copy(deep=True)
 
-            state_fuel = usda_data['fuels'].copy(deep=True)
+    #     state_fuel = usda_data['fuels'].copy(deep=True)
 
-            state_fuel = pd.merge(state_fuel, region_file,
-                                  on=['state', 'state_abbr'], how='outer')
+    #     state_fuel = pd.merge(state_fuel, region_file,
+    #                             on=['state', 'state_abbr'], how='outer')
 
-            state_fuel.set_index(
-                ['region', 'state', 'state_abbr', 'fipstate', 'NAICS'],
-                inplace=True
-                )
+    #     state_fuel.set_index(
+    #         ['region', 'state', 'state_abbr', 'fipstate', 'NAICS'],
+    #         inplace=True
+    #         )
 
-            state_fuel = region_fuel.fuel_type_frac.multiply(state_fuel['expense_$'])
-            state_fuel.name = 'fuel_expense_dollars'
-            state_fuel = pd.DataFrame(state_fuel)
-            state_fuel.reset_index(inplace=True)
+    #     state_fuel = region_fuel.fuel_type_frac.multiply(state_fuel['expense_$'])
+    #     state_fuel.name = 'fuel_expense_dollars'
+    #     state_fuel = pd.DataFrame(state_fuel)
+    #     state_fuel.reset_index(inplace=True)
 
-            # state_fuel = pd.merge(state_fuel, region_fuel,
-            #                       on=['region', 'fuel_type'], how='left')
-            # state_fuel.set_index(['region', 'state'], inplace=True)
-            # state_fuel['expense_$'].multiply(region_fuel.fuel_type_frac, level='region')
+    #     # state_fuel = pd.merge(state_fuel, region_fuel,
+    #     #                       on=['region', 'fuel_type'], how='left')
+    #     # state_fuel.set_index(['region', 'state'], inplace=True)
+    #     # state_fuel['expense_$'].multiply(region_fuel.fuel_type_frac, level='region')
 
-            return state_fuel
+    #     return state_fuel
 
     def get_eia_prices(self, years, fuel_type):
         """
@@ -535,12 +541,14 @@ class Ag:
         price_cols = all_fuel_prices.columns.to_list()
 
         # Original fuel prices in $/gal; convert to $/MMBtu
+        all_fuel_prices = all_fuel_prices * 42  # 42 gal/barrel 
         all_fuel_prices = pd.concat(
-            [convert.divide(
-                all_fuel_prices[c], level='fuel_type', axis=0
-                ) * 42 for c in all_fuel_prices.columns],
+            [all_fuel_prices[c].divide(
+                convert.MMBtu_per_barrel, axis=0
+                ) for c in all_fuel_prices.columns],
             axis=1, ignore_index=False
             )
+
 
         # Prices in $/MMBtu
         all_fuel_prices.columns = price_cols
@@ -552,15 +560,10 @@ class Ag:
 
         return all_fuel_prices
 
-    def get_elec_prices(self, years):
+    def get_elec_prices(self):
         """
         Download EIA electricity price data 
-        for industrial customers by state for
-        specified years.
-
-        Parameters
-        ----------
-        years : list of integers
+        for industrial customers by state.
 
 
         Returns
@@ -572,21 +575,21 @@ class Ag:
 
         elec_price = pd.read_excel(
             'https://www.eia.gov/electricity/data/state/sales_annual_a.xlsx',
-            sheet_name='Total Electric Industry', header=[0,1,2],
+            sheet_name='Total Electric Industry', header=[0, 1, 2],
             index_col=[0, 1]
             )
 
         elec_price = elec_price.loc[:, ('INDUSTRIAL', 'Price')].copy(deep=True)
         elec_price.reset_index(inplace=True)
-        elec_price.columns = ['year', 'state', 'cents_per_kWh']
+        elec_price.columns = ['year', 'state_abbr', 'cents_per_kWh']
         elec_price = pd.merge(
             elec_price,
             self._region_file[['state', 'state_abbr', 'state_code']],
-            on='state', how='inner'
+            on='state_abbr', how='inner'
             )
 
         elec_price = elec_price.where(
-            elec_price.year.isin(years)
+            elec_price.year.isin([self._survey_year])
             ).dropna().reset_index(drop=True)
 
         elec_price = elec_price.pivot_table(
@@ -596,6 +599,8 @@ class Ag:
             ).reset_index()
 
         return elec_price
+
+
 
     # def get_eia_elec_data(self, years):
     #     """
@@ -687,46 +692,47 @@ class Ag:
                 on='state', how='inner'
                 )
 
-            state_energy.set_index(
-                ['region', 'state', 'state_abbr', 'fipstate', 'NAICS'],
-                inplace=True
-                )
+            # state_energy.set_index(
+            #     ['region', 'state', 'state_abbr', 'fipstate', 'NAICS'],
+            #     inplace=True
+            #     )
 
-            fuel_exp = region_fuel.fuel_type_frac.multiply(state_energy['expense_$'])
-            fuel_exp = fuel_exp.multiply(state_energy['expense_frac'])
+            fuel_exp = region_fuel['expense_$'].multiply(
+                state_energy.set_index(['region', 'state', 'NAICS'])['expense_frac']
+                ).reset_index(['region', 'fuel_type'])
+
+            fuel_exp.set_index(['fuel_type'], append=True, inplace=True)
+            # fuel_exp = region_fuel.fuel_type_frac.multiply(state_energy['expense_$'])
+            # fuel_exp = fuel_exp.multiply(state_energy['expense_frac'])
 
             eia_prices.set_index(
-                ['fuel_type', 'state'], inplace=True
+                ['state', 'fuel_type'], inplace=True
                 )
 
-            energy = eia_prices[self._census_year].multiply(fuel_exp)
-            energy.name = 'MMBtu'
-
-            state_energy = pd.concat(
-                [state_energy, energy], axis=1,
-                ignore_index=False
+            state_energy = fuel_exp[0].divide(
+                eia_prices[self._survey_year], axis=0
                 )
 
         else:
             eia_prices.set_index('state', inplace=True)
-            state_energy.set_index('state', inplace=True)
 
-            state_energy.loc[:, 'MMBtu'] = state_energy.divide(
-                eia_prices[self._census_year], axis=0
+            usda_data.set_index(
+                ['state', 'NAICS', 'fuel_type'], inplace=True
+                )
+            logging.info(f'USDA columns: {usda_data.columns}\n EIA columns: {eia_prices.columns}')
+            state_energy = usda_data[0].divide(
+                eia_prices[self._survey_year], axis=0
                 ) * 100 * 1000 * 3412.14 / 10**6  # price is in cents per kWh; expenditures in $1000
 
-            state_energy = pd.concat(
-                [usda_data['electricity'].set_index(['state', 'NAICS']),
-                 usda_data['electricity'].set_index(['state', 'NAICS'])['expense_frac'].multiply(state_energy.MMBtu)],
-                axis=1, ignore_index=False
-                )
+        state_energy.name = 'MMBtu'
+        state_energy = pd.DataFrame(state_energy).reset_index()
 
         return state_energy
 
-
-    def calc_county_intensity(self, state_energy, usda_counts):
+    def calc_county_energy(self, state_energy, usda_counts):
         """
-        
+        Calculate the energy (MMBtu) and intensity (MMBtu/farm) by county and NAICS code.
+
         Parameters
         ----------
         state_energy : pandas.DataFrame
@@ -735,12 +741,31 @@ class Ag:
 
         Returns
         -------
-        county_intensity : pandas.DataFrame
+        county_energy : pandas.DataFrame
 
         """
 
-        return
+        usda_counts = usda_counts.copy(deep=True)
 
+        state_energy.set_index(['state', 'NAICS', 'fuel_type'], inplace=True)
+        usda_counts.set_index(['state', 'NAICS', 'COUNTY_FIPS'], inplace=True)
+
+        county_energy = pd.concat(
+            [state_energy.MMBtu.divide(
+                usda_counts.farm_counts, axis=0
+                ),
+             state_energy.MMBtu.multiply(
+                usda_counts.statefraction, axis=0
+                )], axis=1, ignore_index=False
+            )
+
+        county_energy.columns = ['MMBtu_per_farm', 'MMBtu']
+        county_energy.reset_index(inplace=True)
+        county_energy.dropna(subset=['COUNTY_FIPS'], inplace=True)
+        county_energy.;oc[:, 'COUNTY_FIPS'] = \
+            county_energy.COUNTY_FIPS.astype(int)
+
+        return county_energy
 
 
 if __name__ == '__main__':
@@ -748,19 +773,27 @@ if __name__ == '__main__':
     # API keys stored locally in json file
     with open(
         os.path.join(os.environ['USERPROFILE'], 'Documents', 'API_auth.json')
-        ) as f:
+    ) as f:
         keys = json.load(f)
 
     ag = Ag(usda_api_key=keys['usda_API'], eia_api_key=keys['eia_API'])
-    year = [2017]
+    year = [ag._survey_year]  # 2018
 
     usda_data = {k: ag.call_nass_api(data_cat=k, **ag._data_fields[k]) for k in ag._data_fields.keys()}
-    usda_elec = ag.get_usda_elec()
+    usda_elec = ag.get_usda_elec(usda_data['electricity'])
 
     eia_prices = [ag.get_eia_prices(year, f) for f in ['diesel', 'gasoline', 'LPG', 'OTHER']]
     eia_prices = ag.combine_fuel_prices(eia_prices)
 
-    eia_price_elec = ag.get_elec_prices(year)
+    eia_price_elec = ag.get_elec_prices()
+
+    state_fuels = ag.calc_state_energy_use(eia_prices, usda_data)
+    state_elec = ag.calc_state_energy_use(eia_price_elec, usda_elec)
+
+    county_energy = pd.concat(
+        [ag.calc_county_energy(state_fuels, usda_data['farm_counts']),
+         ag.calc_county_energy(state_elec, usda_data['farm_counts'])]
+        )
 
     # for f in eia_fuels.keys():
     #     logging.info(f, eia_fuels[f].head())
