@@ -19,25 +19,44 @@ logging.basicConfig(level=logging.INFO)
 class FRS:
     """
     Class for extracting relevant facility-level
-    data from EPA's Facility Registration Service data.
+    data from EPA's Facility Registration Service (FRS) data.
+
+    Documentation of FRS data fields:
+    https://www.epa.gov/sites/default/files/2015-09/documents/frs_data_dictionary.pdf
     """
+
     def __init__(self):
 
-        self._frs_data_path = '../data/FRS'
+        self._frs_data_path = os.path.abspath('./data/FRS')
 
         # Names of relevant FRS data files and columns.
         self._names_columns = OrderedDict({
+            'PROGRAM': ['REGISTRY_ID', 'SMALL_BUS_IND', 'ENV_JUSTICE_CODE',
+                        'PGM_SYS_ACRNM', 'PGM_SYS_ID', 'SENSITIVE_IND',
+                        'PRIMARY_NAME', 'STD_NAME', 'STD_LOC_ADDRESS',
+                        'STD_COUNTY_FIPS', 'STD_CITY_NAME', 'STD_COUNTY_NAME',
+                        'FIPS_CODE', 'STD_STATE_CODE',
+                        'STATE_NAME', 'STD_POSTAL_CODE', 'TRIBAL_LAND_CODE',
+                        'LEGISLATIVE_DIST_NUM', 'HUC_CODE_8',
+                        'SITE_TYPE_NAME'],
             'FACILITY': [
-                'REGISTRY_ID', 'PRIMARY_NAME', 'LOCATION_ADDRESS',
-                'CITY_NAME', 'COUNTY_NAME', 'FIPS_CODE', 'STATE_CODE',
-                'STATE_NAME', 'POSTAL_CODE', 'TRIBAL_LAND_CODE',
+                'REGISTRY_ID', 'STATE_CODE',
                 'CONGRESSIONAL_DIST_NUM', 'CENSUS_BLOCK_CODE', 'HUC_CODE',
-                'EPA_REGION_CODE', 'SITE_TYPE_NAME', 'LOCATION_DESCRIPTION',
+                'EPA_REGION_CODE', 'LOCATION_DESCRIPTION',
                 'LATITUDE83', 'LONGITUDE83'
                 ],
             'NAICS': ['REGISTRY_ID', 'NAICS_CODE'],
-            'PROGRAM': ['REGISTRY_ID', 'SMALL_BUS_IND', 'ENV_JUSTICE_CODE',
-                        'PGM_SYS_ACRNM', 'PGM_SYS_ID', 'SENSITIVE_IND']
+            'single': ['REGISTRY_ID', 'PRIMARY_NAME',
+                       'LOCATION_ADDRESS', 'SUPPLEMENTAL_LOCATION',
+                       'CITY_NAME', 'COUNTY_NAME', 'FIPS_CODE', 'STATE_CODE',
+                       'STATE_NAME', 'COUNTRY_NAME', 'POSTAL_CODE',
+                       'TRIBAL_LAND_CODE', 'CONGRESSIONAL_DIST_NUM',
+                       'CENSUS_BLOCK_CODE',
+                       'HUC_CODE', 'SITE_TYPE_NAME', 'LOCATION_DESCRIPTION',
+                       'US_MEXICO_BORDER_IND',
+                       'LATITUDE83', 'LONGITUDE83']
+            # 'PROGRAM': ['REGISTRY_ID', 'SMALL_BUS_IND', 'ENV_JUSTICE_CODE',
+            #             'PGM_SYS_ACRNM', 'PGM_SYS_ID', 'SENSITIVE_IND']
             # 'ORGANIZATION': [
             #     'REGISTRY_ID', 'PGM_SYS_ACRNM', 'PGM_SYS_ID', 'EIN',
             #     'DUNS_NUMBER', 'ORG_NAME'
@@ -131,37 +150,22 @@ class FRS:
 
         return all_fips
 
-
-    # def call_frs_api(self, zip_code, state_abbr, output='JSON'):
-    #     """
-        
-    #     """
-
-    #     al
-
-    #     frs_api_url = \
-    #         'https://ofmpub.epa.gov/frs_public2/frs_rest_services.get_facilities?'
-
-    #     frs_params = {
-    #         'zip_code': zip_code,
-    #         'state_abbr': state_abbr,
-    #         'output': output
-    #         }
-
-    #     try: 
-    #         r = requests.get(frs_api_url, params=frs_params)
-
-    def download_unzip_frs_data(self):
+    def download_unzip_frs_data(self, combined=True):
         """
-        Download bulk data file from EPA.
+        Download bulk FRS data files from EPA.
         """
 
-        # This file is ~732 MB as of December 2022
+        if combined:
+            name = 'combined'
+        else:
+            name = 'single'
+
+        # Combined file is ~732 MB as of December 2022
         frs_url = \
-            "https://ordsext.epa.gov/FLA/www3/state_files/national_combined.zip"
+            f"https://ordsext.epa.gov/FLA/www3/state_files/national_{name}.zip"
 
         zip_path = os.path.abspath(
-            os.path.join(self._frs_data_path, "national_combined.zip")
+            os.path.join(self._frs_data_path, f"national_{name}.zip")
             )
 
         if not os.path.exists(os.path.abspath(self._frs_data_path)):
@@ -170,10 +174,10 @@ class FRS:
             pass
 
         if os.path.exists(zip_path):
-            logging.info("Zip file exists.")
+            logging.info(f"{name.capitalize()} zip file exists.")
 
         else:
-            logging.info("Zip file does not exist. Downloading...")
+            logging.info(f"{name.capitalize()} zip file does not exist. Downloading...")
 
             r = requests.get(frs_url)
 
@@ -187,12 +191,11 @@ class FRS:
                 f.write(r.content)
 
         # Unzip with zipfile
-        with zipfile.ZipFile(zip_path, 'w') as zf:
+        with zipfile.ZipFile(zip_path, 'r') as zf:
             zf.extractall(os.path.abspath(self._frs_data_path))
-            logging.info("File unzipped.")
+            logging.info(f"{name.capitalize()} file unzipped.")
 
         return
-
 
     @staticmethod
     def fix_code(code):
@@ -208,6 +211,177 @@ class FRS:
         else:
             return code_fixed
 
+    def format_program_csv(self, data, programs):
+        """
+        Builds dataframe from FRS_PROGRAM dataset.
+
+        Parameters
+        ----------
+        data : pandas.DataFrame
+            Initial imported DataFrame.
+
+        programs : list
+            List of program system acronyms to extract.
+
+        Returns
+        -------
+        data : pandas.DataFrame
+            Formatted FRS data
+        """
+
+        data_dict = {}
+        for a in programs:
+            data_dict[a] = pd.DataFrame(data.query("PGM_SYS_ACRNM==@a")[
+                ['REGISTRY_ID', 'PGM_SYS_ID', 'PGM_SYS_ACRNM']
+                ])
+            data_dict[a].loc[:, f'PGM_SYS_ID_{a}'] = \
+                data_dict[a].PGM_SYS_ID
+
+            # Facilities may have >1 program system ID, which
+            # leads to duplicate entries when indexing by REGISTRY_ID.
+            dups = data_dict[a][data_dict[a].REGISTRY_ID.duplicated()].REGISTRY_ID.unique()
+
+            if len(dups) == 0:
+                continue
+
+            else:
+                data_dict[a].loc[:, f'PGM_SYS_ID_{a}_additional'] = None
+
+                for d in dups:
+                    ids = data_dict[a][data_dict[a].REGISTRY_ID == d]
+                    use_index = ids.drop_duplicates(
+                        subset=['REGISTRY_ID'], keep='first'
+                        ).index
+                    # logging.info(f'registry ID: {d}\nLength of IDs: {len(ids)}')
+                    # for i, v in enumerate(ids[1:].index):
+                    data_dict[a].at[use_index, f'PGM_SYS_ID_{a}_additional'] =\
+                            ', '.join(ids[1:][f'PGM_SYS_ID_{a}'].to_list())
+                            # data_dict[a].loc[v, f'PGM_SYS_ID_{a}']
+
+                data_dict[a].drop_duplicates(
+                    subset=['REGISTRY_ID'], keep='first',
+                    inplace=True
+                    )
+
+            data_dict[a].set_index('REGISTRY_ID', inplace=True)
+            data_dict[a].drop(
+                ['PGM_SYS_ACRNM', 'PGM_SYS_ID'], axis=1, inplace=True
+                )
+
+            data_dict[a].replace({'N': False, 'Y': True}, inplace=True)
+
+        data.drop(['PGM_SYS_ACRNM', 'PGM_SYS_ID'], axis=1, inplace=True)
+        data.drop_duplicates(subset=['REGISTRY_ID'], inplace=True)
+        data.replace({'N': False, 'Y': True}, inplace=True)
+        data.set_index('REGISTRY_ID', inplace=True)
+
+        pgm_data = pd.concat(
+            [data_dict[k] for k in data_dict.keys()],
+            axis=1
+            )
+
+        data = data.join(pgm_data)
+
+        # pgm_data = pgm_data.reindex(index=data.index)
+        # pgm_data.update(data)
+
+        # data = pd.DataFrame(pgm_data)
+        data.reset_index(inplace=True)
+
+        return data
+
+    def format_naics_csv(self, data):
+        """
+        Builds dataframe from FRS_FACILITY dataset.
+
+        Parameters
+        ----------
+        data : pandas.DataFrame
+            Initial imported DataFrame.
+
+        Returns
+        -------
+        data : pandas.DataFrame
+            Formatted FRS data
+        """
+        # Duplicate NAICS codes for facililities. Keep first
+        # and move remaining to NAICS_CODE_additional.
+        # Assume that a facility with any industry NAICS
+        # code (i.e., 11, 21, 23, 31-33) is
+        # an industrial facility
+        all_naics = pd.DataFrame(
+            data.NAICS_CODE.unique(), columns=['NAICS_CODE']
+            )
+        all_naics.loc[:, 'ind'] = all_naics.NAICS_CODE.apply(
+            lambda x: int(str(x)[0:2]) in [11, 21, 23, 31, 32, 33]
+            )
+
+        data = pd.merge(data, all_naics, on='NAICS_CODE', how='left')
+        data = data.query("ind==True")
+
+        data_unique = data.drop_duplicates(
+            subset=['REGISTRY_ID'], keep='first'
+            )
+
+        dups = data[~data.index.isin(data_unique.index)]
+        dups = dups.groupby('REGISTRY_ID').apply(
+            lambda x: x['NAICS_CODE'].to_list()
+            )
+        dups.name = 'NAICS_CODE_additional'
+
+        data = pd.merge(
+            data_unique, dups, on='REGISTRY_ID',
+            how='left'
+            )
+
+        data.drop(['ind'], axis=1, inplace=True)
+
+        return data
+
+    def read_facility_csv(self, filepath, columns):
+        """
+        The facility file throws errors for pandas.read_csv method
+        and requires additional steps.
+
+        Parameters
+        ----------
+        filepath: str
+            String for FRS csv filepath.
+
+        columns : list
+            List of columns to extract from csv.
+
+        Returns
+        -------
+        data : pandas.DataFrame
+            Formatted FRS data, based on FACILITY, ORGANIZATION,
+            NAICS, and PROGRAM datasets.
+        
+        """
+
+        try:
+            data = pd.read_csv(
+                filepath,
+                usecols=columns, low_memory=False
+                )
+
+        except pd.errors.ParserError as e:
+            logging.error(f'{e}\n Due to {file_path}')
+
+            try:
+                skiprow = int(re.search(r'(?<=row )(\d+)', str(e)).group())
+
+            except AttributeError as e2:
+                logging.error(f'{e2}. Something else happening')
+
+            else:
+                data = pd.read_csv(
+                    file_path,
+                    usecols=columns, low_memory=False,
+                    skiprows=[skiprow]
+                    )
+
+        return data
 
     def read_frs_csv(self, name, columns, programs=['EIS', 'E-GGRT']):
         """
@@ -225,7 +399,7 @@ class FRS:
 
         programs : list; ['EIS', 'E-GGRT']
             List of program system acronyms to extract from
-            NATIONAL_ORGANIZATION_FILE.CSV.
+            NATIONAL_PROGRAM_FILE.CSV.
 
         Returns
         -------
@@ -234,130 +408,28 @@ class FRS:
             NAICS, and PROGRAM datasets.
         """
 
-        file = f'NATIONAL_{name}_FILE.CSV'
+        if name == 'single':
+            file = f'NATIONAL_{name.upper()}.CSV'
+
+        else:
+            file = f'NATIONAL_{name}_FILE.CSV'
+
         file_path = os.path.abspath(os.path.join(self._frs_data_path, file))
 
-        try:
+        if name == 'FACILITY':
+            data = self.read_facility_csv(file_path, columns)
+
+        else:
             data = pd.read_csv(
                 file_path,
                 usecols=columns, low_memory=False
                 )
 
-        # Error in the 'FACILITY' file.
-        except pd.errors.ParserError as e:
-            logging.error(f'{e}\n Due to {file_path}')
-
-            try:
-                skiprow = int(re.search(r'(?<=row )(\d+)', str(e)).group())
-
-            except AttributeError as e2:
-                logging.error(f'{e2}. Something else happening')
-
-            else:
-                data = pd.read_csv(
-                    file_path,
-                    usecols=columns, low_memory=False,
-                    skiprows=[skiprow]
-                    )
-
         if name == 'PROGRAM':
-            data_dict = {}
-            for a in programs:
-                data_dict[a] = data.query("PGM_SYS_ACRNM==@a")
-                data_dict[a].loc[:, f'PGM_SYS_ID_{a}'] = \
-                    data_dict[a].PGM_SYS_ID
-
-                # Facilities may have >1 program system ID, which
-                # leads to duplicate entries when indexing by REGISTRY_ID.
-                dups = data_dict[a][data_dict[a].REGISTRY_ID.duplicated()].REGISTRY_ID.unique()
-
-                if len(dups) == 0:
-                    continue
-
-                else:
-                    data_dict[a].loc[:, f'PGM_SYS_ID_{a}_additional'] = None
-
-                    for d in dups:
-                        ids = data_dict[a][data_dict[a].REGISTRY_ID == d]
-                        use_index = ids.drop_duplicates(
-                            subset=['REGISTRY_ID'], keep='first'
-                            ).index
-                        # logging.info(f'registry ID: {d}\nLength of IDs: {len(ids)}')
-                        # for i, v in enumerate(ids[1:].index):
-                        data_dict[a].at[use_index, f'PGM_SYS_ID_{a}_additional'] =\
-                                ', '.join(ids[1:][f'PGM_SYS_ID_{a}'].to_list())
-                                # data_dict[a].loc[v, f'PGM_SYS_ID_{a}']
-
-                    data_dict[a].drop_duplicates(
-                        subset=['REGISTRY_ID'], keep='first',
-                        inplace=True
-                        )
-
-                data_dict[a].set_index('REGISTRY_ID', inplace=True)
-                data_dict[a].drop(
-                    ['PGM_SYS_ACRNM', 'PGM_SYS_ID'], axis=1, inplace=True
-                    )
-
-                data_dict[a].replace({'N': False, 'Y': True}, inplace=True)
-
-            data = pd.concat(
-                [data_dict[k] for k in data_dict.keys()],
-                axis=1
-                )
-
-            data.reset_index(inplace=True)
+            data = self.format_program_csv(data, programs)
 
         elif name == 'NAICS':
-
-            # Duplicate NAICS codes for facililities. Keep first
-            # and move remaining to NAICS_CODE_additional.
-            # Assume that a facility with any industry NAICS
-            # code (i.e., 11, 21, 23, 31-33) is 
-            # an industrial facility
-            all_naics = pd.DataFrame(
-                data.NAICS_CODE.unique(), columns=['NAICS_CODE']
-                )
-            all_naics.loc[:, 'ind'] = all_naics.NAICS_CODE.apply(
-                lambda x: int(str(x)[0:2]) in [11, 21, 23, 31, 32, 33]
-                )
-
-            data = pd.merge(data, all_naics, on='NAICS_CODE', how='left')
-            data = data.query("ind==True")
-
-            data_unique = data.drop_duplicates(
-                subset=['REGISTRY_ID'], keep='first'
-                )
-
-            dups = data[~data.index.isin(data_unique.index)]
-            dups = dups.groupby('REGISTRY_ID').apply(
-                lambda x: x['NAICS_CODE'].to_list()
-                )
-            dups.name = 'NAICS_CODE_additional'
-
-            data = pd.merge(
-                data_unique, dups, on='REGISTRY_ID',
-                how='left'
-                )
-
-            data.drop(['ind'], axis=1, inplace=True)
-
-        # elif name == 'PROGRAM':
-
-        #     data_unique = data.drop_duplicates(
-        #         subset=['REGISTRY_ID'], keep='first'
-        #         )
-        #     data_unique.set_index('REGISTRY_ID', inplace=True)
-
-        #     for c in ['SMALL_BUS_IND', 'ENV_JUSTICE_CODE']:
-        #         c_data = data.dropna(subset=[c]).drop_duplicates(
-        #             subset=['REGISTRY_ID']
-        #             )
-        #         c_data.set_index('REGISTRY_ID', inplace=True)
-        #         data_unique.update(c_data)
-
-        #     data_unique.replace({'N': False, 'Y': True}, inplace=True)
-
-        #     data = data_unique.reset_index()
+            data = self.format_naics_csv(data)
 
         elif name == 'FACILITY':
             pass
@@ -382,14 +454,14 @@ class FRS:
         Returns
         -------
         frs_json : json, optional.
-            Dictionary of facility data extracted from FRS in 
+            Dictionary of facility data extracted from FRS in
             JSON format.
         """
 
         # Fix formatting
         fix_codes = ['NAICS_CODE', 'POSTAL_CODE', 'CONGRESSIONAL_DIST_NUM',
                      'CENSUS_BLOCK_CODE', 'HUC_CODE', 'EPA_REGION_CODE',
-                    ]
+                     ]
 
         for code in fix_codes:
             frs_data_df.loc[:, code] = frs_data_df[code].apply(
@@ -457,7 +529,7 @@ class FRS:
 
         return
 
-    def import_format_frs(self):
+    def import_format_frs(self, combined=True):
         """
         Import and format downloaded frs files
 
@@ -466,35 +538,109 @@ class FRS:
         file_dir : str
             Directory of FRS files.
 
+        combined : bool; default is True
+            Indicate whether the data set is constructed using
+            the EPA FRS single file or combined files.
+
         Returns
         -------
-        frs_data_df : pandas.DataFrame
-
+        final_data : pandas.DataFrame
+            DataFrame indexed by REGISTRY_ID, containing
+            relevant site and facility data from EPA FRS. 
         """
 
         # Reminder that self._names_columns is an ordered dict
-        for i, v in enumerate(self._names_columns.items()):
-            if i == 0:
-                frs_data_df = self.read_frs_csv(name=v[0], columns=v[1])
-                frs_data_df.set_index('REGISTRY_ID', inplace=True)
-                logging.info(f'File name: {v[0]}\nDF len: {len(frs_data_df)}')
+        pgm_data = self.read_frs_csv(
+            name='PROGRAM', columns=self._names_columns['PROGRAM']
+            )
 
-            else:
-                data = self.read_frs_csv(name=v[0], columns=v[1])
-                data.set_index('REGISTRY_ID', inplace=True)
-                logging.info(f'File name: {v[0]}\nDF len: {len(data)}')
+        naics_data = self.read_frs_csv(
+            name='NAICS', columns=self._names_columns['NAICS']
+            )
 
-                frs_data_df = pd.merge(
-                    frs_data_df, data, left_index=True,
-                    right_index=True, how='left'
-                    )
+        if combined:
+            fac_data = self.read_frs_csv(
+                name='FACILITY', columns=self._names_columns['FACILITY']
+                )
+
+            final_data = pd.merge(
+                pgm_data, fac_data, on='REGISTRY_ID',
+                how='left'
+                )
+
+        else:
+            fac_data = self.read_frs_csv(
+                name='single', columns=self._names_columns['single']
+                )
+
+            final_data = pd.merge(
+                fac_data, pgm_data, on='REGISTRY_ID',
+                how='left'
+                )
+
+        final_data = pd.merge(
+            final_data, naics_data,
+            on='REGISTRY_ID',
+            how='left'
+            )
+
+        final_data.set_index('REGISTRY_ID', inplace=True)
+
+        # for i, v in enumerate(self._names_columns.items()):
+        #     if i == 0:
+        #         frs_data_df = self.read_frs_csv(name=v[0], columns=v[1])
+        #         frs_data_df.set_index('REGISTRY_ID', inplace=True)
+        #         logging.info(f'File name: {v[0]}\nDF len: {len(frs_data_df)}')
+
+        #     elif i < 4:
+        #         data = self.read_frs_csv(name=v[0], columns=v[1])
+        #         data.set_index('REGISTRY_ID', inplace=True)
+        #         logging.info(f'File name: {v[0]}\nDF len: {len(data)}')
+
+        #         frs_data_df = pd.merge(
+        #             frs_data_df, data, left_index=True,
+        #             right_index=True, how='left'
+        #             )
+        #         logging.info(f'File len: {len(frs_data_df)}')
+
+        #     else:
+        #         continue
 
         # All dataframes but the NAICS dataframe have non-industrial
         # facilities. Drop facilities that don't have NAICS codes after
         # merging.
-        frs_data_df.dropna(subset=['NAICS_CODE'], inplace=True)
+        final_data.dropna(subset=['NAICS_CODE'], inplace=True)
+        logging.info(f'Final len: {len(final_data)}')
 
-        return frs_data_df
+        return final_data
+
+    # TODO 
+    @staticmethod
+    def load_foundational_json(found_json_file):
+        """
+        Load json file of foundational energy data.
+        
+        """
+
+        with gzip.open(found_json_file, mode='rb') as gzfile:
+            # with json.load(gfile) as jfile:
+            json_data = pd.DataFrame.from_dict(json.load(gzfile),
+                                               orient='index')
+
+        frs_data = pd.DataFrame(index=json_data.index)
+
+        for c in json_data.columns:
+
+            column_data = pd.concat(
+                [pd.DataFrame.from_dict(json_data.iloc[i, c]).T for i in range(0, len(json_data))],
+                axis=0
+                )
+
+            column_data.index = frs_data.index
+
+            frs_data = pd.concat(
+                [frs_data, column_data], axis=1
+                )
 
     @staticmethod
     def find_eis(acrnm):
@@ -525,15 +671,16 @@ class FRS:
 
 if __name__ == '__main__':
 
+    combined = False
     t_start = time.perf_counter()
     frs_methods = FRS()
-    frs_methods.download_unzip_frs_data()
+    frs_methods.download_unzip_frs_data(combined=combined)
 
-    frs_data_df = frs_methods.import_format_frs()
-    frs_data_df.to_pickle('frs_data_df_revised2.pkl')
+    frs_data_df = frs_methods.import_format_frs(combined=combined)
+    frs_data_df.to_pickle('frs_data_df_single.pkl')
 
-    frs_methods.add_frs_columns_json(frs_data_df)
+    # frs_methods.add_frs_columns_json(frs_data_df)
 
-    frs_methods.build_frs_json(frs_data_df, save_path='../')
-    t_stop = time.perf_counter()
-    logging.info(f'Program time: {t_stop - t_start:0.2f} seconds')
+    # frs_methods.build_frs_json(frs_data_df, save_path='../')
+    # t_stop = time.perf_counter()
+    # logging.info(f'Program time: {t_stop - t_start:0.2f} seconds')
