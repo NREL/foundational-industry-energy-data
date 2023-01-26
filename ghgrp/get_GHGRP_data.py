@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Last updated 7/27/2017 by Colin McMillan, colin.mcmillan@nrel.gov
+Last updated 12/23/2022 by Colin McMillan, colin.mcmillan@nrel.gov
 """
 #
 import pandas as pd
@@ -18,9 +18,6 @@ def xml_to_df(xml_root, table_name, df_columns):
     to a DataFrame.
     """
 
-    # def int_formatter(v):
-    #     """
-    #     """
 
     data = []
 
@@ -30,12 +27,6 @@ def xml_to_df(xml_root, table_name, df_columns):
             data.append(
                 [field.find(c).text for field in xml_root.findall(table_name)]
                 )
-
-            # for field in xml_root.findall(table_name):
-            #     cl.append(field.find(c).text)
-
-            # cs = pd.Series(cl, name = c)
-            # rpd = pd.concat([rpd, cs], axis=1)
 
     else:
         for c in df_columns:
@@ -56,26 +47,6 @@ def xml_to_df(xml_root, table_name, df_columns):
 
     return rpd
 
-
-# def xml_to_df(xml_root, table_name, df_columns):
-#     """
-#     Converts elements of xml string obtained from EPA envirofacts (GHGRP)
-#     to a DataFrame.
-#     """
-#     rpd = pd.DataFrame()
-
-#     for c in df_columns:
-
-#         cl = []
-
-#         for field in xml_root.findall(table_name):
-#             cl.append(field.find(c).text)
-
-#         cs = pd.Series(cl, name = c)
-
-#         rpd = pd.concat([rpd, cs], axis = 1)
-
-#     return rpd
 
 def get_GHGRP_records(reporting_year, table, rows=None):
     """
@@ -130,38 +101,7 @@ def get_GHGRP_records(reporting_year, table, rows=None):
         if counts[0] == []:
             nrecords = int(counts[1][0].text)
 
-        # try:
-        #     nrecords = int(tree[0][0].text) 
-        # # nrecords = int(et.fromstring(r.content)[0].text)
-        # except IndexError as ie:
-        #     logging.error(
-        #         f'{ie}\ntree[0][0].text doesnt work for {r.url}'
-        #         )
-        # except ValueError as ve:
-        #     logging.error(
-        #         f'{ve}\n int(tree[0][0].text) doesnt work for {r.url}'
-        #         )
-        # logging.info('Trying tree[0].text')
-        # try:
-        #     nrecords = int(tree[0].text)  #V_GHG_EMITTER_FACILITIES has this xml structure
-        # except IndexError as ie:
-        #     logging.error(
-        #         f'{ie}\ntree[0].text doesnt work for {r.url}'
-        #         )
-        #     nrecords = int(tree.attrib['Count'])
-        # except ValueError as ve:
-        #     logging.error(
-        #         f'{ve}\n int(tree[0].text) doesnt work for {r.url}'
-        #         )
-        #     try: 
-        #         nrecords = int(tree.attrib['Count'])
-
-
         if nrecords > 10000:
-
-#            session = requests.Session()
-#            adapter = requests.adapters.HTTPAdapter(max_retries = max_retries)
-#            session.mount('https://', adapter)
 
             rrange = range(0, nrecords, 10000)
 
