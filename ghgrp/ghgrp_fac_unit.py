@@ -7,21 +7,18 @@ from io import BytesIO
 from pyxlsb import open_workbook
 import logging
 
-# code to take raw output from GHGRP energy calculations and:
-# * create facility-level summaries of energy and emissions by fuel type
-# * crate unit-level descriptions (indexed by FACILITY_ID) of combustion fuel use and emissions
-
-# TODO fix up code for getting capacity data
 
 class GHGRP_unit_char():
 
-    def __init__(self):
+    def __init__(self, ghgrp_energy_file):
 
         logging.basicConfig(level=logging.INFO)
 
         self._ghgrp_unit_url = 'https://www.epa.gov/system/files/other-files/2022-10/emissions_by_unit_and_fuel_type_c_d_aa_10_2022.zip'
 
         self._data_dir = os.path.abspath('./data/GHGRP/')
+
+        self._ghgrp_energy_file = ghgrp_energy_file
 
     def download_unit_data(self):
         """
@@ -36,7 +33,7 @@ class GHGRP_unit_char():
         r = requests.get(self._ghgrp_unit_url)
 
         with zipfile.ZipFile(BytesIO(r.content)) as zf:
-            file_path = os.path.join(self._data_dir, zf.namelist([0]))
+            file_path = os.path.join(self._data_dir, zf.namelist()[0])
 
             if os.path.exists(file_path):
                 pass
@@ -46,29 +43,30 @@ class GHGRP_unit_char():
 
         return file_path
 
-
-    def get_unit_capacity(self, years):
+    # TODO fix up code for getting capacity data
+    def get_unit_capacity(self, ghgrp_df):
         """
         Retrieve unit capacity data from EPA GHGRP data file.
 
-
         Parameters
         ----------
-        years : list of integer(s)
-            Years for which to return combustion unit capacity information.
-
+        ghgrp_df : pandas.DataFrame
+            Dataframe from GHGRP energy calculations with
+            UNIT_TYPE column updated from OCS to a specific
+            unit type.
 
         Returns
         -------
         unit_capacity : pandas.DataFrame
             Dataframe with unit capacity information by Facility ID and
-            unit name. 
+            unit name.
 
         """
 
         unit_data_file_path = self.download_unit_data()
 
-        # engine='pyxlsb' not workingn with pythong 3.6.5.final.0 and pandas 0.24.2
+        # engine='pyxlsb' not working with python 3.6.5.final.0 and pandas 0.24.2
+        # XLRDError: Excel 2007 xlsb file; not supported
         # ghgrp_units = pd.read_excel(
         #     unit_data_file_path,
         #     engine='pyxlsb', sheet_name='UNIT_DATA'
@@ -82,44 +80,84 @@ class GHGRP_unit_char():
 
         ghgrp_ind = pd.DataFrame(df[7:], columns=df[6])
 
-        ghgrp_ind = ghgrp_units[(ghgrp_units['Primary NAICS Code']//10000).isin(
-            [11, 21, 23, 31, 32, 33]
-            )].copy()
+        ghgrp_ind.update(
+            ghgrp_ind['Primary NAICS Code'].astype(int),
+            overwrite=True
+            )
 
-        ghgrp_ind['Unit Type'] = \
-            ghgrp_ind['Unit Type'].str.replace('.', '', regex=True)
+        # Select entries that are industrial facilities and 
+        # for reporting years that match GHGRP energy data years
+        ghgrp_ind = ghgrp_ind.where(
+            (ghgrp_ind['Primary NAICS Code'].apply(
+                lambda x: str(x)[0:2] in ['11', '21', '23', '31', '32', '33']
+                )) &
+            (ghgrp_ind['Reporting Year'].isin(ghgrp_df.REPORTING_YEAR))
+            ).dropna(how='all')
 
+        ghgrp_ind.update(
+            ghgrp_ind['Unit Maximum Rated Heat Input (mmBTU/hr)'].replace(
+                {'': None}
+                )
+            )
 
+        ghgrp_df = pd.merge(
+            ghgrp_df,
+            ghgrp_ind[[
+                'Reporting Year', 'Facility Id',
+                'Unit Maximum Rated Heat Input (mmBTU/hr)', 'Unit Name',
+                'FRS Id']],
+            left_on=['REPORTING_YEAR', 'FACILITY_ID', 'UNIT_NAME'],
+            right_on=['Reporting Year', 'Facility Id', 'Unit Name'],
+            how='left', indicator=True
+            )
 
+        ghgrp_df.drop(
+            ['Reporting Year', 'Facility Id', 'Unit Name'], axis=1, 
+            inplace=True
+            )
 
+        ghgrp_df.rename(columns={
+            'Unit Maximum Rated Heat Input (mmBTU/hr)': 'MAX_CAP_MMBTU_per_HOUR',
+            'FRS Id': 'FRS_REGISTRY_ID'
+            }, inplace=True
+            )
 
-        mfg_units = mfg_units[~pd.isnull(mfg_units)]
+        return ghgrp_df
 
-    def unit_type_regex(self, unit_name):
+    def format_ghgrp_df(self, ghgrp_df):
         """
-        Use unit name to deterimine unit type.
-
-        Parameters
-        ----------
-        unit_name : str
-            Unit name
-
-        Returns
-        -------
-        unit_type : str
-            Type of combustion unit based on unit name
+        Formatting (e.g., dropping columns, aggregating fuel types)
+        for GHGRP energy estimates, which now include unit capacity data.
         """
 
-    def unit_type_find(self, ghgrp_df):
+        ghgrp_df.loc[:, 'FUEL_TYPE_FINAL'] = pd.concat(
+            [ghgrp_df[c].dropna() for c in ['FUEL_TYPE', 'FUEL_TYPE_BLEND', 'FUEL_TYPE_OTHER']],
+            axis=0, ignore_index=False
+            )
+
+        # Aggregate. Units may combust multiple types of 
+        # fuels and have multiple observations (estimates)
+        # of energy use.
+        ghgrp_df = ghgrp_df.groupby(
+            ['FACILITY_ID', 'REPORTING_YEAR',
+                'FUEL_TYPE_FINAL', 'UNIT_NAME',
+                'FRS_REGISTRY_ID', 'UNIT_TYPE',
+                'MAX_CAP_MMBTU_per_HOUR'], as_index=False
+            ).TJ_TOTAL.sum()
+
+        # ghgrp_df = ghgrp_df[
+        #     ['FACILITY_ID', 'FRS_REGISTRY_ID', 'REPORTING_YEAR',
+        #      'FUEL_TYPE_FINAL', 'UNIT_TYPE', 'UNIT_NAME',
+        #      'MAX_CAP_MMBTU_per_HOUR', 'TJ_TOTAL']
+        #     ]
+
+        return ghgrp_df
+
+    def get_unit_type(self):
         """
         Use unit name to deterimine unit type for
         unit types that are defined as OCS (Other combustion source).
 
-        Parameters
-        ----------
-        ghgrp_df : pandas.DataFrame
-            Dataframe from GHGRP energy calculations, including columns
-            for UNIT_TYPE and UNIT_NAME.
 
         Returns
         -------
@@ -128,6 +166,10 @@ class GHGRP_unit_char():
             UNIT_TYPE column updated from OCS to a specific
             unit type.
         """
+
+        ghgrp_df = pd.read_parquet(
+            os.path.join(self._data_dir, self._ghgrp_energy_file)
+            )
 
         types = [
             'furnace', 'kiln', 'dryer', 'heater',
@@ -145,7 +187,7 @@ class GHGRP_unit_char():
         ocs_units = ocs_units.str.lower()
 
         logging.info(
-            f'There are {len(ocs_units)} units'
+            f'There are {len(ocs_units)} units '
             f'or {len(ocs_units)/len(ghgrp_df):.1%} labelled as OCS'
             )
 
@@ -176,7 +218,7 @@ class GHGRP_unit_char():
         named_units = named_units.apply(lambda x: x.dropna(), axis=0)
 
         sing_types = named_units.count(axis=1)
-        sing_types = sing_types.where(mult_types == 1).dropna()
+        sing_types = sing_types.where(sing_types == 1).dropna()
         sing_types = pd.DataFrame(
             named_units.loc[sing_types.index, :]
             )
@@ -221,133 +263,19 @@ class GHGRP_unit_char():
 
         return ghgrp_df
 
+    def main(self):
 
-    def calc_enduse(self, eu_fraction_dict, county_energy_dd, temps=False):
-        """
-        Calculates energy by end use based on unit type reported in GHGRP
-        data and MECS end use data.
-        Returns Dask DataFrame
-        """
-        unitname_eu_dict = {
-            'Process Heating': ['furnace', 'kiln', 'dryer', 'heater',
-                                'oven', 'calciner', 'stove', 'htr', 'furn',
-                                'cupola'],
-            'Conventional Boiler Use': ['boiler'],
-            'CHP and/or Cogeneration Process': ['turbine'],
-            'Facility HVAC': ['building heat', 'space heater'],
-            'Machine Drive': ['engine', 'compressor', 'pump', 'rice'],
-            'Conventional Electricity Generation': ['generator'],
-            'Other Nonprocess Use': ['hot water', 'crane', 'water heater',
-                                     'comfort heater', 'RTO', 'TODF',
-                                     'oxidizer', 'RCO']
-                }
+        ghgrp_df = self.get_unit_type()
+        ghgrp_df = self.get_unit_capacity(ghgrp_df)
+        ghgrp_df = self.format_ghgrp_df(ghgrp_df)
 
-        unittype_eu_dict = {
-            'Process Heating': ['F', 'PD', 'K', 'PRH', 'O', 'NGLH', 'CF',
-                                'HMH', 'C', 'HPPU', 'CatH', 'COB', 'FeFL',
-                                'IFCE', 'Pulp Mill Lime Kiln', 'Lime Kiln',
-                                'Direct Reduction Furnace',
-                                'Sulfur Recovery Plant'],
-            'Conventional Boiler Use': ['OB', 'S', 'PCWW', 'BFB', 'PCWD',
-                                        'PCT', 'CFB', 'PCO', 'OFB', 'PFB'],
-            'CHP and/or Cogeneration Process': ['CCCT', 'SCCT',
-                                                'Chemical Recovery Furnace',
-                                                'Chemical Recovery Combustion Unit'],
-            'Facility HVAC': ['CH'],
-            'Other Nonprocess Use': ['HWH', 'TODF', 'ICI', 'FLR', 'RTO',
-                                     'II', 'MWC', 'Flare', 'RCO'],
-            'Conventional Electricity Generation': ['RICE',
-                                                    'Electricity Generator']
-                }
+        ghgrp_df.to_csv(
+            os.path.join(self._data_dir, 
+                         self._ghgrp_energy_file.split('.')[0]
+                         )+'_unittype_final.csv'
+            )
 
-        def eu_dict_to_df(eu_dict):
-            """
-            Convert unit type/unit name dictionaries to dataframes.
-            """
-            eu_df = pd.DataFrame.from_dict(
-                    eu_dict, orient='index'
-                    ).reset_index()
 
-            eu_df = pd.melt(
-                    eu_df, id_vars='index', value_name='unit'
-                    ).rename(columns={'index': 'end_use'}).drop(
-                            'variable', axis=1
-                            )
-
-            eu_df = eu_df.dropna().set_index('unit')
-
-            return eu_df
-
-        def eu_unit_type(unit_type, unittype_eu_df):
-            """
-            Match GHGRP unit type to end use specified in unittype_eu_dict.
-            """
-
-            enduse = re.match('(\w+) \(', unit_type)
-
-            if enduse is not None:
-                enduse = re.match('(\w+)', enduse.group())[0]
-                if enduse in unittype_eu_df.index:
-                    enduse = unittype_eu_df.loc[enduse, 'end_use']
-                else:
-                    enduse = np.nan
-            else:
-                if unit_type in unittype_eu_df.index:
-                    enduse = unittype_eu_df.loc[unit_type, 'end_use']
-
-            return enduse
-
-        def eu_unit_name(unit_name, unitname_eu_df):
-            """
-            Find keywords in GHGRP unit name descriptions and match them
-            to appropriate end uses based on unitname_eu_dict.
-            """
-
-            for i in unitname_eu_df.index:
-                enduse = re.search(i, unit_name.lower())
-                if enduse is None:
-                    continue
-                else:
-                    enduse = unitname_eu_df.loc[i, 'end_use']
-                    return enduse
-
-            enduse = np.nan
-
-            return enduse
-
-        unittype_eu_df = eu_dict_to_df(unittype_eu_dict)
-        unitname_eu_df = eu_dict_to_df(unitname_eu_dict)
-
-        # Base ghgrp energy end use disaggregation on reported unit type and
-        # unit name.
-        eu_ghgrp = self.energy_ghgrp_y.copy(deep=True)
-
-        eu_ghgrp = eu_ghgrp[eu_ghgrp.MECS_NAICS != 0]
-
-        # First match end uses to provided unit types. Most unit types are
-        # specified as OCS (other combustion source).
-        unit_types = eu_ghgrp.UNIT_TYPE.dropna().unique()
-
-        type_match = list()
-
-        for utype in unit_types:
-            enduse = eu_unit_type(utype, unittype_eu_df)
-            type_match.append([utype, enduse])
-
-        type_match = pd.DataFrame(type_match,
-                                  columns=['UNIT_TYPE', 'end_use'])
-
-        eu_ghgrp = pd.merge(eu_ghgrp, type_match, on='UNIT_TYPE', how='left')
-
-        # Next, match end use by unit name for facilites that report OCS for
-        # unit type.
-        eu_ocs = eu_ghgrp[
-                (eu_ghgrp.UNIT_TYPE == 'OCS (Other combustion source)') |
-                (eu_ghgrp.UNIT_TYPE.isnull())
-                ][['UNIT_TYPE', 'UNIT_NAME']]
-
-        eu_ocs['end_use'] = eu_ocs.UNIT_NAME.apply(
-                lambda x: eu_unit_name(x, unitname_eu_df)
-                )
-
-        eu_ghgrp.end_use.update(eu_ocs.end_use)
+if __name__ =='__main__':
+    ghgrp_energy_file = 'ghgrp_energy_20221223-1455.parquet'
+    GHGRP_unit_char(ghgrp_energy_file).main()
