@@ -33,15 +33,13 @@ class FRS:
         self._names_columns = OrderedDict({
             'PROGRAM': ['REGISTRY_ID', 'SMALL_BUS_IND', 'ENV_JUSTICE_CODE',
                         'PGM_SYS_ACRNM', 'PGM_SYS_ID', 'SENSITIVE_IND',
-                        'PRIMARY_NAME', 'STD_NAME', 'STD_LOC_ADDRESS',
+                        'STD_NAME', 'STD_LOC_ADDRESS',
                         'STD_COUNTY_FIPS', 'STD_CITY_NAME', 'STD_COUNTY_NAME',
-                        'FIPS_CODE', 'STD_STATE_CODE',
-                        'STATE_NAME', 'STD_POSTAL_CODE', 'TRIBAL_LAND_CODE',
+                        'STD_STATE_CODE', 'STD_POSTAL_CODE',
                         'LEGISLATIVE_DIST_NUM', 'HUC_CODE_8',
                         'SITE_TYPE_NAME'],
             'FACILITY': [
-                'REGISTRY_ID', 'STATE_CODE',
-                'CONGRESSIONAL_DIST_NUM', 'CENSUS_BLOCK_CODE', 'HUC_CODE',
+                'REGISTRY_ID',
                 'EPA_REGION_CODE', 'LOCATION_DESCRIPTION',
                 'LATITUDE83', 'LONGITUDE83'
                 ],
@@ -49,7 +47,7 @@ class FRS:
             'single': ['REGISTRY_ID', 'PRIMARY_NAME',
                        'LOCATION_ADDRESS', 'SUPPLEMENTAL_LOCATION',
                        'CITY_NAME', 'COUNTY_NAME', 'FIPS_CODE', 'STATE_CODE',
-                       'STATE_NAME', 'COUNTRY_NAME', 'POSTAL_CODE',
+                       'STATE_NAME', 'POSTAL_CODE',
                        'TRIBAL_LAND_CODE', 'CONGRESSIONAL_DIST_NUM',
                        'CENSUS_BLOCK_CODE',
                        'HUC_CODE', 'SITE_TYPE_NAME', 'LOCATION_DESCRIPTION',
@@ -75,7 +73,7 @@ class FRS:
                 'PRIMARY_NAME', 'LATITUDE83', 'LONGITUDE83',
                 'LOCATION_ADDRESS', 'SMALL_BUS_IND', 'ENV_JUSTICE_CODE',
                 'NAICS_CODE_additional', 'NAICS_CODE', 'SITE_TYPE_NAME',
-                'SENSITIVE_IND'
+                'SENSITIVE_IND', 'ENERGY_EST_SOURCE'
                 ]
             })
 
@@ -338,51 +336,6 @@ class FRS:
 
         return data
 
-    def read_facility_csv(self, filepath, columns):
-        """
-        The facility file throws errors for pandas.read_csv method
-        and requires additional steps.
-
-        Parameters
-        ----------
-        filepath: str
-            String for FRS csv filepath.
-
-        columns : list
-            List of columns to extract from csv.
-
-        Returns
-        -------
-        data : pandas.DataFrame
-            Formatted FRS data, based on FACILITY, ORGANIZATION,
-            NAICS, and PROGRAM datasets.
-        
-        """
-
-        try:
-            data = pd.read_csv(
-                filepath,
-                usecols=columns, low_memory=False
-                )
-
-        except pd.errors.ParserError as e:
-            logging.error(f'{e}\n Due to {file_path}')
-
-            try:
-                skiprow = int(re.search(r'(?<=row )(\d+)', str(e)).group())
-
-            except AttributeError as e2:
-                logging.error(f'{e2}. Something else happening')
-
-            else:
-                data = pd.read_csv(
-                    file_path,
-                    usecols=columns, low_memory=False,
-                    skiprows=[skiprow]
-                    )
-
-        return data
-
     def read_frs_csv(self, name, columns, programs=['EIS', 'E-GGRT']):
         """
         Builds dataframe based on FRS datasets.
@@ -416,14 +369,10 @@ class FRS:
 
         file_path = os.path.abspath(os.path.join(self._frs_data_path, file))
 
-        if name == 'FACILITY':
-            data = self.read_facility_csv(file_path, columns)
-
-        else:
-            data = pd.read_csv(
-                file_path,
-                usecols=columns, low_memory=False
-                )
+        data = pd.read_csv(
+            file_path,
+            usecols=columns, low_memory=False
+            )
 
         if name == 'PROGRAM':
             data = self.format_program_csv(data, programs)
@@ -498,7 +447,8 @@ class FRS:
             }
 
         if save_path:
-            with gzip.open(os.path.join(save_path, 'found_ind_data.json.gz'), 'wt', encoding="ascii") as f:
+            with gzip.open(os.path.join(save_path, 'found_ind_data.json.gz'),
+                           'wt', encoding="ascii") as f:
                 json.dump(frs_dict, f, sort_keys=True, indent=4)
 
         else:
@@ -565,7 +515,7 @@ class FRS:
 
             final_data = pd.merge(
                 pgm_data, fac_data, on='REGISTRY_ID',
-                how='left'
+                how='right'
                 )
 
         else:
@@ -671,13 +621,13 @@ class FRS:
 
 if __name__ == '__main__':
 
-    combined = False
+    combined = True
     t_start = time.perf_counter()
     frs_methods = FRS()
     frs_methods.download_unzip_frs_data(combined=combined)
 
     frs_data_df = frs_methods.import_format_frs(combined=combined)
-    frs_data_df.to_pickle('frs_data_df_single.pkl')
+    frs_data_df.to_pickle('new_frs_data.pkl')
 
     # frs_methods.add_frs_columns_json(frs_data_df)
 

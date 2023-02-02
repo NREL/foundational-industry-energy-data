@@ -3,18 +3,20 @@ import pandas as pd
 import numpy as np
 import re
 import logging
+import os
+import requests
 
 
 class SCC_ID:
     """
     Use descriptions of SCC code levels to identify unit type and fuel type 
     indicated by a complete SCC code (e.g., 30190003). 
-    > The U.S. EPA uses Source Classification Codes (SCCs) to 
+    The U.S. EPA uses Source Classification Codes (SCCs) to 
     classify different types of activities that generate emissions. 
-    Each SCC represents a unique source category-specific process or 
+    Each SCC represents a unique source category-specific process or
     function that emits air pollutants. The SCCs are used as a primary
     identifying data element in EPA’s WebFIRE (where SCCs are
-    used to link emissions factors to an emission process), 
+    used to link emissions factors to an emission process),
     the National Emissions Inventory (NEI), and other EPA databases.
 
     Eight digit SCC codes, such as ABBCCCDD, are structured as follows:
@@ -31,54 +33,154 @@ class SCC_ID:
 
     def __init__(self):
 
-        self._scc_data = pd.read_csv(
-            'SCCDownload-2022-1205-161322.csv'
-            )
-
-        self._scc_data.columns = [c.replace(' ', '_') for c in self._scc_data.columns]
+        self._complete_scc_filepath = './data/SCC/SCCDownload-2023-0201-132131.csv'
 
         logging.basicConfig(level=logging.INFO)
 
-    def id_external_combustion(self, scc_level_two, scc_level_three,
-                               scc_level_four):
+    def load_complete_scc(self):
         """
-        Method for identifying relevant unit and fuel types under 
+        Complete list of SCC codes (available from
+        https://sor-scc-api.epa.gov/sccwebservices/sccsearch/) have 
+        been manually downloaded.
+
+        Returns
+        -------
+        all_scc : pandas.DataFrame
+
+        """
+
+        all_scc = pd.read_csv(self._complete_scc_filepath)
+
+        all_scc.columns = [c.replace(' ', '_') for c in all_scc.columns]
+
+        return all_scc
+
+    @staticmethod
+    def scc_query_split(scc):
+        """
+        Uses EPA SCC Web Services to get level information for an 8- or
+        10-digit SCC.
+
+        Parameters
+        ----------
+        scc : int
+            Eight or 10-digit Source Classification Code.
+
+        Returns
+        -------
+        scc_levels : dict
+            Dictionary of all four level names
+        """
+
+        base_url = 'http://sor-scc-api.epa.gov:80/sccwebservices/v1/SCC/'
+
+        try:
+            r = requests.get(base_url+f'{scc}')
+            r.raise_for_status()
+
+        except requests.exceptions.HTTPError as err:
+            logging.error(f'{err}')
+
+        levels = [f'scc level {n}' for n in ['one', 'two', 'three', 'four']]
+
+        scc_levels = {}
+
+        try:
+            for k in levels:
+                scc_levels[k] = r.json()['attributes'][k]['text']
+
+        except TypeError:
+            logging.error(f'SCC {scc} cannot be found')
+            scc_levels = None
+
+        return scc_levels
+
+
+    def build_id(self):
+
+        all_scc = self.load_complete_scc()
+
+
+
+
+    def id_external_combustion(self, all_scc):
+        """
+        Method for identifying relevant unit and fuel types under
         SCC Level 1 External Combustion (1)
 
         Parameters
         ----------
-        scc_level_two : str
-            Description of level 2 SCC code.
-
-        scc_level_three : str
-            Description of level 3 SCC code.
-
-        scc_level_four : str
-            Description of level 4 SCC code.
+        all_scc : pandas.DataFrame
+            Complete list of SCCs.
 
         Returns
         -------
-        unit_type : str
-        fuel_type : str
+        scc_exc : pandas.DataFrame
+            SCC for external combustion (SCC Level 1 == 1) with
+            unit type and fuel type descriptions.
         """
+
+        scc_exc = all_scc.query("scc_level_one=='External Combustion'")
+
+        unit_types_detail = []
+        fuel_types = []
 
         other_fuels = [
             'Shredded', 'Specify Percent Butane in Comments',
             'Specify in Comments', 'Specify Waste Material in Comments',
             'Refuse Derived Fuel', 'Sewage Grease Skimmings', 'Waste Oil',
             'Sludge Waste', 'Digester Gas',
-            'Agricultural Byproducts (rice or peanut hulls, shells, cow manure, etc',
+            'Agricultural Byproducts (rice or peanut hulls, shells, cow manure, etc)',
             'Paper Pellets', 'Black Liquor', 'Red Liquor',
             'Spent Sulfite Liquor', 'Tall Oil',
             'Wood/Wood Waste Liquid', 'Off-gas Ejectors', 'Pulverized Coal',
             'Salable Animal Fat', 'Natural Gas', 'Process Gas',
             'Wet Slurry', 'Distillate Oil', 'Residual Oil', 'Petroleum Refinery Gas',
             'Grade 4 Oil', 'Grade 5 Oil', 'Grade 6 Oil', 'Blast Furnace Gas',
-            'Coke Oven Gas', 'Landfill Gas', 'Biomass Solids'
+            'Coke Oven Gas', 'Landfill Gas', 'Biomass i[2]Solids'
             ]
 
+        for i, r in scc_exc.iterrows():
+
+            if r['scc_level_two'] == 'Space Heaters':
+
+                if ':' in r['scc_level_three']:
+                    unit_types_detail.append(r['scc_level_four'].split(': ')[-1])
+                    fuel_types.append(r['scc_level_four'].split(': ')[0])
+
+                else:
+                    unit_types_detail.append('Space heater')
+                    fuel_types.append(r['scc_level_four'].split(': ')[0])
+
+            else:
+
+                fuel_types.append(r['scc_level_three'])
+
+                split_ut = r['scc_level_four'].split(': ')
+
+                if len(split_ut) == 2:
+                    ut = split_ut[-1]
+
+                    if ut in other_fuels:
+                        unit_types_detail.append('Boiler')
+
+                    else:
+                        unit_types_detail.append(ut)
+
+                elif len(split_ut) > 2:
+                    unit_types_detail.append((' '.join(split_ut[1:])))
+
+                else: 
+                    unit_types_detail.append(r['scc_level_four'])
+
+        scc_exc.loc[:, 'unit_type'] = unit_types_detail
+        scc_exc.loc[:, 'fuel_type'] = fuel_types
+
+        return scc_exc
+            
+
         if ':' in scc_level_four:
-            unit_type = scc_level_four.split(': ')[1]
+            unit_type = scc_level_four.split(': ')[-1]
 
             if unit_type in other_fuels:
                 unit_type = 'Boiler'
@@ -124,64 +226,102 @@ class SCC_ID:
 
         return unit_type, fuel_type
 
-    def id_ice(self, scc_level_two, scc_level_three, scc_level_four):
+    def id_ice(all_scc):
         """
         Method for identifying relevant unit and fuel types under 
         SCC Level 1 Internal Combustion Engines (2)
 
+
         Parameters
         ----------
-        scc_level_two : str
-            Description of level 2 SCC code.
-
-        scc_level_three : str
-            Description of level 3 SCC code.
-
-        scc_level_four : str
-            Description of level 4 SCC code.
+        all_scc : pandas.DataFrame
+            Complete list of SCCs.
 
         Returns
         -------
-        unit_type : str
-        fuel_type : str
+        scc_ice : pandas.DataFrame
+            SCC for external combustion (SCC Level 1 == 2) with
+            unit type and fuel type descriptions.
         """
 
-        if scc_level_two in ['Electric Generation', 'Industrial',
-                             'Commercial/Institutional',
-                             'Marine Vessels, Commercial', 'Railroad Equipment'
-                            ]:
+        scc_ice = all_scc.query("scc_level_one=='Internal Combustion Engines'")
+        scc_ice = scc_ice[scc_ice.scc_level_two.isin(
+            ['Electric Generation', 'Industrial', 'Commercial/Institutional']
+            )]
 
-            if ":" in scc_level_four:
-                unit_type = scc_level_four.split(':')[0]
+        unit_types_detail = []
+        fuel_types = []
 
-            else:
-                unit_type = scc_level_four
+        other = ['Geysers/Geothermal', 'Equipment Leaks',
+                 'Wastewater, Aggregate',
+                 'Wastewater, Points of Generation', 'Flares']
 
-            fuel_type = scc_level_three
+        types = ['Turbine',
+                 'Reciprocating',
+                  'Turbine: Cogeneration',
+                    'Reciprocating: Cogeneration',
+                    'Refinery Gas: Turbine',
+                    'Refinery Gas: Reciprocating Engine',
+                    'Propane: Reciprocating',
+                    'Butane: Reciprocating',
+                    'Reciprocating Engine',
+                    'Reciprocating Engine: Cogeneration']
 
-        elif scc_level_two in ['Engine Testing']:
-            unit_type = scc_level_three
-            fuel_type = scc_level_four
+        for i, r in scc_ice.iterrows():
 
-        elif scc_level_two in ['Off-highway 2-stroke Gasoline Engines',
-                               'Off-highway 4-stroke Gasoline Engines',
-                               'Off-highway Diesel Engines',
-                               'Off-highway LPG-fueled Engines',
-                               'Fixed Wing Aircraft L & TO Exhaust'
-                               ]:
-            try:
-                unit_type, fuel_type = scc_level_three.split(': ')
+            if r['scc_level_three'] in other:
+                ut = None
+                ft = None
+    
+            elif r['scc_level_four'] in types:
+                ft = r['scc_level_three']
+                ut = r['scc_level_four']
 
-            except ValueError:
-                print(f'This does not work: {scc_level_three}')
-                unit_type = np.nan
-                fuel_type = np.nan
+            unit_types_detail.append(ut)
+            fuel_types.append(ft)
 
-        else:
-            unit_type = np.nan
-            fuel_type = np.nan
+        scc_ice.loc[:, 'unit_type'] = unit_types_detail
+        scc_ice.loc[:, 'fuel_type'] = fuel_types
 
-        return unit_type, fuel_type
+        return scc_ice
+
+
+        # if scc_level_two in ['Electric Generation', 'Industrial',
+        #                      'Commercial/Institutional',
+        #                      'Marine Vessels, Commercial', 'Railroad Equipment'
+        #                     ]:
+
+        #     if ":" in scc_level_four:
+        #         unit_type = scc_level_four.split(':')[0]
+
+        #     else:
+        #         unit_type = scc_level_four
+
+        #     fuel_type = scc_level_three
+
+        # elif scc_level_two in ['Engine Testing']:
+        #     unit_type = scc_level_three
+        #     fuel_type = scc_level_four
+
+        # elif scc_level_two in ['Off-highway 2-stroke Gasoline Engines',
+        #                        'Off-highway 4-stroke Gasoline Engines',
+        #                        'Off-highway Diesel Engines',
+        #                        'Off-highway LPG-fueled Engines',
+        #                        'Fixed Wing Aircraft L & TO Exhaust'
+        #                        ]:
+        #     try:
+        #         unit_type, fuel_type = scc_level_three.split(': ')
+
+        #     except ValueError:
+        #         print(f'This does not work: {scc_level_three}')
+        #         unit_type = np.nan
+        #         fuel_type = np.nan
+
+        # else:
+        #     unit_type = np.nan
+        #     fuel_type = np.nan
+
+        # return unit_type, fuel_type
 
     def id_stationary_fuel_combustion(self, scc_level_two, scc_level_three,
                                       scc_level_four):
