@@ -130,6 +130,8 @@ class SCC_ID:
         all_scc.dropna(subset=['unit_type', 'fuel_type'],
                        how='all', inplace=True)
 
+        all_scc = self.ft_clean_up(all_scc)
+
         return all_scc
 
 
@@ -200,7 +202,7 @@ class SCC_ID:
                 elif len(split_ut) > 2:
                     unit_types_detail.append((' '.join(split_ut[1:])))
 
-                else: 
+                else:
                     if 'boiler' in r['scc_level_four'].lower():
                         unit_types_detail.append(r['scc_level_four'])
 
@@ -211,7 +213,6 @@ class SCC_ID:
         scc_exc.loc[:, 'fuel_type'] = fuel_types
 
         return scc_exc
-            
 
         if ':' in scc_level_four:
             unit_type = scc_level_four.split(': ')[-1]
@@ -292,7 +293,7 @@ class SCC_ID:
         types = ['Turbine',
                  'Reciprocating',
                   'Turbine: Cogeneration',
-                    'Reciprocating: Cogeneration',
+                  'Reciprocating: Cogeneration',
                     'Refinery Gas: Turbine',
                     'Refinery Gas: Reciprocating Engine',
                     'Propane: Reciprocating',
@@ -359,7 +360,7 @@ class SCC_ID:
     def id_stationary_fuel_combustion(self, all_scc):
         """
         Method for identifying relevant unit and fuel types under 
-        SCC Level 1 Stationary Source Fuel Combustion (21; note this is 
+        SCC Level 1 Stationary Source Fuel Combustion (21; note this is
         a 10-digit SCC code)
 
         Parameters
@@ -564,24 +565,38 @@ class SCC_ID:
                     'stove', 'steam'
                     ]])):
 
-                ut = r['scc_level_four']
-                unit_types_detail.append(ut)
+                if r['scc_level_three'] == 'Fuel Fired Equipment':
+                    x, y = r['scc_level_four'].split(': ')
 
-                if 'fired' in ut.lower():
-                    try:
-                        ft = re.search(
-                            r'(\w+ \w+)(?=-fired)|(\w+)(?=-fired)|(\w+ \w+ \w+)(?=-fired)', 
-                            ut
-                            ).group()
-
-                    except AttributeError:
-                        fuel_types.append(None)
+                    if any([z in x for z in ['Distillate', 'Residual', 'Gas', 'Liquid', 'Propane']]):
+                        fuel_types.append(x)
+                        unit_types_detail.append(y)
 
                     else:
-                        fuel_types.append(ft)
+                        fuel_types.append(y)
+                        unit_types_detail.append(x)
 
                 else:
-                    fuel_types.append(None)
+                    ut = r['scc_level_four']
+
+                    if 'fired' in ut.lower():
+                        try:
+                            ft = re.search(
+                                r'(\w+ \w+)(?=-fired)|(\w+)(?=-fired)|(\w+ \w+ \w+)(?=-fired)', 
+                                ut
+                                ).group()
+
+                        except AttributeError:
+                            fuel_types.append(None)
+
+                        else:
+                            fuel_types.append(ft)
+
+                        unit_types_detail.append(ut)
+
+                    else:
+                        fuel_types.append(None)
+                        unit_types_detail.append(ut)
 
             elif r['scc_level_three'] == 'Fuel Fired Equipment':
 
@@ -596,14 +611,40 @@ class SCC_ID:
                         unit_types_detail.append(r['scc_level_four'])
 
                 else:
+                    blah = r['scc_level_four']
+                    logging.info(f'Look at this: {blah}')
                     fuel_types.append(r['scc_level_four'].split(': ')[0])
                     unit_types_detail.append(r['scc_level_four'].split(': ')[1])
+                    logging.info(f'Last fuel type is {fuel_types[-1]}\nLast unit type is {unit_types_detail[-1]} ')
             else:
+
                 fuel_types.append(None)
                 unit_types_detail.append(None)
 
         scc_ind.loc[:, 'unit_type'] = unit_types_detail
         scc_ind.loc[:, 'fuel_type'] = fuel_types
+
+        return scc_ind
+
+    def ft_clean_up(self, scc_ind):
+        """
+        A collection of miscellaneous fixes to
+        fuel types.
+
+        Parameters
+        ----------
+        scc_ind : pandas.DataFrame
+
+        Returns
+        -------
+        scc_ind : pandas.DataFrame
+
+        """
+
+        scc_ind.fuel_type.replace(
+            {'Direct': None, 'Indirect': None},
+            inplace=True
+            )
 
         return scc_ind
 
