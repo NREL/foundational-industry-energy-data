@@ -1,4 +1,7 @@
 
+# TODO create /bin  for keeping code to run to compile data set
+# TODO create executable?
+
 year = 2017
 
 frs_facs = get_frs_data()  # get EPA FRS data. This is the foundation of the data set
