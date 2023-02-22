@@ -13,14 +13,88 @@ basic_units: # Unit conversions for EF numerator UOM to emissions UOM
   HP-HR_to_MJ: 2.685
   KW-HR_to_MJ: 3.6
   E3LB_to_TON: 0.5
-energy_ghg_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-factors-hub
-  diesel:
-    GAL_to_MJ: 145.59  # 0.138 MMBtu/gal * 1055 MJ/MMBtu
-    MJ_to_KGCO2: 
+energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-factors-hub
   natural_gas:  
-    FT3_to_MJ: 1.08243  # 0.001026 MMBtu/standard cubic foot * 1055 MJ/MMBtu
+    FT3_to_MJ: 1.08243    # 0.001026 MMBtu/standard cubic foot * 1055 MJ/MMBtu
+    E3FT3_to_MJ: 1082.43    # 1.026 MMBtu/standard cubic foot * 1055 MJ/MMBtu   
+    E6FT3_to_MJ:  1082430   # 1026 MMBtu/E6FT3 * 1055 MJ/MMBtu
+    E6FT3S_to_MJ:  1082430   # emission comments indicated per million scf      
+    E6BTU_to_MJ: 1055
+    HP-HR_to_MJ: 2.685
+    TON_to_MJ: 55282    # 52.4 MMBtu/ton *  1055 MJ/MMBtu
+    LB_to_MJ: 27.64    # 0.0005 ton/lb * 52.4 MMBtu/ton *  1055 MJ/MMBtu
     THERM_to_MJ: 105.5  # 0.1 MMBtu/therm * 1055 MJ/MMBtu
+    MJ_to_KGCO2:
+  coal:
+    TON_to_MJ: 23579     # 22.35 MMBTU/TON * 1055 MJ/MMBTU
+    E6FT3_to_MJ: 2308    # 0.0979 TON/E6FT3 * 22.35 MMBTU/TON * 1055 MJ/MMBTU
+    E6BTU_to_MJ: 1055   # 1055 MJ/MMBtu
+    LB_to_MJ: 11.79    # 0.0005 TON/LB * 22.35 MMBTU/TON * 1055 MJ/MMBTU
+  distillate_oil:
+    GAL_to_MJ: 145.59  # 0.138 MMBtu/gal * 1055 MJ/MMBtu
+    E3GAL_to_MJ: 145590  # 138 MMBtu/E3gal * 1055 MJ/MMBtu
+    E6GAL_to_MJ: 1.46E+8  # 138000 MMBtu/E3gal * 1055 MJ/MMBtu
+    E6BTU_to_MJ: 1055
+    HP-HR_to_MJ: 2.685
+    E3HP-HR_to_MJ: 2685
+    E6FT3_to_MJ: 1.09E+9  # 7480519 gal/E6FT3 * 0.138 MMBtu/gal * 1055 MJ/MMBtu
+    KW-HR_to_MJ: 3.6
+    E3BBL_to_MJ: 6.15E+6  # 5825 MMBtu/E3BBL * 1055 MJ/MMBtu
+    THERM_to_MJ: 105.5  # 0.1 MMBtu/therm * 1055 MJ/MMBtu
+  residual_oil:
+    GAL_to_MJ: 153     # 0.145 MMBtu/gal * 1055 MJ/MMBtu
+    E3GAL_to_MJ: 153.0E+3     # 145 MMBtu/E3gal * 1055 MJ/MMBtu
+    E6GAL_to_MJ: 153.0E+6     # 145000 MMBtu/E6gal * 1055 MJ/MMBtu
+    E6BTU_to_MJ: 1055
+    E3BBL_to_MJ: 6.425E+6   # 42000 gal/E3BBL * 0.145 MMBtu/gal * 1055 MMBtu/MJ
     MJ_to_KGCO2: 
+  lignite:
+    TON_TO_MJ: 14992   # 14.21 MMBtu/ton * 1055 MJ/MMBtu
+    MJ_to_KGCO2:
+  coke:
+    TON_to_MJ: 26164   # 24.80 MMBtu/ton * 1055 MJ/MMBtu
+    E6BTU_to_MJ: 1055
+    LB_to_MJ: 13.08   # 0.0005 ton/lb * 24.80 MMBtu/ton * 1055 MJ/MMBtu
+  pet_coke:
+    TON_to_MJ: 31650   # 30 MMBtu/ton * 1055 MJ/MMBtu
+    E6BTU_to_MJ: 1055
+  wood:
+    TON_TO_MJ: 16226  # 15.38 MMBtu/ton * 1055 MJ/MMBtu
+    E6BTU_to_MJ: 1055
+    LB_to_MJ: 8.11 # 0.0005 ton/lb * 15.38 MMBtu/ton * 1055 MJ/MMBtu
+    E3LB_to_MJ: 8110
+    E3BDFT_to_MJ: 13516 # 0.833 ton/E3BDFT * 15.38 MMBtu/ton * 1055 MJ/MMBtu
+    E6BDFT_to_MJ: 1.3516E+7
+    MJ_to_KGCO2:
+  bagasse:
+    TON_TO_MJ: 0.00185  # 0.0005 ton/lb * 3500 Btu/lb * 1E-6 MMBtu/Btu * 1055 MJ/MMBtu
+    LB_to_MJ: 3.69 # 3500 Btu/lb * 1E-6 MMBtu/Btu * 1055 MJ/MMBtu
+    MJ_to_KGCO2:
+  process_gas:
+    FT3_to_MJ: 1.46 # 0.001388 MMBtu/scf * 1055 MJ/MMBtu
+    E6FT3_to_MJ: 1.46E+6
+    E6BTU_to_MJ: 1055 
+  LPG:
+    FT3_to_MJ: 726 # 7.48 gal/scf * 97.06 MJ/gal
+    E6FT3_to_MJ: 726.0E+6
+    GAL_to_MJ: 97.06 # 0.092 MMBtu/gal * 1055 MJ/MMBtu
+    E3GAL_to_MJ: 97.06E+3
+    E6GAL_to_MJ: 97.06E+6
+    E6BTU_to_MJ: 1055
+    LB_to_MJ: 22.78 # 0.021594 MMBtu/lb * 1055 MJ/MMBtu
+    TON_to_MJ: 0.01139 # 0.0005 ton/lb * 22.78 MJ/lb
+    HP-HR_to_MJ: 2.685
+    E3HP-HR_to_MJ: 2.685E+3
+  gasoline:
+    GAL_to_MJ: 116   # 0.110 MMBtu/gal * 1055 MJ/MMBtu
+    E3GAL_to_MJ: 116.0E+3
+    E6GAL_to_MJ: 116.0E+6
+    HP-HR_to_MJ: 2.685
+    E3HP-HR_to_MJ: 2.685E+3
+    E6BTU_to_MJ: 1055
+    FT3_to_MJ: 867 # 7.48 gal/scf * 116 MJ/gal
+    E6FT3_to_MJ: 867.0E+6
+    KW-HR_to_MJ: 3.6
   anthracite:
     TON_to_MJ:
     MJ_to_KGCO2: 
@@ -30,15 +104,15 @@ energy_ghg_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-
   subbituminous:
     TON_TO_MJ:
     MJ_to_KGCO2: 
-  lignite:
-    TON_TO_MJ:
-    MJ_to_KGCO2: 
   mixed_coking:
     TON_TO_MJ:
     MJ_to_KGCO2: 
   mixed_ind:  # Mixed industrial sector
     TON_TO_MJ:
-    MJ_to_KGCO2: 
+    MJ_to_KGCO2:
+  diesel:
+    GAL_to_MJ: 145.59  # 0.138 MMBtu/gal * 1055 MJ/MMBtu
+    MJ_to_KGCO2:  
   bfg:  # Big Fri... er, Blast Furnace Gas
     FT3_TO_MJ:
     MJ_to_KGCO2: 
@@ -51,15 +125,9 @@ energy_ghg_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-
   propane:
     GAL_to_MJ:
     MJ_to_KGCO2:
-  residual_oil:
-    GAL_to_MJ:
-    MJ_to_KGCO2:
   waste_oil:
     GAL_to_MJ:
     MJ_to_KGCO2:
-  wood_res:
-    TON_TO_MJ:
-    MJ_to_KGCO2: 
   ag_byprod:
     TON_TO_MJ:
     MJ_to_KGCO2: 
