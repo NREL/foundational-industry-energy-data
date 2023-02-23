@@ -320,6 +320,52 @@ def calculate_unit_throughput_and_energy(nei):
     return
 
 
+# plot difference between max and min throughput_TON quanitites for unit
+#   when there are multiple emissions per unit
+def plot_throughput_difference(nei):
+
+    duplic = \
+        nei[(nei.throughput_TON>0) &
+            (nei.eis_process_id.duplicated(keep=False)==True)].groupby(
+                ['eis_process_id']).agg(
+                    perc_diff=('throughput_TON',
+                               lambda x: ((x.max()-x.min())/x.mean())*100)
+                    ).reset_index()
+
+    plt.rcParams['figure.dpi'] = 300
+    plt.rcParams['savefig.dpi'] = 300
+    plt.rcParams['font.sans-serif'] = "Arial"                     
+
+    sns.histplot(data=duplic, x="perc_diff")
+    plt.xlabel('Percentage difference')
+    plt.ylabel('Units')
+
+    return
+
+
+# plot difference between max and min energy_MJ quanitites for unit
+#   when there are multiple emissions per unit
+def plot_energy_difference(nei):
+    
+    duplic = \
+        nei[(nei.energy_MJ>0) &
+            (nei.eis_process_id.duplicated(keep=False)==True)].groupby(
+                ['eis_process_id']).agg(
+                    perc_diff=('energy_MJ',
+                               lambda x: ((x.max()-x.min())/x.mean())*100)
+                    ).reset_index()
+    
+    plt.rcParams['figure.dpi'] = 300
+    plt.rcParams['savefig.dpi'] = 300
+    plt.rcParams['font.sans-serif'] = "Arial"                     
+   
+    sns.histplot(data=duplic, x="perc_diff") # sns.kdeplot
+    plt.xlabel('Percentage difference')
+    plt.ylabel('Units')
+    
+    return
+
+
 
 # use the median throughput_TON and energy_MJ for individual unit 
 #   when there are multiple emissions per unit
@@ -366,7 +412,7 @@ get_median_throughput_and_energy(nei_emiss)
 
     # check the difference between max and min throughput for single unit
     #nei_emiss[(nei_emiss.throughput_TON>0) & 
-    #          (nei_emiss.eis_process_id.duplicated()==True)].groupby(
+    #          (nei_emiss.eis_process_id.duplicated(keep=False)==True)].groupby(
     #              ['eis_unit_id','eis_process_id']
     #              )['throughput_TON'].agg(np.ptp).describe()
     
