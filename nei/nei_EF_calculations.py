@@ -306,8 +306,9 @@ def calculate_unit_throughput_and_energy(nei):
             (nei['web_ef_LB_per_TON']>0),'throughput_TON'] = \
         nei['total_emissions_LB'] / nei['web_ef_LB_per_TON'] 
     
-    nei.loc[(nei['nei_ef_LB_per_MJ']>0),'energy_MJ'] = \
-        nei['total_emissions_LB'] / nei['nei_ef_LB_per_MJ']
+    nei.loc[(nei['nei_ef_LB_per_MJ'].isnull()) & 
+            (nei['web_ef_LB_per_MJ']>0),'energy_MJ'] = \
+        nei['total_emissions_LB'] / nei['web_ef_LB_per_MJ']
     
         
     
