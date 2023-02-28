@@ -15,7 +15,7 @@ import yaml
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
+# get file from 'nei_industrial_sector.py'
 nei_ind = pd.read_csv('nei_industry.csv')
 
 webfr = pd.read_csv('webfirefactors.csv')
