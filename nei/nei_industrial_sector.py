@@ -8,6 +8,7 @@ import pandas as pd
 
 
 # read NEI 2017 downloads for point sources (all 10 EPA regions b/t 2 files)
+# download 'point' source: https://www.epa.gov/air-emissions-inventories/2017-national-emissions-inventory-nei-data
 nei1 = pd.read_csv('point_12345.csv')
 nei2 = pd.read_csv('point_678910.csv')
 
