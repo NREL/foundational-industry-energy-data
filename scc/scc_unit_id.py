@@ -24,7 +24,7 @@ class SCC_ID:
     A: Level 1
     BB: Level 2
     CCC: Level 3
-    DD: Level 4 
+    DD: Level 4
 
     See SCC documentation for additional information:
     https://sor-scc-api.epa.gov/sccwebservices/sccsearch/docs/SCC-IntroToSCCs_2021.pdf
@@ -40,7 +40,7 @@ class SCC_ID:
     def load_complete_scc(self):
         """
         Complete list of SCC codes (available from
-        https://sor-scc-api.epa.gov/sccwebservices/sccsearch/) have 
+        https://sor-scc-api.epa.gov/sccwebservices/sccsearch/) have
         been manually downloaded.
 
         Returns
@@ -290,16 +290,18 @@ class SCC_ID:
                  'Wastewater, Aggregate',
                  'Wastewater, Points of Generation', 'Flares']
 
-        types = ['Turbine',
-                 'Reciprocating',
-                  'Turbine: Cogeneration',
-                  'Reciprocating: Cogeneration',
-                    'Refinery Gas: Turbine',
-                    'Refinery Gas: Reciprocating Engine',
-                    'Propane: Reciprocating',
-                    'Butane: Reciprocating',
-                    'Reciprocating Engine',
-                    'Reciprocating Engine: Cogeneration']
+        types = [
+            'Turbine',
+            'Reciprocating',
+            'Turbine: Cogeneration',
+            'Reciprocating: Cogeneration',
+            'Refinery Gas: Turbine',
+            'Refinery Gas: Reciprocating Engine',
+            'Propane: Reciprocating',
+            'Butane: Reciprocating',
+            'Reciprocating Engine',
+            'Reciprocating Engine: Cogeneration'
+            ]
 
         for i, r in scc_ice.iterrows():
 

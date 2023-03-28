@@ -10,7 +10,8 @@ from io import BytesIO
 
 class Ag:
 
-    def __init__(self, usda_api_key, eia_api_key):
+    def __init__(self, **api_keys):
+
         logging.basicConfig(level=logging.INFO)
 
         # MMBtu/barrel
@@ -22,8 +23,8 @@ class Ag:
             'OTHER': 6.287
             }
 
-        self._usda_key = usda_api_key
-        self._eia_key = eia_api_key
+        self._usda_key = api_keys['usda']
+        self._eia_key = api_keys['eia']
         self._census_year = 2017
         self._survey_year = 2018
 
@@ -737,7 +738,7 @@ class Ag:
         ----------
         state_energy : pandas.DataFrame
 
-        usda_counts : pandas.DataFrame
+        usda_counts  : pandas.DataFrame
 
         Returns
         -------
@@ -767,33 +768,38 @@ class Ag:
 
         return county_energy
 
+    def main(self):
+            # API keys stored locally in json file
+        with open(
+            os.path.join(os.environ['USERPROFILE'], 'Documents', 'API_auth.json')
+        ) as f:
+            keys = json.load(f)
+
+        ag = Ag(api_keys=keys)
+        year = [ag._survey_year]  # 2018
+
+        usda_data = {k: ag.call_nass_api(data_cat=k, **ag._data_fields[k]) for k in ag._data_fields.keys()}
+        usda_elec = ag.get_usda_elec(usda_data['electricity'])
+
+        eia_prices = [ag.get_eia_prices(year, f) for f in ['diesel', 'gasoline', 'LPG', 'OTHER']]
+        eia_prices = ag.combine_fuel_prices(eia_prices)
+
+        eia_price_elec = ag.get_elec_prices()
+
+        state_fuels = ag.calc_state_energy_use(eia_prices, usda_data)
+        state_elec = ag.calc_state_energy_use(eia_price_elec, usda_elec)
+
+        county_energy = pd.concat(
+            [ag.calc_county_energy(state_fuels, usda_data['farm_counts']),
+            ag.calc_county_energy(state_elec, usda_data['farm_counts'])]
+            )
+
+        retun county_energy 
 
 if __name__ == '__main__':
 
-    # API keys stored locally in json file
-    with open(
-        os.path.join(os.environ['USERPROFILE'], 'Documents', 'API_auth.json')
-    ) as f:
-        keys = json.load(f)
+    ag_county_energy = Ag().main()
 
-    ag = Ag(usda_api_key=keys['usda_API'], eia_api_key=keys['eia_API'])
-    year = [ag._survey_year]  # 2018
-
-    usda_data = {k: ag.call_nass_api(data_cat=k, **ag._data_fields[k]) for k in ag._data_fields.keys()}
-    usda_elec = ag.get_usda_elec(usda_data['electricity'])
-
-    eia_prices = [ag.get_eia_prices(year, f) for f in ['diesel', 'gasoline', 'LPG', 'OTHER']]
-    eia_prices = ag.combine_fuel_prices(eia_prices)
-
-    eia_price_elec = ag.get_elec_prices()
-
-    state_fuels = ag.calc_state_energy_use(eia_prices, usda_data)
-    state_elec = ag.calc_state_energy_use(eia_price_elec, usda_elec)
-
-    county_energy = pd.concat(
-        [ag.calc_county_energy(state_fuels, usda_data['farm_counts']),
-         ag.calc_county_energy(state_elec, usda_data['farm_counts'])]
-        )
 
     # for f in eia_fuels.keys():
     #     logging.info(f, eia_fuels[f].head())

@@ -1,5 +1,4 @@
 # Conversions
----
 basic_units: # Unit conversions for EF numerator UOM to emissions UOM 
   LB_to_TON: 0.0005
   LB_to_LB: 1
@@ -113,7 +112,7 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
   diesel:
     GAL_to_MJ: 145.59  # 0.138 MMBtu/gal * 1055 MJ/MMBtu
     MJ_to_KGCO2:  
-  bfg:  # Big Fri... er, Blast Furnace Gas
+  bfg:  # Big Fri... er Blast Furnace Gas
     FT3_TO_MJ:
     MJ_to_KGCO2: 
   fuel_gas:
@@ -131,9 +130,68 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
   ag_byprod:
     TON_TO_MJ:
     MJ_to_KGCO2: 
-
-  
+# Fuel Dictionary
+fuel_dict:
+  natural gas|natural-gas| ng|-ng: natural_gas
+  coal: coal
+  diesel|distillate: distillate_oil
+  fuel oil|residual oil|crude oil|heavy oil: residual_oil
+  lignite: lignite
+  coke: coke
+  petroleum coke|pet coke: pet_coke
+  wood: wood
+  bagasse: bagasse
+  process gas|waste gas: process_gas
+  lpg|liquified petroleum|propane: LPG
+  gasoline: gasoline
 ghg_efs:
   - 
-
-    
+# unit conversions for total emissions and EF numerators
+unit_to_lb:
+  LB: LB_to_LB
+  TON: TON_to_LB
+  TONS: TON_to_LB
+  G: G_to_LB
+  KG: KG_to_LB
+  MILLIGRM: MILLIGRM_to_LB
+  MG: MILLIGRM_to_LB       
+# unit conversions for EF denominators (calculating throughput)
+unit_to_ton: 
+  TON: TON_to_TON
+  LB: LB_to_TON
+# unit conversions for EF denominators (calculating energy)
+unit_to_mj: 
+  E6BTU: E6BTU_to_MJ
+  HP-HR: HP-HR_to_MJ
+  E3HP-HR: E3HP-HR_to_MJ
+  THERM: THERM_to_MJ
+  KW-HR: KW-HR_to_MJ
+  FT3: FT3_to_MJ
+  E3FT3: E3FT3_to_MJ
+  E6FT3: E6FT3_to_MJ
+  E6FT3S: E6FT3S_to_MJ
+  GAL: GAL_to_MJ
+  E3GAL: E3GAL_to_MJ
+  E6GAL: E6GAL_to_MJ
+  LB: LB_to_MJ
+  TON: TON_to_MJ
+  E3BBL: E3BBL_to_MJ
+  E3BDFT: E3BDFT_to_MJ
+  E6BDFT: E6BDFT_to_MJ
+measure_dict:
+  Tons: TON
+  Pounds: LB
+  Million Standard Cubic Feet: E6FT3
+  Million Btus: E6BTU
+  1000 Gallons: E3GAL
+  Megagrams: MEGAGRAM
+  Million Gallons: E6GAL
+  Gallons: GAL
+  1000 Pounds: E3LB
+  1000 Barrels: E3BBL
+  Dry Standard Cubic Feet: FT3
+  Million Dry Standard Cubic Feet: E6FT3
+  Standard Cubic Feet: FT3
+  1000 Cubic Feet: E3FT3
+  MMBtu: E6BTU
+  1000 Horsepower-Hours: E3HP-HR

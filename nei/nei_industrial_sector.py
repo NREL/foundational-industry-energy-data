@@ -16,7 +16,7 @@ nei2 = pd.read_csv('point_678910.csv')
 # read EnviroFacts crosswalk file for EIS facility ID to FRS facility ID
 xwalk = pd.read_csv('EnvirofactsRestAPI.CSV')
 
-xwalk = xwalk[['EIS_FACILITY_ID','FRS_FACILITY_ID']]
+xwalk = xwalk[['EIS_FACILITY_ID', 'FRS_FACILITY_ID']]
 
 xwalk.columns = xwalk.columns.str.lower()
 
@@ -99,11 +99,7 @@ nei2.replace({'calculation_method':dict_method},inplace=True)
 
 nei = pd.concat([nei1,nei2])
 
-nei.loc[:,'naics_sub'] = nei['naics_code'].astype(str).str[:3].astype(int)
 
-nei_ind = nei[(nei['naics_sub']//10).isin([11,21,23,31,32,33])].copy()
-
-nei_ind.reset_index(inplace=True)
 
 
 # match FRS facility IDs to EIS facility IDs
