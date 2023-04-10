@@ -89,7 +89,7 @@ class NEI:
 
     def load_nei_data(self):
         """
-        Load 2017 NEI data. Zip file needs to be downloaded and 
+        Load 2017 NEI data. Zip file needs to be downloaded and
         unzipped manually from https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip
         due to error in zipfile library.
 
@@ -99,7 +99,8 @@ class NEI:
 
             logging.info('Reading NEI data from csv')
             # nei_data_dd = dd.read_csv(nei_data_path, dtype={'tribal name': str})
-            nei_data = pd.read_csv(self._nei_data_path, low_memory=False)
+            nei_data = pd.read_csv(self._nei_data_path, low_memory=False,
+                                   index_col=0)
 
         else:
 
@@ -124,7 +125,6 @@ class NEI:
                                     ),
                                 low_memory=False
                                 )
-
 
                         data.columns = data.columns.str.strip()
                         data.columns = data.columns.str.replace(' ', '_')
@@ -303,16 +303,17 @@ class NEI:
             how='left'
             )
 
-        nei_emiss.rename(columns={'SCC':'SCC_web'},inplace=True)
+        nei_emiss.rename(columns={'SCC': 'SCC_web'}, inplace=True)
 
         return nei_emiss
 
-    def nei_assign_types(self, nei_emiss, iden_scc):
+    def nei_assign_types(self, nei, iden_scc):
         """
         Assign unit type and fuel type based on NEI and SCC descriptions
 
         Paramters
         ---------
+
 
 
         Returns
@@ -333,10 +334,17 @@ class NEI:
                 (nei['unit_type'] == 'Other process equipment'), 'unit_type'] = \
                     nei['scc_unit_type']
 
+        nei.loc[(nei['unit_type'] == 'Unclassified') |
+                (nei['unit_type'] == 'Other process equipment'), 'unit_type'] = \
+                    nei['scc_unit_type']
+
         # get fuel types from NEI text and SCC descriptions
-        nei.unit_description = nei.unit_description.str.lower()
-        nei.process_description = nei.process_description.str.lower()
-        nei.scc_fuel_type = nei.scc_fuel_type.str.lower()
+        for c in ['unit_description', 'process_description', 'scc_fuel_type']:
+            nei.loc[:, c] = nei[c].str.lower()
+
+        # nei.unit_description = nei.unit_description.str.lower()
+        # nei.process_description = nei.process_description.str.lower()
+        # nei.scc_fuel_type = nei.scc_fuel_type.str.lower()
 
         for f in self._unit_conv['fuel_dict'].keys():
 
@@ -361,17 +369,19 @@ class NEI:
     #   convert NEI emissions to LB; NEI EFs to LB/MJ; 
     #   and WebFire EFs to LB/MJ
 
-    def convert_emissions_units(self, nei, uc):
+
+    def convert_emissions_units(self, nei):
         """
-        
+
 
         Parameters
         ----------
-
+        nei : pandas.DataFrame
+    
 
         Returns
         -------
-
+        nei : pandas.DataFrame
         """
 
         # map unit of emissions and EFs in NEI/WebFire to unit conversion key
@@ -397,7 +407,7 @@ class NEI:
                 )
 
         nei.loc[:, 'nei_ef_LB_per_TON'] = \
-            nei['emission_factor']*nei['nei_ef_num_fac']/nei['nei_ef_denom_fac']
+            nei['emission_factor'] * nei['nei_ef_num_fac'] / nei['nei_ef_denom_fac']
 
         # convert NEI emission_factor to LB/MJ for energy input
         for f in nei.fuel_type.dropna().unique():
@@ -422,7 +432,7 @@ class NEI:
 
         nei['nei_denom_fuel_fac'] = nei['nei_denom_fuel_fac'].astype(float)
 
-        nei.loc[:,'nei_ef_LB_per_MJ'] = \
+        nei.loc[:, 'nei_ef_LB_per_MJ'] = \
             nei['emission_factor']*nei['nei_ef_num_fac']/nei['nei_denom_fuel_fac']
 
         # WebFire----------------------------------------------
@@ -433,16 +443,16 @@ class NEI:
         nei.replace({'MEASURE': self._unit_conv['measure_dict']}, inplace=True)
 
         # convert WebFire EF numerator to LB
-        nei.loc[:,'web_ef_num_fac'] = nei['UNIT'].map(
+        nei.loc[:, 'web_ef_num_fac'] = nei['UNIT'].map(
             self._unit_conv['unit_to_lb']
             ).map(self._unit_conv['basic_units'])
 
         # convert WebFire EF to LB/TON for throughput
-        nei.loc[:,'web_ef_denom_fac'] = nei['MEASURE'].map(
+        nei.loc[:, 'web_ef_denom_fac'] = nei['MEASURE'].map(
             self._unit_conv['unit_to_ton']
             ).map(self._unit_conv['basic_units'])
 
-        nei.loc[:,'web_ef_LB_per_TON'] = \
+        nei.loc[:, 'web_ef_LB_per_TON'] = \
             nei['FACTOR']*nei['web_ef_num_fac']/nei['web_ef_denom_fac']
 
         # convert WebFire EF to LB/E6BTU for energy input
@@ -466,7 +476,7 @@ class NEI:
 
         nei['web_denom_fuel_fac'] = nei['web_denom_fuel_fac'].astype(float)
 
-        nei.loc[:,'web_ef_LB_per_MJ'] = \
+        nei.loc[:, 'web_ef_LB_per_MJ'] = \
             nei['FACTOR']*nei['web_ef_num_fac']/nei['web_denom_fuel_fac']
 
         return nei
@@ -486,7 +496,7 @@ class NEI:
                 )) &
             (nei['ef_denominator_uom'] != 'HR')
             )
-        
+
         nei.loc[check_nei_ef_idx, 'nei_ef_LB_per_TON'] = np.nan
 
         # if there is an NEI EF, use NEI EF  
@@ -507,101 +517,136 @@ class NEI:
 
         # remove throughput_TON if WebFire ACTION is listed as Burned
         nei.loc[(~nei['throughput_TON'].isnull()) & 
-                (nei['ACTION']=='Burned'),'throughput_TON'] = np.nan
+                (nei['ACTION'] == 'Burned'), 'throughput_TON'] = np.nan
 
         return nei
 
+    # @staticmethod
+    # def plot_throughput_difference(nei):
+    #     """
+    #     Plot difference between max and min throughput_TON quanitites for unit
+    #     when there are multiple emissions per unit
+    #     """
+
+    #     duplic = \
+    #         nei[(nei.throughput_TON> 0 ) &
+    #             (nei.eis_process_id.duplicated(keep=False) == True)].groupby(
+    #                 ['eis_process_id']).agg(
+    #                     perc_diff=('throughput_TON',
+    #                             lambda x: ((x.max()-x.min())/x.mean())*100)
+    #                     ).reset_index()
+
+    #     plt.rcParams['figure.dpi'] = 300
+    #     plt.rcParams['savefig.dpi'] = 300
+    #     plt.rcParams['font.sans-serif'] = "Arial"                     
+
+    #     sns.histplot(data=duplic, x="perc_diff")
+    #     plt.xlabel('Percentage difference')
+    #     plt.ylabel('Units')
+
+    #     return
+
     @staticmethod
-    def plot_throughput_difference(nei):
+    def plot_difference(self, nei, data):
         """
-        Plot difference between max and min throughput_TON quanitites for unit
-        when there are multiple emissions per unit
+        Plot difference between max and min energy or
+        throughput quanitites for units when there are 
+        multiple emissions per unit
+
+        Parameters
+        ----------
+        nei : pandas.DataFrame
+
+        data : str; 'energy' or 'throughput'
+
+
+        Returns
+        -------
+
+
         """
 
-        duplic = \
-            nei[(nei.throughput_TON>0) &
-                (nei.eis_process_id.duplicated(keep=False) == True)].groupby(
-                    ['eis_process_id']).agg(
-                        perc_diff=('throughput_TON',
-                                lambda x: ((x.max()-x.min())/x.mean())*100)
-                        ).reset_index()
+        selection = {
+            'energy': {
+                'column': 'energy_MJ',
+                'title': 'Energy'
+                },
+            'throughput': {
+                'column': 'throughput_TON',
+                'title': 'Throughput'
+                }
+            }
+
+        duplic = nei[(nei[selection[data]['columns']] > 0) &
+                     (nei.eis_process_id.duplicated(keep=False) == True)]
+
+        duplic = duplic.groupby(
+            ['eis_process_id']).agg(
+                perc_diff=(
+                    selection[data]['column'],
+                    lambda x: ((x.max()-x.min())/x.mean())*100
+                    )
+                ).reset_index()
 
         plt.rcParams['figure.dpi'] = 300
         plt.rcParams['savefig.dpi'] = 300
-        plt.rcParams['font.sans-serif'] = "Arial"                     
+        plt.rcParams['font.sans-serif'] = "Arial" 
 
-        sns.histplot(data=duplic, x="perc_diff")
+        sns.histplot(data=duplic, x="perc_diff")  # sns.kdeplot
         plt.xlabel('Percentage difference')
         plt.ylabel('Units')
+        plt.title(selection[data]['title'])
 
         return
 
 
-    @staticmethod
-    def plot_energy_difference(nei):
-        """
-        Plot difference between max and min energy_MJ quanitites for unit
-        when there are multiple emissions per unit
-        """
+def get_median_throughput_and_energy(self, nei):
+    """
+    use the median throughput_TON and energy_MJ for individual unit
+    when there are multiple emissions per unit
 
-        duplic = \
-            nei[(nei.energy_MJ>0) &
-                (nei.eis_process_id.duplicated(keep=False)==True)].groupby(
-                    ['eis_process_id']).agg(
-                        perc_diff=('energy_MJ',
-                                lambda x: ((x.max()-x.min())/x.mean())*100)
-                        ).reset_index()
-        
-        plt.rcParams['figure.dpi'] = 300
-        plt.rcParams['savefig.dpi'] = 300
-        plt.rcParams['font.sans-serif'] = "Arial"                     
-    
-        sns.histplot(data=duplic, x="perc_diff") # sns.kdeplot
-        plt.xlabel('Percentage difference')
-        plt.ylabel('Units')
-        
-        return
+    Parameters
+    ----------
 
+    Returns
+    -------
 
+    """
+    med_unit = nei[
+        (nei['throughput_TON'] > 0) | (nei['energy_MJ'] > 0)
+        ].groupby(
+            ['eis_process_id',
+             'eis_facility_id',
+             'naics_code',
+             'unit_type',
+             'fuel_type']
+             )[['throughput_TON', 'energy_MJ']].median().reset_index()
 
-# use the median throughput_TON and energy_MJ for individual unit 
-#   when there are multiple emissions per unit
-def get_median_throughput_and_energy(nei):
-    
-    
-    med_unit = nei[(nei['throughput_TON']>0)|(nei['energy_MJ']>0)
-                   ].groupby(['eis_process_id',
-                              'eis_facility_id',
-                              'naics_code',
-                              'naics_sub',
-                              'unit_type',
-                              'fuel_type'
-                              ],dropna=False
-                              )[['throughput_TON',
-                                 'energy_MJ']].median().reset_index()
-    
-                                 
     # MATERIAL and ACTION columns can have multiple values for same
     #   eis_process_id so if included in groupby, need to remove duplicates
-                            
+
     #med_unit.drop(med_unit[
     #    (med_unit.eis_process_id.duplicated(keep=False)==True) & 
     #    (med_unit.MATERIAL.isnull())].index, inplace=True)
-    
-    
-    med_unit.to_csv('NEI_unit_throughput_and_energy.csv',index=False)
-    
-    
-    return
-    
+
+    # med_unit.to_csv('NEI_unit_throughput_and_energy.csv', index=False)
+
+    return med_unit
+
+#TODO appy med_unit values where appropriate
 
 
+if __name__ == '__main___':
+    nei = NEI()
+    nei_data = nei.load_nei_data()
+    iden_scc = nei.load()
+    webfr = nei.load_webfires()
 
-nei_emiss = match_webfire_to_nei(nei_emiss, webfr)
-nei_emiss = get_unit_and_fuel_type(nei_emiss, iden_scc)
-convert_emissions_units(nei_emiss, unit_conv)
-calculate_unit_throughput_and_energy(nei_emiss)
-get_median_throughput_and_energy(nei_emiss)
+# nei_emiss = match_webfire_to_nei(nei_emiss, webfr)
+# nei_emiss = get_unit_and_fuel_type(nei_emiss, iden_scc)
+# convert_emissions_units(nei_emiss, unit_conv)
+# calculate_unit_throughput_and_energy(nei_emiss)
+# get_median_throughput_and_energy(nei_emiss)
 
 
 
