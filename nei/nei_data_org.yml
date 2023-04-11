@@ -1,0 +1,13 @@
+# Template for NEI data
+NEI:
+ - eis_facility_id:
+  - eis_process_id:
+    - process_description
+    - eis_unit_id: 
+      - unit_type
+      - unit_description
+      - design_capacity
+      - design_capacity_uom
+      - fuel_type
+      - throughput_TON
+      - energy_MJ

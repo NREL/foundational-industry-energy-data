@@ -10,10 +10,10 @@ import requests
 import zipfile
 from io import BytesIO
 
+logging.basicConfig(level=logging.INFO)
 
 class NEI:
     """
-
     Calculates unit throughput and energy input (later op hours?) from
     emissions and emissions factors, specifically from: PM, SO2, NOX, 
     VOCs, and CO.
@@ -37,7 +37,7 @@ class NEI:
 
         self._scc_units_path = os.path.abspath('./scc/iden_scc.csv')
 
-        logging.basicConfig(level=logging.INFO)
+
 
     @staticmethod
     def match_partial(full_list, partial_list):
@@ -307,17 +307,20 @@ class NEI:
 
         return nei_emiss
 
-    def nei_assign_types(self, nei, iden_scc):
+    def assign_types_nei(self, nei, iden_scc):
         """
         Assign unit type and fuel type based on NEI and SCC descriptions
 
         Paramters
         ---------
+        nei : pandas.DataFrame
 
+        iden_scc : pandas.DataFrame
 
 
         Returns
         -------
+        nei : pandas.DataFrame
         """
 
         # merge SCC descriptions of unit and fuel types with NEI SCCs
@@ -342,10 +345,6 @@ class NEI:
         for c in ['unit_description', 'process_description', 'scc_fuel_type']:
             nei.loc[:, c] = nei[c].str.lower()
 
-        # nei.unit_description = nei.unit_description.str.lower()
-        # nei.process_description = nei.process_description.str.lower()
-        # nei.scc_fuel_type = nei.scc_fuel_type.str.lower()
-
         for f in self._unit_conv['fuel_dict'].keys():
 
             # search for fuel types listed in NEI unit/process descriptions
@@ -369,9 +368,12 @@ class NEI:
     #   convert NEI emissions to LB; NEI EFs to LB/MJ; 
     #   and WebFire EFs to LB/MJ
 
-
     def convert_emissions_units(self, nei):
         """
+        Convert reported emissions factors into emissions factors that
+        can be used to estimate mass throughput (in short tons) or 
+        energy (in MJ). 
+        Uses conversion factors defined in self._unit_conv.
 
 
         Parameters
@@ -385,8 +387,6 @@ class NEI:
         """
 
         # map unit of emissions and EFs in NEI/WebFire to unit conversion key
-
-        # NEI--------------------------------------------------
         # convert NEI total emissions value to LB
         nei.loc[:, 'emissions_conv_fac'] = nei['emissions_uom'].map(
             self._unit_conv['unit_to_lb']
@@ -481,9 +481,19 @@ class NEI:
 
         return nei
 
-    def calculate_unit_throughput_and_energy(self, nei):
+    def calc_unit_throughput_and_energy(self, nei):
         """
-        Calculate throughput quantity in TON and energy input in MJ
+        Calculate throughput quantity in TON and energy input in MJ using
+        emissions factors converted with convert_emissions_units().
+
+        Parameters
+        ----------
+        nei : pandas.DataFrame
+
+        Returns
+        -------
+        nei : pandas.DataFrame
+
         """
 
         # check for "Stack Test" emissions factor method where units are wrong
@@ -499,7 +509,7 @@ class NEI:
 
         nei.loc[check_nei_ef_idx, 'nei_ef_LB_per_TON'] = np.nan
 
-        # if there is an NEI EF, use NEI EF  
+        # if there is an NEI EF, use NEI EF
         nei.loc[(nei['nei_ef_LB_per_TON'] > 0), 'throughput_TON'] = \
             nei['total_emissions_LB'] / nei['nei_ef_LB_per_TON']
 
@@ -599,48 +609,173 @@ class NEI:
 
         return
 
+    def get_median_throughput_and_energy(self, nei):
+        """
+        Use the median throughput_TON and energy_MJ for individual units.
+        This addresses the case where a unit reports multiple emissions
+        and those emissions are used to estimate throughput or energy.
 
-def get_median_throughput_and_energy(self, nei):
-    """
-    use the median throughput_TON and energy_MJ for individual unit
-    when there are multiple emissions per unit
+        Parameters
+        ----------
+        nei : pandas.DataFrame
+            Formatted emissions data with estimated throughput and
+            energy.
 
-    Parameters
-    ----------
+        Returns
+        -------
+        med_unit : pandas.DataFrame
+            Median value of 
 
-    Returns
-    -------
+        """
+        # This is the primary output of estimating throughput and energy from NEI
 
-    """
-    med_unit = nei[
-        (nei['throughput_TON'] > 0) | (nei['energy_MJ'] > 0)
-        ].groupby(
-            ['eis_process_id',
-             'eis_facility_id',
-             'naics_code',
-             'unit_type',
-             'fuel_type']
-             )[['throughput_TON', 'energy_MJ']].median().reset_index()
+        med_unit = nei.query(
+            "throughput_TON > 0 | energy_MJ > 0"
+            ).groupby(
+                ['eis_facility_id',
+                 'eis_process_id',
+                 'eis_unit_id',
+                 'unit_type',
+                 'fuel_type']
+                )[['throughput_TON', 'energy_MJ']].median()
 
-    # MATERIAL and ACTION columns can have multiple values for same
-    #   eis_process_id so if included in groupby, need to remove duplicates
+        # other_info = med_unit.drop_duplicates([
+        #     'eis_facility_id',
+        #     'eis_process_id',
+        #     'eis_unit_id'])
 
-    #med_unit.drop(med_unit[
-    #    (med_unit.eis_process_id.duplicated(keep=False)==True) & 
-    #    (med_unit.MATERIAL.isnull())].index, inplace=True)
+        other_cols = nei.columns
+        other_cols = set(other_cols).difference(set(med_unit.columns))
 
-    # med_unit.to_csv('NEI_unit_throughput_and_energy.csv', index=False)
+        logging.info(f"Other columns:  {other_cols}")
 
-    return med_unit
+        med_unit = med_unit.join(
+            nei[other_cols].set_index(
+                ['eis_facility_id', 'eis_process_id',
+                 'eis_unit_id', 'unit_type',
+                 'fuel_type']
+                )
+            )
 
-#TODO appy med_unit values where appropriate
+        med_unit.reset_index(inplace=True)
+
+        # MATERIAL and ACTION columns can have multiple values for same
+        #   eis_process_id so if included in groupby, need to remove duplicates
+
+        #med_unit.drop(med_unit[
+        #    (med_unit.eis_process_id.duplicated(keep=False)==True) & 
+        #    (med_unit.MATERIAL.isnull())].index, inplace=True)
+
+        # med_unit.to_csv('NEI_unit_throughput_and_energy.csv', index=False)
+        med_unit = self.format_nei_char(med_unit)
+
+        return med_unit
+
+    def separate_missing_units(self, nei):
+        """
+        Separate facilities that have not had
+        any of their units characterized in terms of
+        throughput or energy use, but have identified
+        unit types.
+
+        Parameters
+        ----------
+        nei : pandas.DataFrame
+            Formatted emissions data with estimated throughput and
+            energy.
+
+        Returns
+        -------
+        missing : pandas.DataFrame
+            All facilities and unit types that are missing 
+            throughput and energy estimates, but have identified
+            unit types.
+
+        """
+
+        missing_zero = nei.query("throughput_TON==0 & energy_MJ==0")
+        missing_zero = missing_zero.where(
+            missing_zero.unit_type.notnull()
+            ).dropna(how='all')
+
+        missing_na = nei.query("throughput_TON.isna() & energy_MJ.isna()",
+                               engine='python')
+
+        missing_na = missing_na.where(
+            missing_na.unit_type.notnull()
+            ).dropna(how='all')
+
+        missing = pd.concat(
+            [missing_zero, missing_na], axis=0,
+            ignore_index=False
+            )
+
+        missing = self.format_nei_char(missing)
+
+        return missing
+
+    def format_nei_char(self, df):
+        """"
+        Format characterization of NEI data for further processing
+        into the foundational JSON schema.
+        Removes uncessary columns from NEI data.
+
+        Paramters
+        ---------
+        df : pandas.DataFrame
 
 
-if __name__ == '__main___':
+        Returns
+        -------
+        nei_char : pandas.DataFrame
+
+        """
+
+        # Data of interest. eis_facility_id used to merge into FRS data.
+        keep_cols = [
+            'eis_facility_id', 'eis_unit_id',
+            'unit_type', 'unit_description', 'design_capacity',
+            'design_capacity_uom', 'fuel_type', 'eis_process_id',
+            'process_description', 'throughput_TON',
+            'energy_MJ'
+            ]
+
+        df = df[keep_cols]
+
+        return df
+
+
+def main():
+
     nei = NEI()
+    logging.info("Getting NEI data...")
     nei_data = nei.load_nei_data()
-    iden_scc = nei.load()
+    iden_scc = nei.load_scc_unittypes()
     webfr = nei.load_webfires()
+    logging.info("Merging WebFires data...")
+    nei_char = nei.match_webfire_to_nei(nei_data, webfr)
+    logging.info("Merging SCC data...")
+    nei_char = nei.assign_types_nei(nei_char, iden_scc)
+    logging.info("Converting emissions units...")
+    nei_char = nei.convert_emissions_units(nei_char)
+    logging.info("Estimating throughput and energy...")
+    nei_char = nei.calc_unit_throughput_and_energy(nei_char)
+    logging.info("Final assembly...")
+    nei_char = pd.concat(
+        [nei.get_median_throughput_and_energy(nei_char),
+            nei.separate_missing_units(nei_char)], axis=0,
+        ignore_index=True
+        )
+
+    logging.info(f"Here's your nei_char:{nei_char.head()}")
+    return nei_char
+
+# #TODO write method to separate relevant facilities and unit types into JSON schema
+# #TODO figure out tests to check calculations and other aspects of code. 
+
+if __name__ == '__main__':
+
+    main()
 
 # nei_emiss = match_webfire_to_nei(nei_emiss, webfr)
 # nei_emiss = get_unit_and_fuel_type(nei_emiss, iden_scc)
