@@ -2,6 +2,7 @@
 import pandas as pd
 import os
 import zipfile
+import json
 import requests
 from io import BytesIO
 from pyxlsb import open_workbook
@@ -10,7 +11,7 @@ import logging
 
 class GHGRP_unit_char():
 
-    def __init__(self, ghgrp_energy_file):
+    def __init__(self, ghgrp_energy_file, reporting_year):
 
         logging.basicConfig(level=logging.INFO)
 
@@ -19,6 +20,33 @@ class GHGRP_unit_char():
         self._data_dir = os.path.abspath('./data/GHGRP/')
 
         self._ghgrp_energy_file = ghgrp_energy_file
+
+        self._data_source = 'GHGRP'
+
+        self._reporting_year = reporting_year
+
+        def import_data_schema(data_source):
+            """
+            Import data schema for relevant data set.
+
+            Parameters
+            ----------
+            data_source : str; "NEI", "GHGRP", "QPC", "FRS"
+                Source of data
+
+            Returns
+            -------
+            self._data_schema : dict
+
+            """
+
+            with open('./nei/extracted_data_schema.json') as file:
+                data_schema = json.load(file)
+            data_schema = data_schema[0][data_source]
+
+            return data_schema
+
+        self._data_schema = import_data_schema(self._data_source)
 
     def download_unit_data(self):
         """
@@ -135,6 +163,8 @@ class GHGRP_unit_char():
             axis=0, ignore_index=False
             )
 
+        ghgrp_df = ghgrp_df.query("REPORTING_YEAR==@self._reporting_year")
+
         # Aggregate. Units may combust multiple types of 
         # fuels and have multiple observations (estimates)
         # of energy use.
@@ -145,11 +175,22 @@ class GHGRP_unit_char():
                 'MAX_CAP_MMBTU_per_HOUR'], as_index=False
             ).TJ_TOTAL.sum()
 
-        # ghgrp_df = ghgrp_df[
-        #     ['FACILITY_ID', 'FRS_REGISTRY_ID', 'REPORTING_YEAR',
-        #      'FUEL_TYPE_FINAL', 'UNIT_TYPE', 'UNIT_NAME',
-        #      'MAX_CAP_MMBTU_per_HOUR', 'TJ_TOTAL']
-        #     ]
+
+        ghgrp_df.loc[:, "energyMJ"] = ghgrp_df.TJ_TOTAL * 10**6
+        ghgrp_df.loc[:, 'designCapacity'] = \
+            ghgrp_df.MAX_CAP_MMBTU_per_HOUR * 0.2931  # Convert to MW
+        ghgrp_df.loc[:, 'designCapacityUOM'] = 'MW'
+
+        ghgrp_df.drop(["REPORTING_YEAR", "TJ_TOTAL", 'MAX_CAP_MMBTU_per_HOUR'],
+                      axis=1, inplace=True)
+
+        ghgrp_df.rename(columns={
+            'FACILITY_ID': 'ghgrpID',
+            'FUEL_TYPE_FINAL': 'fuelType',
+            'UNIT_NAME': 'unitName',
+            'FRS_REGISTRY_ID': 'registryID',
+            'UNIT_TYPE': 'unitType'
+            }, inplace=True)
 
         return ghgrp_df
 
@@ -275,7 +316,10 @@ class GHGRP_unit_char():
                          )+'_unittype_final.csv'
             )
 
+        return ghgrp_df
+
 
 if __name__ =='__main__':
     ghgrp_energy_file = 'ghgrp_energy_20221223-1455.parquet'
-    GHGRP_unit_char(ghgrp_energy_file).main()
+    reporting_year = 2017
+    ghgrp_df = GHGRP_unit_char(ghgrp_energy_file, reporting_year).main()

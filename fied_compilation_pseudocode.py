@@ -2,17 +2,24 @@
 # TODO create /bin  for keeping code to run to compile data set
 # TODO create executable?
 
+import ghgrp.run_GHGRP as GHGRP
+from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
+from nei.nei_EF_calculations import NEI
+from frs.frs_tools import FRS
+
 year = 2017
 
-frs_facs = get_frs_data()  # get EPA FRS data. This is the foundation of the data set
 
-ghgrp_energy = calc_ghgrp_energy(year)  # Estimate combustion energy by 
 
-ghgrp_fac_energy = convert_ghgrp_energy(ghgrp_energy)  # format ghgrp energy calculations to fit frs_json schema
+frs_methods = FRS()
+frs_methods.download_unzip_frs_data(combined=True)
+frs_data = frs_methods.import_format_frs(combined=True)
 
-nei_data = get_nei_data(year)  # Download and format NEI data
+ghgrp_energy_file = GHGRP.main(year, year)
+ghgrp_fac_energy = GHGRP_unit_char(ghgrp_energy_file, year)  # format ghgrp energy calculations to fit frs_json schema
 
-nei_fac_data = =cal_nei_data(nei_data)  # Calculations
+nei_data = NEI().main()
+
 
 mining_energy = calc_mining_energy(year)  # Estimate mining energy intensity by NAICS, fuel, and location
 

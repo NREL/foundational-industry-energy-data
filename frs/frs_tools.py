@@ -534,7 +534,38 @@ class FRS:
             how='left'
             )
 
-        final_data.set_index('REGISTRY_ID', inplace=True)
+        # All dataframes but the NAICS dataframe have non-industrial
+        # facilities. Drop facilities that don't have NAICS codes after
+        # merging.
+        final_data.dropna(subset=['NAICS_CODE'], inplace=True)
+
+        final_data.rename(columns={
+            'REGISTRY_ID': 'registryID',
+            'LEGISLATIVE_DIST_NUM': 'legislativeDistrictNumber',
+            'HUC_CODE_8': 'hucCode8',
+            'SITE_TYPE_NAME': 'siteTypeName',
+            'STD_NAME': 'name',
+            'STD_LOC_ADDRESS': 'locationAddress',
+            'STD_POSTAL_CODE': 'postalCode',
+            'STD_CITY_NAME': 'cityName',
+            'STD_COUNTY_NAME': 'countyName',
+            'STD_STATE_CODE': 'stateCode',
+            'STD_COUNTY_FIPS': 'countyFIPS',
+            'SENSITIVE_IND': 'sensitiveInd',
+            'SMALL_BUS_IND': 'smallBusInd',
+            'ENV_JUSTICE_CODE': 'envJusticeCode',
+            'PGM_SYS_ID_EIS': 'eisFacilityID',
+            'PGM_SYS_ID_EIS_additional': 'eisFacilityIDAdditional',
+            'PGM_SYS_ID_E-GGRT': 'ghgrpID',
+            'PGM_SYS_ID_E-GGRT_additional': 'ghgrpIDAdditional',
+            'EPA_REGION_CODE': 'epaRegionCode',
+            'LOCATION_DESCRIPTION': 'locationDescription',
+            'LATITUDE83': 'latitude',
+            'LONGITUDE83': 'longitude',
+            'NAICS_CODE': 'naicsCode',
+            'NAICS_CODE_additional': 'naicsCodeAdditional'
+            }, inplace=True)
+
 
         # for i, v in enumerate(self._names_columns.items()):
         #     if i == 0:
@@ -556,12 +587,10 @@ class FRS:
         #     else:
         #         continue
 
-        # All dataframes but the NAICS dataframe have non-industrial
-        # facilities. Drop facilities that don't have NAICS codes after
-        # merging.
-        final_data.dropna(subset=['NAICS_CODE'], inplace=True)
+
         logging.info(f'Final len: {len(final_data)}')
 
+        final_data.set_index('registryID', inplace=True)
         return final_data
 
     # TODO 
@@ -569,7 +598,7 @@ class FRS:
     def load_foundational_json(found_json_file):
         """
         Load json file of foundational energy data.
-        
+    
         """
 
         with gzip.open(found_json_file, mode='rb') as gzfile:
@@ -627,7 +656,6 @@ if __name__ == '__main__':
     frs_methods.download_unzip_frs_data(combined=combined)
 
     frs_data_df = frs_methods.import_format_frs(combined=combined)
-    frs_data_df.to_pickle('new_frs_data.pkl')
 
     # frs_methods.add_frs_columns_json(frs_data_df)
 

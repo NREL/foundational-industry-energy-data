@@ -5,13 +5,13 @@ Created on Wed Mar  6 21:12:25 2019
 @author: cmcmilla
 """
 
-import pandas as pd
-import numpy as np
 import os
 import logging
-import find_fips
-import ghg_tiers
-import get_GHGRP_data
+import pandas as pd
+import numpy as np
+import ghgrp.find_fips as find_fips
+import ghgrp.ghg_tiers as ghg_tiers
+import ghgrp.get_GHGRP_data as get_GHGRP_data
 
 
 logging.basicConfig(level=logging.INFO)
@@ -37,7 +37,7 @@ class GHGRP:
                          'FUEL_TYPE_BLEND']
 
     # Set calculation data directories
-    file_dir = os.path.abspath('../data/GHGRP')
+    file_dir = os.path.abspath('./data/GHGRP')
 
     if os.path.exists(file_dir):
         pass
@@ -97,7 +97,7 @@ class GHGRP:
 
             GHGs.loc[:, c] = GHGs[c].astype(int)
 
-        #A djust multiple reporting of fuel types
+        # Adjust multiple reporting of fuel types
         fuel_fix_index = GHGs[(GHGs.FUEL_TYPE.notnull() == True) &
                               (GHGs.FUEL_TYPE_OTHER.notnull() == True)].index
 
@@ -186,14 +186,14 @@ class GHGRP:
 
             else:
                 facdata = pd.read_csv(ffile)
-    
+
             # Duplicate entries in facility data query. Remove them to enable a
             # # 1:1 mapping of facility info with ghg data via FACILITY_ID.
             # # First ID facilities that have cogen units.
             fac_cogen = facdata.FACILITY_ID[
                 facdata['COGENERATION_UNIT_EMISS_IND'] == 'Y'
                 ]
-            
+
             facdata.dropna(subset=['FACILITY_ID'], inplace=True)
 
             # Reindex dataframe based on facility ID

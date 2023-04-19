@@ -8,7 +8,7 @@ Created on Wed Dec  5 21:50:55 2018
 import pandas as pd
 import os
 import numpy as np
-from get_GHGRP_data import get_GHGRP_records
+from ghgrp.get_GHGRP_data import get_GHGRP_records
 from sklearn.utils import resample
 
 #%%

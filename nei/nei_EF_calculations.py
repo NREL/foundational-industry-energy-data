@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
-import readline
+import json
 import yaml
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 class NEI:
     """
     Calculates unit throughput and energy input (later op hours?) from
-    emissions and emissions factors, specifically from: PM, SO2, NOX, 
+    emissions and emissions factors, specifically from: PM, SO2, NOX,
     VOCs, and CO.
 
     Uses NEI Emissions Factors (EFs) and, if not listed, WebFire EFs
@@ -33,11 +33,34 @@ class NEI:
         self._unit_conv_path = os.path.abspath('./nei/unit_conversions.yml')
 
         with open(self._unit_conv_path) as file:
-            self._unit_conv = yaml.load(file, Loader=yaml.FullLoader)
+            self._unit_conv = yaml.load(file, Loader=yaml.SafeLoader)
 
         self._scc_units_path = os.path.abspath('./scc/iden_scc.csv')
 
+        self._data_source = 'NEI'
 
+        def import_data_schema(data_source):
+            """
+            Import data schema for relevant data set.
+
+            Parameters
+            ----------
+            data_source : str; "NEI", "GHGRP", "QPC", "FRS"
+                Source of data
+
+            Returns
+            -------
+            self._data_schema : dict
+
+            """
+
+            with open('./nei/extracted_data_schema.json') as file:
+                data_schema = json.load(file)
+            data_schema = data_schema[0][data_source]
+
+            return data_schema
+
+        self._data_schema = import_data_schema(self._data_source)
 
     @staticmethod
     def match_partial(full_list, partial_list):
@@ -647,10 +670,16 @@ class NEI:
         other_cols = nei.columns
         other_cols = set(other_cols).difference(set(med_unit.columns))
 
-        logging.info(f"Other columns:  {other_cols}")
+        # logging.info(f"Other columns:  {other_cols}")
+
+        other = nei.drop_duplicates(
+            ['eis_facility_id', 'eis_process_id',
+             'eis_unit_id', 'unit_type',
+             'fuel_type']
+            )[other_cols]
 
         med_unit = med_unit.join(
-            nei[other_cols].set_index(
+            other.set_index(
                 ['eis_facility_id', 'eis_process_id',
                  'eis_unit_id', 'unit_type',
                  'fuel_type']
@@ -667,7 +696,7 @@ class NEI:
         #    (med_unit.MATERIAL.isnull())].index, inplace=True)
 
         # med_unit.to_csv('NEI_unit_throughput_and_energy.csv', index=False)
-        med_unit = self.format_nei_char(med_unit)
+        # med_unit = self.format_nei_char(med_unit)
 
         return med_unit
 
@@ -710,7 +739,7 @@ class NEI:
             ignore_index=False
             )
 
-        missing = self.format_nei_char(missing)
+        # missing = self.format_nei_char(missing)
 
         return missing
 
@@ -732,33 +761,105 @@ class NEI:
         """
 
         # Data of interest. eis_facility_id used to merge into FRS data.
+
+        rename_dict = {
+            'eis_facility_id': 'eisFacilityID',
+            'eis_unit_id': 'eisUnitID',
+            'unit_type': 'unitType',
+            'unit_description': 'unitDescription',
+            'design_capacity': 'designCapacity',
+            'design_capacity_uom': 'designCapacityUOM',
+            'fuel_type': 'fuelType',
+            'eis_process_id': 'eisProcessID',
+            'process_description': 'processDescription',
+            'throughput_Tonne': 'throughputTonne',
+            'energy_MJ': 'energyMJ'
+            }
+
+        df.loc[:, 'throughput_Tonne'] = df.throughput_TON * 0.907  # Convert to metric tonnes
+
         keep_cols = [
             'eis_facility_id', 'eis_unit_id',
             'unit_type', 'unit_description', 'design_capacity',
             'design_capacity_uom', 'fuel_type', 'eis_process_id',
-            'process_description', 'throughput_TON',
+            'process_description',
             'energy_MJ'
             ]
 
+        fuels_map = {
+            'natural_gas': "naturalGas", 
+            'distillate_oil': "diesel", 
+            'gasoline': "gasoline", 
+            'LPG': "lpgHGL",
+            'process_gas': "other",
+            'residual_oil': "resFuelOil",
+            'wood': "biomass", 
+            'coal': "coal", 
+            'pet_coke': "other", 
+            'coke': "coke",
+            'bagasse': "biomass",
+            'lignite': "coal"
+            }
+
         df = df[keep_cols]
+
+        df.rename(columns=rename_dict, inplace=True)
+
+        levels = [k for k in self._data_schema.keys() if self._data_schema[k]==True]
+
+        # df.set_index(levels, inplace=True)
 
         return df
 
+    # def apply_json_format(self, nei_char):
+    #     """
+        
+    #     Returns
+
+    #     """
+
+
+    #     f_id = nei_char.eisFacilityID.unique()
+
+    #     nei_json = {}
+
+    #     nei_char_grouped = nei_char.groupby('eisFacilityID')
+
+    #     for id in f_id:
+    #         nei_json[id] = id
+
+
+    #     levels = [k for k in self._data_schema.keys() if self._data_schema[k]==True]
+
+    #     nei_char.set_index(levels, inplace=True)
+
+    #     # nei_json = {}
+
+    #     # for l0 in nei_char.index.levels[0]:
+    #     #     for l1 in nei_char.index.levels[1]:
+    #     #         nei_json[int(l0)]
+    #     # nei_json = {
+    #     #     int(l0): {
+    #     #         int(l1): None} for l1 in nei_char.index.levels[1]
+    #     #          for l0 in nei_char.index.levels[0]
+    #     #     }
+
+    #     # nei_json = {level: df.xs(level).to_dict('index') for level in df.index.levels[0]}
 
 def main():
 
     nei = NEI()
-    logging.info("Getting NEI data...")
+    # logging.info("Getting NEI data...")
     nei_data = nei.load_nei_data()
     iden_scc = nei.load_scc_unittypes()
     webfr = nei.load_webfires()
-    logging.info("Merging WebFires data...")
+    # logging.info("Merging WebFires data...")
     nei_char = nei.match_webfire_to_nei(nei_data, webfr)
-    logging.info("Merging SCC data...")
+    # logging.info("Merging SCC data...")
     nei_char = nei.assign_types_nei(nei_char, iden_scc)
-    logging.info("Converting emissions units...")
+    #  logging.info("Converting emissions units...")
     nei_char = nei.convert_emissions_units(nei_char)
-    logging.info("Estimating throughput and energy...")
+    # logging.info("Estimating throughput and energy...")
     nei_char = nei.calc_unit_throughput_and_energy(nei_char)
     logging.info("Final assembly...")
     nei_char = pd.concat(
@@ -767,15 +868,16 @@ def main():
         ignore_index=True
         )
 
-    logging.info(f"Here's your nei_char:{nei_char.head()}")
+    nei_char = nei.format_nei_char(nei_char)
+
     return nei_char
 
 # #TODO write method to separate relevant facilities and unit types into JSON schema
-# #TODO figure out tests to check calculations and other aspects of code. 
+# #TODO figure out tests to check calculations and other aspects of code.
 
 if __name__ == '__main__':
 
-    main()
+    nei_char = main()
 
 # nei_emiss = match_webfire_to_nei(nei_emiss, webfr)
 # nei_emiss = get_unit_and_fuel_type(nei_emiss, iden_scc)
@@ -797,8 +899,3 @@ if __name__ == '__main__':
     #(nei_emiss[nei_emiss.throughput_TON>0].groupby(
     #    ['naics_sub'])['eis_process_id'].count()/nei_emiss.groupby(
     #        ['naics_sub'])['eis_process_id'].count())
-
-
-
-
-    

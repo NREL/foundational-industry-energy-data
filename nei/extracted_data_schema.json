@@ -1,0 +1,99 @@
+[
+    {
+        "FRS": 
+            {
+                "site_char": {
+                    "cityName": null,
+                    "countyName": null,
+                    "stateCode": null,
+                    "stateName": null,
+                    "postalCode": null,
+                    "envJusticeCode": null,
+                    "legistlateiveDistrictNumber": null,
+                    "latitude": null,
+                    "longitude": null,
+                    "HUCCode8": null,
+                    "siteTypeName": null,
+                    "stdName": null,
+                    "locationDescription": null,
+                    "epaRegionCode": null
+                },
+                "facility_char": {
+                    "registryID": true,
+                    "primaryName": null,
+                    "locationAddress": null,
+                    "orgName": null,
+                    "dunsNumber": null,
+                    "ein": null,
+                    "employeeCount": null,
+                    "naicsCode": null,
+                    "naicsCodeAdditional": null,
+                    "ghgrpID": null,
+                    "ghgrpIDAdditional": null,
+                    "eisFacilityID": null, 
+                    "vintage": null,
+                    "productionTonnes": null,
+                    "productionMillionUSD": null
+                    },
+                "energyMJ": {
+                    "naturalGas": null,
+                    "electricity": null,
+                    "resFuelOil": null,
+                    "coke": null,
+                    "coal": null,
+                    "bio": null,
+                    "diesel": null,
+                    "other": null
+                    }
+            },
+        "GHGRP": {
+            "registryID": true,
+            "ghgrpID": null,
+            "unitName": true,
+            "unitType": null,
+            "fuelType": null,
+            "designCapacity": null,
+            "designCapacityUOM": "MW",
+            "energyMJ": null
+            },
+        "NEI": {
+            "eisFacilityID": true,
+            "eisProcessID": true, 
+            "processDescription": null,
+            "eisUnitID": true,
+            "unitType": null,
+            "unitDescription": null,
+            "designCapacity": null,
+            "designCapacityUOM": null,
+            "fuelType": null,
+            "throughputTonne": null,
+            "energyMJ": null
+            },
+        "QPC": {
+            "naicsCode": true,
+            "opHrsQ1": null,
+            "opHrsQ2": null,
+            "opHrsQ3": null,
+            "opHrsQ4": null,
+            "capUtilQ1": null,
+            "capUtilQ2": null,
+            "capUtilQ3": null,
+            "capUtilQ4": null
+            },
+        "IEDB": {
+            "countyFIPSCode": true,
+            "countyCode": null,
+            "stateCode": null,
+            "naicsCode": null,
+            "energyMJ": true,
+            "naturalGas": null,
+            "electricity": null,
+            "resFuelOil": null,
+            "coke": null,
+            "coal": null,
+            "bio": null,
+            "diesel": null,
+            "other": null
+        }
+    }
+]
