@@ -656,6 +656,7 @@ if __name__ == '__main__':
     frs_methods.download_unzip_frs_data(combined=combined)
 
     frs_data_df = frs_methods.import_format_frs(combined=combined)
+    frs_data_df.to_csv('frs_data.csv')
 
     # frs_methods.add_frs_columns_json(frs_data_df)
 
