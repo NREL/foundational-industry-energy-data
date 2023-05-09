@@ -5,6 +5,7 @@
                 "site_char": {
                     "cityName": null,
                     "countyName": null,
+                    "countyFIPS": null,
                     "stateCode": null,
                     "stateName": null,
                     "postalCode": null,
@@ -12,9 +13,9 @@
                     "legistlateiveDistrictNumber": null,
                     "latitude": null,
                     "longitude": null,
-                    "HUCCode8": null,
+                    "hucCode8": null,
                     "siteTypeName": null,
-                    "stdName": null,
+                    "name": null,
                     "locationDescription": null,
                     "epaRegionCode": null
                 },
@@ -22,6 +23,8 @@
                     "registryID": true,
                     "primaryName": null,
                     "locationAddress": null,
+                    "smallBusInd": null,
+                    "sensitiveInd": null,
                     "orgName": null,
                     "dunsNumber": null,
                     "ein": null,
@@ -93,7 +96,9 @@
             "coal": null,
             "bio": null,
             "diesel": null,
-            "other": null
+            "other": null,
+            "lpgHGL": null,
+            "gasoline": null
         }
     }
 ]

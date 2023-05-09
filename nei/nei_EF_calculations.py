@@ -739,6 +739,10 @@ class NEI:
             ignore_index=False
             )
 
+        missing.drop_duplicates(
+            ['eis_facility_id', 'eis_unit_id', 'eis_process_id', 'fuel_type'],
+            inplace=True)
+
         # missing = self.format_nei_char(missing)
 
         return missing
@@ -777,18 +781,20 @@ class NEI:
             }
 
         df.loc[:, 'throughput_Tonne'] = df.throughput_TON * 0.907  # Convert to metric tonnes
+        logging.info(f'Semi-final columns: {df.columns}')
 
         keep_cols = [
-            'eis_facility_id', 'eis_unit_id',
+            'eis_facility_id', 'eis_unit_id', 'SCC',
             'unit_type', 'unit_description', 'design_capacity',
             'design_capacity_uom', 'fuel_type', 'eis_process_id',
             'process_description',
-            'energy_MJ'
+            'energy_MJ', 'throughput_Tonne'
             ]
 
+        # Standardize fuel types #TODO make into a tool for use across classes?
         fuels_map = {
-            'natural_gas': "naturalGas", 
-            'distillate_oil': "diesel", 
+            'natural_gas': "naturalGas",
+            'distillate_oil': "diesel",
             'gasoline': "gasoline", 
             'LPG': "lpgHGL",
             'process_gas': "other",
@@ -803,11 +809,18 @@ class NEI:
 
         df = df[keep_cols]
 
+        logging.info(f'Final columns: {df.columns}')
+
         df.rename(columns=rename_dict, inplace=True)
 
         levels = [k for k in self._data_schema.keys() if self._data_schema[k]==True]
 
         # df.set_index(levels, inplace=True)
+
+        df.fuelType.update(
+            df.fuelType.map(fuels_map)
+            )
+
 
         return df
 
@@ -828,6 +841,16 @@ class NEI:
     #     for id in f_id:
     #         nei_json[id] = id
 
+    # df = pd.DataFrame({'A': ['foo', 'bar', 'foo', 'bar',
+    #                         'foo', 'bar', 'foo', 'foo'],
+    #                 'B': ['one', 'one', 'two', 'three',
+    #                         'two', 'two', 'one', 'three'],
+    #                 'C': [1, 2, 3, 4, 5, 6, 7, 8],
+    #                 'D': [10, 20, 30, 40, 50, 60, 70, 80]})
+
+    # # group the data by columns A and B, and create a nested dictionary
+    # result = {k: v.set_index('B')[['C', 'D']].T.to_dict() for k, v in df.groupby('A')}
+        nei_char = {k: v.set_index}
 
     #     levels = [k for k in self._data_schema.keys() if self._data_schema[k]==True]
 
@@ -846,6 +869,43 @@ class NEI:
 
     #     # nei_json = {level: df.xs(level).to_dict('index') for level in df.index.levels[0]}
 
+    def merge_med_missing(self, med_unit, missing_unit):
+        """
+        Merge facility, unit, and process IDs with missing and estimated
+        energy and throughput
+
+        Parameters
+        ----------
+        med_unit : pandas.DataFrame
+
+        missing_unit : pandas.DataFrame
+
+        Returns
+        -------
+        nei_char : pandas.DataFrame
+        """
+
+        med_unit.set_index(['eis_facility_id', 'eis_process_id', 'eis_unit_id'],
+                           inplace=True)
+
+        missing_unit.set_index(['eis_facility_id', 'eis_process_id', 'eis_unit_id'],
+                               inplace=True)
+
+        missing_unit = missing_unit.loc[missing_unit.index.drop_duplicates()]
+
+        missing_unit = missing_unit[~missing_unit.index.isin(med_unit.index)]
+
+        nei_char = pd.concat(
+            [med_unit, missing_unit], axis=0,
+            ignore_index=False, sort=True
+            )
+
+        nei_char.sort_index(level=[0, 1, 2], inplace=True)
+
+        nei_char.reset_index(inplace=True)
+
+        return nei_char
+
 def main():
 
     nei = NEI()
@@ -862,11 +922,18 @@ def main():
     # logging.info("Estimating throughput and energy...")
     nei_char = nei.calc_unit_throughput_and_energy(nei_char)
     logging.info("Final assembly...")
-    nei_char = pd.concat(
-        [nei.get_median_throughput_and_energy(nei_char),
-            nei.separate_missing_units(nei_char)], axis=0,
-        ignore_index=True
-        )
+
+    med_unit = nei.get_median_throughput_and_energy(nei_char)
+    missing_unit = nei.separate_missing_units(nei_char)
+
+    nei_char = nei.merge_med_missing(med_unit, missing_unit)
+    logging.info(f"nei_char columns: {nei_char.columns}")
+
+    # nei_char = pd.concat(
+    #     [nei.get_median_throughput_and_energy(nei_char),
+    #         nei.separate_missing_units(nei_char)], axis=0,
+    #     ignore_index=True
+    #     )
 
     nei_char = nei.format_nei_char(nei_char)
 
@@ -878,6 +945,7 @@ def main():
 if __name__ == '__main__':
 
     nei_char = main()
+    nei_char.to_csv('formatted_estimated_nei.csv')
 
 # nei_emiss = match_webfire_to_nei(nei_emiss, webfr)
 # nei_emiss = get_unit_and_fuel_type(nei_emiss, iden_scc)
