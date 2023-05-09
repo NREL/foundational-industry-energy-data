@@ -6,9 +6,11 @@ Created on Wed Mar  6 14:26:54 2019
 """
 import os
 import logging
+import ghgrp_fac_unit
 import datetime as dt
-from ghgrp.calc_GHGRP_energy import GHGRP
-from ghgrp.calc_GHGRP_AA import subpartAA
+from calc_GHGRP_energy import GHGRP
+from calc_GHGRP_AA import subpartAA
+
 
 
 def main(start_year, end_year):
@@ -47,4 +49,12 @@ def main(start_year, end_year):
         engine='pyarrow', compression='gzip'
         )
 
+
     return ghgrp_file
+
+
+if __name__ == '__main__':
+
+    reporting_year = 2017
+    ghgrp_file = main(reporting_year, 2018)
+    ghgrp_df = ghgrp_fac_unit.GHGRP_unit_char(ghgrp_file, reporting_year).main()

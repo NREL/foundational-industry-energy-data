@@ -6,7 +6,8 @@ Created on Wed Aug 30 09:52:53 2017
 """
 import pandas as pd
 import itertools
-#%%
+
+
 class subpartAA:
 
     def __init__(self, aa_ff, aa_sl, std_efs):

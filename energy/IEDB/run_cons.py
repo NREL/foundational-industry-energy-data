@@ -1,13 +1,13 @@
 import pandas as pd
 import get_cbp
-import cons
+import cons_total
 import datetime as dt
 import dask.dataframe as dd
 
 def Construction(calculation_years=range(2010, 2017)):
     # import 2012 Economic Census data.
     census_data = pd.concat(
-                [cons.census(naics) for naics in [23, 236, 237, 238]],
+                [cons_total.census(naics) for naics in [23, 236, 237, 238]],
                 ignore_index=True
                 )
     # Fill in missing values
@@ -60,7 +60,7 @@ def Construction(calculation_years=range(2010, 2017)):
     
     # Calculate county energy 
     cons_energy = cons.calc_county_energy(
-            energy_state, county_frac, multiplier, 
+            energy_state, county_frac, multiplier,
             calculation_years=range(2010, 2017)
             )
     

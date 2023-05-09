@@ -9,10 +9,9 @@ import os
 import logging
 import pandas as pd
 import numpy as np
-import ghgrp.find_fips as find_fips
-import ghgrp.ghg_tiers as ghg_tiers
-import ghgrp.get_GHGRP_data as get_GHGRP_data
-
+import find_fips
+import ghg_tiers
+import get_GHGRP_data
 
 logging.basicConfig(level=logging.INFO)
 
@@ -312,12 +311,16 @@ class GHGRP:
             Method for checking for saved file or calling download method
             for all years in instantiated class.
             """
+            logging.info(f'Subpart:{subpart}\nFilename: {filename}')
 
             ghgrp_data = pd.DataFrame()
 
             table = self.table_dict[subpart]
+            logging.info(f'Table: {table}')
 
             for y in self.years:
+               
+                logging.info(f'year: {y}\nTable: {table}')
 
                 filename_y = f'{filename}{y}.csv'
 
@@ -399,8 +402,17 @@ class GHGRP:
             filename = 'aa_sl_'
             formatted_ghgrp_data = \
                 download_or_read_ghgrp_file(subpart, filename)
-            formatted_ghgrp_data['REPORTING_YEAR'] = \
-                formatted_ghgrp_data.REPORTING_YEAR.astype(int)
+
+            for item in formatted_ghgrp_data.REPORTING_YEAR.iteritems():
+                try:
+                    formatted_ghgrp_data.loc[item[0], 'REPORTING_YEAR'] = int(item[1])
+
+                except ValueError:
+                    continue
+
+                
+            # formatted_ghgrp_data['REPORTING_YEAR'] = \
+            #     formatted_ghgrp_data.REPORTING_YEAR.astype(int)
             pre2013_emissions = formatted_ghgrp_data[
                 formatted_ghgrp_data.REPORTING_YEAR <= 2012
                 ].SPENT_LIQUOR_CH4_EMISSIONS

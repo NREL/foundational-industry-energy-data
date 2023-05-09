@@ -8,7 +8,7 @@ Created on Wed Dec  5 21:50:55 2018
 import pandas as pd
 import os
 import numpy as np
-from ghgrp.get_GHGRP_data import get_GHGRP_records
+from get_GHGRP_data import get_GHGRP_records
 from sklearn.utils import resample
 
 #%%
@@ -62,7 +62,7 @@ class FuelUncertainty:
                                    'C_T3EQC4C8MONTHLYINPUTS',
                                    'C_T3EQC5C8MONTHLYINPUTS']}
 
-        self.ef_file_path = os.path.abspath('../data/GHGRP/EPA_FuelEFs.csv')
+        self.ef_file_path = os.path.abspath('./data/GHGRP/EPA_FuelEFs.csv')
 
         if std_efs is None:
 

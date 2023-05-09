@@ -5,7 +5,7 @@ Created on Mon Feb 25 15:19:42 2019
 @author: cmcmilla
 """
 import pandas as pd
-import ghgrp.heat_rate_uncertainty as hr_uncert
+import heat_rate_uncertainty as hr_uncert
 import os
 import logging
 import numpy as np

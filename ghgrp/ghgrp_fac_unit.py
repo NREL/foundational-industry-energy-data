@@ -175,11 +175,28 @@ class GHGRP_unit_char():
                 'MAX_CAP_MMBTU_per_HOUR'], as_index=False
             ).TJ_TOTAL.sum()
 
-
         ghgrp_df.loc[:, "energyMJ"] = ghgrp_df.TJ_TOTAL * 10**6
-        ghgrp_df.loc[:, 'designCapacity'] = \
-            ghgrp_df.MAX_CAP_MMBTU_per_HOUR * 0.2931  # Convert to MW
-        ghgrp_df.loc[:, 'designCapacityUOM'] = 'MW'
+
+        ghgrp_df.loc[:, 'designCapacity'] = None
+
+        for item in ghgrp_df.MAX_CAP_MMBTU_per_HOUR.iteritems():
+
+            try:
+                ghgrp_df.loc[item[0], 'designCapacity'] = item[1]*0.2931  # Convert to MW
+
+            except TypeError:
+                logging.error(f"Can't convert this: {item[1]}")
+                ghgrp_df.loc[item[0], 'designCapacity'] = None
+
+            else:
+                continue
+
+        # ghgrp_df.loc[:, 'designCapacity'] = \
+        #     ghgrp_df.MAX_CAP_MMBTU_per_HOUR * 0.2931  # Convert to MW
+        ghgrp_df = pd.concat(
+            [ghgrp_df, pd.Series('MW', index=ghgrp_df.index, name='designCapacityUOM')],
+            axis=1, ignore_index=False
+            )
 
         ghgrp_df.drop(["REPORTING_YEAR", "TJ_TOTAL", 'MAX_CAP_MMBTU_per_HOUR'],
                       axis=1, inplace=True)
@@ -319,7 +336,7 @@ class GHGRP_unit_char():
         return ghgrp_df
 
 
-if __name__ =='__main__':
+if __name__ == '__main__':
     ghgrp_energy_file = 'ghgrp_energy_20221223-1455.parquet'
     reporting_year = 2017
     ghgrp_df = GHGRP_unit_char(ghgrp_energy_file, reporting_year).main()

@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Last updated 12/23/2022 by Colin McMillan, colin.mcmillan@nrel.gov
-"""
-#
+
 import pandas as pd
 import requests
 import xml.etree.ElementTree as et
@@ -66,14 +63,14 @@ def get_GHGRP_records(reporting_year, table, rows=None):
         table_url = ('https://enviro.epa.gov/enviro/efservice/', table,
                      '/YEAR/', str(reporting_year))
 
-        table_url = s.join(table_url)
+        table_url = "".join(table_url)
 
     else:
 
         table_url = ('https://enviro.epa.gov/enviro/efservice/', table,
                      '/REPORTING_YEAR/', str(reporting_year))
 
-        table_url = s.join(table_url)
+        table_url = "".join(table_url)
 
     r_columns = requests.get(table_url + '/rows/0:1')
     r_columns_root = et.fromstring(r_columns.content)
@@ -83,7 +80,8 @@ def get_GHGRP_records(reporting_year, table, rows=None):
     if rows is None:
 
         try:  
-            r = requests.get(table_url + '/count')
+            r = requests.get(table_url + '/count/json')  # Original used XML formatting
+            # r = requests.get(table_url + '/count')  #
 
         except requests.exceptions.RequestException as e:
             print(e, table_url)
@@ -91,15 +89,28 @@ def get_GHGRP_records(reporting_year, table, rows=None):
 
         logging.info(f'Count of {r.url} is {r.content}\nOriginal URL: {table_url}')
         # API has changed since original code.
-        tree = et.fromstring(r.content)
+        # tree = et.fromstring(r.content)
 
-        counts = \
-            [[c for c in tree.iter(n)] for n in ['Count', 'RequestRecordCount']]
+        # counts = \
+        #     [[c for c in tree.iter(n)] for n in ['Count', 'RequestRecordCount']]
 
-        logging.info(f'XML tree counts: {counts}')
+        try:
 
-        if counts[0] == []:
-            nrecords = int(counts[1][0].text)
+            counts = r.json()[0]['TOTALQUERYRESULTS']
+            logging.info(f'JSON tree counts: {counts}')
+
+        except IndexError as e:
+            logging.error(f'Check API respose: {e}')
+
+
+        # logging.info(f'XML tree counts: {counts}')
+        
+
+        # if counts[0] == []:
+    
+        #     nrecords = int(counts[1][0].text)
+
+        nrecords = counts
 
         if nrecords > 10000:
 

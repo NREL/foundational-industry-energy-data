@@ -17,8 +17,8 @@ calculation_years = range(2010, 2017)
 # 1.NATIONAL FUEL CONSUMPTION #################################################
 # (1.1) fuel_cost: 2012 Costs (000$) by NAICS & Fuel ##########################
 """
-fuel_cost_source: 2012 Economic Census data from ‘Mining: Subject Series: 
-Materials Summary: Selected Supplies, Minerals Received for Preparation, 
+fuel_cost_source: 2012 Economic Census data from ‘Mining: Subject Series:
+Materials Summary: Selected Supplies, Minerals Received for Preparation,
 Purchased Machinery, and Fuels Consumed by Type of Industry: 2012.’
 Variables: https://api.census.gov/data/2012/ecnmatfuel/variables.html.
 Columns: NAICS, fuel_id, fuel_type, fuel_cost
@@ -62,8 +62,8 @@ def get_fuel_cost():
                               'UNITS_TTL':'fuel_qty_unit',
                               'M_FI':'fuel_flag'}, inplace=True)
     
-    fuel_cost = fuel_cost[['NAICS','fuel_id','fuel_type',
-                                   'fuel_cost_k_usd','fuel_cost_missing',
+    fuel_cost = fuel_cost[['NAICS', 'fuel_id','fuel_type',
+                                   'fuel_cost_k_usd', 'fuel_cost_missing',
                                    'fuel_qty','fuel_qty_unit','fuel_flag']]
     
     fuel_cost = fuel_cost.loc[:,~fuel_cost.columns.duplicated()]
@@ -106,10 +106,10 @@ fuel_cost_source.set_index('NAICS', inplace=True)
 fuel_cost = pd.DataFrame()
 
 for n in mining_naics:
-    
+
     single_sector = fuel_cost_source.loc[n, : ]
     single_sector = single_sector[single_sector.fuel_cost_missing != 'X']
-    
+
     if single_sector.iloc[0]['fuel_cost_k_usd'] != 0:
         
         tot = single_sector.iloc[0]['fuel_cost_k_usd']
@@ -618,7 +618,7 @@ fuel_county = fuel_county[['state', 'county', 'NAICS',
 # 4.REAL GDP ##################################################################
 # (4.1)Source Data from BEA ###################################################
 """
-bea: 1997-2018 annual GDP in the construction sector by state (real GDP in 
+bea: 1997-2018 annual GDP in the mining sector by state (real GDP in 
 chained dollars). Columns: state, year, gdp
 """
 

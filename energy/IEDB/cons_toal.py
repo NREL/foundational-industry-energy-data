@@ -28,13 +28,7 @@ def census(naics):
               'key':'489f08f390013bc6d41ee377e86ea8c1b0dd5267'}
 
     r = requests.get(base_url, params=params)
-    #print(r.content)
-#    url = r.url
-#    #print(url)
-#
-#    response = urllib.request.urlopen(url)
-#    data = response.read()
-#    datajson = json.loads(data)
+
     census = pd.DataFrame(r.json())
 
     census.columns = census.iloc[0]
