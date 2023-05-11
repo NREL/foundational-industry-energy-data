@@ -178,11 +178,30 @@ def harmonize_unit_data(eis_and_ghgrp, ghgrp_unit_data, nei_data):
 
     nei_data_harm = pd.merge(eis_ids, nei_data, on='eisFacilityID', how='inner')
 
+
+
+    return
+
+def allocate_ocs_energy(ghgrp_data_ocs, nei_data_harm):
+    """
+    Allocate energy estimated from GHGRP data for
+    OCS (Other combustion source) based on NEI data.
+    
+    Parameters
+    ----------
+    ghgrp_data_ocs : pandas.DataFrame
+        Selected GHGRP unit data for facilities that also report
+        to the NEI and report OCS (Other Combustion Source)
+
+    nei_data_harm : pandas.DataFrame
+        Selected NEI data for facilities that also report
+        to the GHGRP.
+
+    """
+
     nei_data_harm_portion =  nei_data_harm.groupby(
         ['registryID', 'eisFacilityID', 'eisProcessID', 'eisUnitID', 'fuelType']
         ).energyMJ.sum()
-
-    return
 
 def layer_unit_data(frs_data, nei_data, ghgrp_unit_data):
     """
