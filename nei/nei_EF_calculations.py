@@ -906,38 +906,38 @@ class NEI:
 
         return nei_char
 
-def main():
+    def main(self):
 
-    nei = NEI()
-    # logging.info("Getting NEI data...")
-    nei_data = nei.load_nei_data()
-    iden_scc = nei.load_scc_unittypes()
-    webfr = nei.load_webfires()
-    # logging.info("Merging WebFires data...")
-    nei_char = nei.match_webfire_to_nei(nei_data, webfr)
-    # logging.info("Merging SCC data...")
-    nei_char = nei.assign_types_nei(nei_char, iden_scc)
-    #  logging.info("Converting emissions units...")
-    nei_char = nei.convert_emissions_units(nei_char)
-    # logging.info("Estimating throughput and energy...")
-    nei_char = nei.calc_unit_throughput_and_energy(nei_char)
-    logging.info("Final assembly...")
+        nei = NEI()
+        # logging.info("Getting NEI data...")
+        nei_data = nei.load_nei_data()
+        iden_scc = nei.load_scc_unittypes()
+        webfr = nei.load_webfires()
+        # logging.info("Merging WebFires data...")
+        nei_char = nei.match_webfire_to_nei(nei_data, webfr)
+        # logging.info("Merging SCC data...")
+        nei_char = nei.assign_types_nei(nei_char, iden_scc)
+        #  logging.info("Converting emissions units...")
+        nei_char = nei.convert_emissions_units(nei_char)
+        # logging.info("Estimating throughput and energy...")
+        nei_char = nei.calc_unit_throughput_and_energy(nei_char)
+        logging.info("Final assembly...")
 
-    med_unit = nei.get_median_throughput_and_energy(nei_char)
-    missing_unit = nei.separate_missing_units(nei_char)
+        med_unit = nei.get_median_throughput_and_energy(nei_char)
+        missing_unit = nei.separate_missing_units(nei_char)
 
-    nei_char = nei.merge_med_missing(med_unit, missing_unit)
-    logging.info(f"nei_char columns: {nei_char.columns}")
+        nei_char = nei.merge_med_missing(med_unit, missing_unit)
+        logging.info(f"nei_char columns: {nei_char.columns}")
 
-    # nei_char = pd.concat(
-    #     [nei.get_median_throughput_and_energy(nei_char),
-    #         nei.separate_missing_units(nei_char)], axis=0,
-    #     ignore_index=True
-    #     )
+        # nei_char = pd.concat(
+        #     [nei.get_median_throughput_and_energy(nei_char),
+        #         nei.separate_missing_units(nei_char)], axis=0,
+        #     ignore_index=True
+        #     )
 
-    nei_char = nei.format_nei_char(nei_char)
+        nei_char = nei.format_nei_char(nei_char)
 
-    return nei_char
+        return nei_char
 
 # #TODO write method to separate relevant facilities and unit types into JSON schema
 # #TODO figure out tests to check calculations and other aspects of code.
