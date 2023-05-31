@@ -5,25 +5,14 @@
 import logging
 import yaml
 import re
+import pickle
 import pandas as pd
 # import ghgrp.run_GHGRP as GHGRP
 from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
 from nei.nei_EF_calculations import NEI
 from frs.frs_extraction import FRS
 
-year = 2017
 
-frs_methods = FRS()
-frs_methods.download_unzip_frs_data(combined=True)
-frs_data = frs_methods.import_format_frs(combined=True)
-frs_data.to_csv('./data/FRS/frs_data_formatted.csv', index=True)
-
-# ghgrp_energy_file = GHGRP.main(year, year)
-ghgrp_energy_file = "ghgrp_energy_20230508-1606.parquet"
-ghgrp_fac_energy = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
-
-#nei_data = NEI().main()
-nei_data = pd.read_csv('formatted_estimated_nei.csv')
 
 # def frs_match_program():
 #     """
@@ -93,10 +82,27 @@ def split_multiple(x, col_names):
 
     return mult
 
+
+def main():
+    year = 2017
+
+    frs_methods = FRS()
+    frs_methods.download_unzip_frs_data(combined=True)
+    frs_data = frs_methods.import_format_frs(combined=True)
+    frs_data.to_csv('./data/FRS/frs_data_formatted.csv', index=True)
+
+    # ghgrp_energy_file = GHGRP.main(year, year)
+    ghgrp_energy_file = "ghgrp_energy_20230508-1606.parquet"
+    ghgrp_fac_energy = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
+
+    #nei_data = NEI().main()
+    nei_data = pd.read_csv('formatted_estimated_nei.csv')
+
+
 def load_fueltype_dict():
     """
-    Opens and loads a yaml that specifies the mapping of 
-    GHGRP fuel types to standard fuel types that have 
+    Opens and loads a yaml that specifies the mapping of
+    GHGRP fuel types to standard fuel types that have
     aready been applied to NEI data.
 
     Returns
@@ -107,11 +113,18 @@ def load_fueltype_dict():
     """
 
     with open('./tools/type_standardization.yml', 'r') as file:
-        fuel_dict = yaml.safe_load(file)
+        docs = yaml.safe_load_all(file)
+
+        for i, d in enumerate(docs):
+            if i == 0:
+                fuel_dict = d
+            else:
+                continue
 
     return fuel_dict
 
-def frs_melt_multiple(frs_data, other_data):
+
+def melt_multiple_ids(frs_data, other_data):
     """
     Melt FRS data for facilities, extracting multiple NEI or GHGRP IDs.
 
@@ -134,20 +147,28 @@ def frs_melt_multiple(frs_data, other_data):
 
     col_names = []
 
-    for name in ['ghgrpID', 'eisFacilityID']:
+    if 'ghgrpID' in other_data.columns:
 
-        if name in other_data.columns:
+        col_names = ['ghgrpID', 'ghgrpIDAdditional']
 
-            col_names = [name, f'{name}Additional']
+    else:
 
-        else:
-            continue
+        col_names = ['eisFacilityID', 'eisFacilityIDAdditional']
 
-    try:
-        col_names[0]
+    # for name in ['ghgrpID', 'eisFacilityID']:
 
-    except IndexError as e:
-        logging.error(f'Check column names in other_data: {e}')
+    #     if name in other_data.columns:
+
+    #         col_names = [name, f'{name}Additional']
+
+    #     else:
+    #         continue
+
+    # try:
+    #     col_names[0]
+
+    # except IndexError as e:
+    #     logging.error(f'Check column names in other_data: {e}')
 
     frs_mult = frs_data[frs_data[col_names[1]].notnull()]
 
@@ -157,7 +178,7 @@ def frs_melt_multiple(frs_data, other_data):
         )
 
     frs_mult = frs_mult.melt(
-        id_vars=['registryID'], value_name = col_names[0]
+        id_vars=['registryID'], value_name=col_names[0]
         ).drop('variable', axis=1)
 
     melted = pd.concat([
@@ -166,7 +187,10 @@ def frs_melt_multiple(frs_data, other_data):
         axis=0, ignore_index=True
         )
 
+    melted.dropna(inplace=True)
+
     return melted
+
 
 def harmonize_fuel_type(ghgrp_unit_data):
     """
@@ -187,7 +211,13 @@ def harmonize_fuel_type(ghgrp_unit_data):
         ghgrp_unit_data.fuelType.map(fuel_dict)
         )
 
+    # drop any fuelTypes that are null
+    ghgrp_unit_data = ghgrp_unit_data.where(
+        ghgrp_unit_data.fuelType != 'None'
+        ).dropna(how='all')
+
     return ghgrp_unit_data
+
 
 def harmonize_unit_type(df):
     """
@@ -207,7 +237,8 @@ def harmonize_unit_type(df):
 
     """
 
-    unit_types = df['unitType'].drop_duplicates()
+    unit_types = pd.DataFrame(df['unitType'].drop_duplicates())
+
     unit_types.loc[:, 'unitTypeStd'] = unit_types.unitType.apply(
         lambda x: unit_regex(x)
         )
@@ -218,15 +249,14 @@ def harmonize_unit_type(df):
     return df
 
 
-
-def id_shared_unit_data(eis_and_ghgrp, ghgrp_unit_data, nei_data):
+def blend_energy_estimates(nei_data_shared, ghgrp_data_shared):
     """"
     Select approporiate unit data where both GHGRP
     and NEI report unit data.
 
     Parameters
     ----------
-    eis_and_ghgrp : pandas.DataFrame
+    nei_and_ghgrp : pandas.DataFrame
         Selection of frs_data where facilities report to both
         GHGRP and NEI
 
@@ -244,20 +274,18 @@ def id_shared_unit_data(eis_and_ghgrp, ghgrp_unit_data, nei_data):
 
     """
 
-    eis_ids = frs_melt_multiple(eis_and_ghgrp, nei_data)
-    ghgrp_ids = frs_melt_multiple(eis_and_ghgrp, ghgrp_unit_data)
+    # nei_ids = melt_multiple_ids(frs_data, nei_data)
+    # ghgrp_ids = melt_multiple_ids(frs_data, ghgrp_unit_data)
 
-    ghgrp_data_shared = pd.merge(
-        ghgrp_ids[['ghgrpID']],
-        ghgrp_unit_data,
-        on='ghgrpID',
-        how='inner'
-        )
+    # ghgrp_data_shared = pd.merge(
+    #     ghgrp_ids[['ghgrpID']],
+    #     ghgrp_unit_data,
+    #     on='ghgrpID',
+    #     how='inner'
+    #     )
 
     ghgrp_data_shared_ocs = id_ghgrp_units(ghgrp_data_shared, ocs=True)
 
-    nei_data_shared = pd.merge(eis_ids, nei_data, on='eisFacilityID',
-                               how='inner')
     nei_data_shared_ocs = id_nei_units(nei_data_shared, ghgrp_data_shared_ocs)
 
     # nei_data_shared_ocs = pd.DataFrame(
@@ -278,8 +306,8 @@ def id_shared_unit_data(eis_and_ghgrp, ghgrp_unit_data, nei_data):
     nonocs_energy = allocate_ocs_energy(ghgrp_data_shared_nonocs,
                                         nei_data_shared_nonocs)
 
+    return ocs_energy, nonocs_energy
 
-    return ocs_energy
 
 def id_nei_units(nei_data_shared, ghgrp_data_shared_):
     """
@@ -298,7 +326,7 @@ def id_nei_units(nei_data_shared, ghgrp_data_shared_):
     Returns
     -------
     nei_data_shared_ : pandas.DataFrame
-        NEI data for facilities that either have or 
+        NEI data for facilities that either have or
         don't have OCS units under their GHGRP reporting.    
     """
 
@@ -309,10 +337,12 @@ def id_nei_units(nei_data_shared, ghgrp_data_shared_):
         nei_data_shared.loc[ghgrp_data_shared_.index, :]
         )
 
+    nei_data_shared_.reset_index(inplace=True)
     nei_data_shared.reset_index(inplace=True)
     ghgrp_data_shared_.reset_index(inplace=True)
 
     return nei_data_shared_
+
 
 def id_ghgrp_units(ghgrp_data, ocs=True):
     """
@@ -366,7 +396,7 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
                 else:
                     continue
 
-    ghgrp_data_.reset_index(inplace=True)
+    # ghgrp_data_.reset_index(inplace=True)
 
     return ghgrp_data_
 
@@ -391,10 +421,11 @@ def blend_energy_est(ghgrp_data_shared_nonocs, nei_data_shared_noncs):
     blended_energy : pd.DataFrame
     """
 
+
 def allocate_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
     """
     Selects energy estimates from NEI or GHGRP when energy estimates
-    are available from both sources for a facility. Also 
+    are available from both sources for a facility. Also
     allocates energy estimated from GHGRP data for
     OCS (Other combustion source) based on NEI data.
 
@@ -421,8 +452,10 @@ def allocate_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
 
     nei_data_shared_ocs.sort_index(inplace=True)
 
-    nei_data_shared_portion = nei_data_shared_ocs.energyMJ.sum(
-        level=[0, 1]
+    nei_data_shared_portion = pd.DataFrame(
+        nei_data_shared_ocs.energyMJ.sum(
+            level=[0, 1]
+            )
         )
 
     nei_data_shared_ocs.reset_index(inplace=True)
@@ -432,6 +465,8 @@ def allocate_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
         nei_data_shared_portion.energyMJ, fill_value=0
         )
 
+    nei_data_shared_ocs.set_index(['registryID', 'fuelType'], inplace=True)
+    nei_data_shared_ocs.sort_index(inplace=True)
     ghgrp_data_shared_ocs.set_index(['registryID', 'fuelType'], inplace=True)
     ghgrp_data_shared_ocs.sort_index(inplace=True)
 
@@ -439,8 +474,14 @@ def allocate_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
 
     for i in ghgrp_data_shared_ocs.index:
 
-        ghgrp_sum = ghgrp_data_shared_ocs.loc[i, 'energyMJ'].sum()
-        nei_sum = nei_data_shared_ocs.loc[i, 'energyMJ'].sum()
+        ghgrp_sum = ghgrp_data_shared_ocs.xs(i).energyMJ.sum()
+
+        try:
+
+            nei_sum = nei_data_shared_ocs.xs(i).energyMJ.sum()
+
+        except KeyError as e:
+            logging.error(f'Check fuel type standardization: {e}')
 
         if nei_sum > 0:
 
@@ -458,10 +499,11 @@ def allocate_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
 
         ocs_energy = pd.concat(
             [ocs_energy, energy_use.reset_index()],
-            axis=0, ignore_index=True
+            axis=0, ignore_index=True, sort=True
             )
 
     return ocs_energy
+
 
 def unit_regex(unitType):
     """
@@ -480,11 +522,16 @@ def unit_regex(unitType):
         Standardized unit type
     """
 
+    other_boilers = ['PCWD', 'PCWW', 'PCO', 'PCT', 'OFB']
+
     unit_types = [
         'kiln', 'dryer', 'oven', 'furnace',
         'boiler', 'incinerator', 'flare',
         'heater', 'calciner', 'turbine',
-        'stove', 'distillation', 'other combustion'
+        'stove', 'distillation', 'other combustion',
+        'engine', 'generator', 'oxidizer', 'pump',
+        'compressor', 'building heat', 'cupola',
+        'PCWD', 'PCWW', 'PCO', 'PCT', 'OFB'
         ]
 
     ut_std = []
@@ -492,7 +539,12 @@ def unit_regex(unitType):
     for unit in unit_types:
 
         unit_pattern = re.compile(r'({})'.format(unit), flags=re.IGNORECASE)
-        unit_search = unit_pattern.search(unitType)
+
+        try:
+            unit_search = unit_pattern.search(unitType)
+
+        except TypeError:
+            continue
 
         if unit_search:
             ut_std.append(unit)
@@ -509,13 +561,25 @@ def unit_regex(unitType):
     elif ut_std[0] == 'calciner':
         ut_std = 'kiln'
 
+    elif ut_std[0] == 'oxidizer':
+        ut_std = 'thermal oxidizer'
+
+    elif ut_std[0] == 'buidling heat':
+        ut_std = 'heater'
+
+    elif ut_std[0] == 'cupola':
+        ut_std = 'other combustion'
+
+    elif ut_std[0] in other_boilers:
+        utd_std = 'boi'ler'
+
     else:
         ut_std = ut_std[0]
 
     return ut_std
 
 
-def layer_unit_data(frs_data, nei_data, ghgrp_unit_data):
+def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
     """
     All facilities have FRS ID. Not all GHGRP facilities have EIS IDs and
     vice versa. 
@@ -531,60 +595,125 @@ def layer_unit_data(frs_data, nei_data, ghgrp_unit_data):
 
     Returns
     -------
+    data_dict : dictionary of pandas.DataFrames
     """
 
     # Harmonize fuel types for GHGRP data
     ghgrp_unit_data = harmonize_fuel_type(ghgrp_unit_data)
-    
+
     # Harmonize/standardize unit types
-    frs_data = harmonize_unit_type(frs_data)
+    nei_data = harmonize_unit_type(nei_data)
     ghgrp_unit_data = harmonize_unit_type(ghgrp_unit_data)
 
-    eis_no_ghgrp = frs_data.query('eisFacilityID.isnull() & ghgrpID.notnull()',
-                                  engine='python')
+    nei_no_ghgrp = frs_data.query(
+        'eisFacilityID.notnull() & ghgrpID.isnull()', engine='python'
+        )
 
-    ghgrp_no_eis = frs_data.query('eisFacilityID.notnull() & ghgrpID.isnull()',
-                                  engine='python')
+    ghgrp_no_eis = frs_data.query(
+        'eisFacilityID.isnull() & ghgrpID.notnull()', engine='python'
+        )
 
-    eis_and_ghgrp = frs_data.query('eisFacilityID.notnull() & ghgrpID.notnull()',
-                                   engine='python')
+    nei_and_ghgrp = frs_data.query(
+        'eisFacilityID.notnull() & ghgrpID.notnull()', engine='python'
+        )
 
     # For cases where facility is both GHGRP and EIS:
     # if ghgrp.unitType == OCS & (nei.fuelType == ghgrp.fuelType):  # Need to harmonize fuel types (write method to Tools)
     #   if -0.2 < (sum(ghgrp.energyMJ/)sum(nei.energyMJ) - 1) < 0.2:
     #       use nei data
     #   else:
-    #       method to allocate GHGRP energy to NEI unit types (with same fuelType)
+    #       method to allocate GHGRP d to NEI unit types (with same fuelType)
 
-    eis_ids = frs_melt_multiple(eis_no_ghgrp, nei_data)
+    # EIS facility IDs that don't report to GHGRP
+    nei_ids_noghgrp = melt_multiple_ids(nei_no_ghgrp, nei_data)
 
-    ghgrp_ids = frs_melt_multiple(ghgrp_no_eis, ghgrp_unit_data)
-
-    eis_only_data = pd.merge(
-        eis_ids,
+    nei_only_data = pd.merge(
+        nei_ids_noghgrp,
         nei_data, on='eisFacilityID',
         how='inner'
         )
 
+    # GHGRP facility IDs that don't report to NEI
+    ghgrp_ids_noeis = melt_multiple_ids(ghgrp_no_eis, ghgrp_unit_data)
+
     ghgrp_only_data = pd.merge(
-        ghgrp_ids['ghgrpID'],
+        ghgrp_ids_noeis['ghgrpID'],
         ghgrp_unit_data, on='ghgrpID',
         how='inner'
         )
-    
-    return
 
+    nei_ids_shared = melt_multiple_ids(nei_and_ghgrp, nei_data)
 
+    nei_data_shared = pd.merge(
+        nei_ids_shared,
+        nei_data, on='eisFacilityID',
+        how='inner'
+        )
 
+    ghgrp_ids_shared = melt_multiple_ids(nei_and_ghgrp, ghgrp_unit_data)
 
-mining_energy = calc_mining_energy(year)  # Estimate mining energy intensity by NAICS, fuel, and location
+    ghgrp_data_shared = pd.merge(
+        ghgrp_ids_shared[['ghgrpID']],
+        ghgrp_unit_data,
+        on='ghgrpID',
+        how='inner'
+        )
 
-ag_energy = calc_ag_energy(year)  # Estimate ag energy intensity by NAICS, fuel, and location
+    data_dict = {
+        'nei_shared': nei_data_shared,  # EIS data for facilities without GHGRP reporting
+        'nei_only': nei_only_data,  # #TODO report out for final data set
+        'ghgrp_shared': ghgrp_data_shared,
+        'ghgrp_only': ghgrp_only_data  # #TODO Report out for final data set
+        }
 
-q_hours = calc_quarterly_op_hours(year)  # Get quarterly estimates of weekly operating hours from Censusn with standard error +/- [est, +, min]
+    return data_dict
 
-# Need a generic method for quickly matching sub-6-digit NAICS to 6-D NAICS
+if __name__ == '__main__':
+    year = 2017
 
-frs_json = merge_and_make_json(frs_facs, ghgrp_fac_energy)
+    try:
+        frs_data = pd.read_csv(
+            './data/FRS/frs_data_formatted.csv', low_memory=False
+            )
+
+    except FileNotFoundError:
+
+        frs_methods = FRS()
+        frs_methods.download_unzip_frs_data(combined=True)
+        frs_data = frs_methods.import_format_frs(combined=True)
+        frs_data.to_csv('./data/FRS/frs_data_formatted.csv', index=True)
+
+     # ghgrp_energy_file = GHGRP.main(year, year)
+    ghgrp_energy_file = "ghgrp_energy_20230508-1606.parquet"
+    ghgrp_unit_data = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
+    ghgrp_unit_data.registryID.update(ghgrp_unit_data.registryID.astype(float))
+
+    #nei_data = NEI().main()
+    nei_data = pd.read_csv(
+        'formatted_estimated_nei.csv', low_memory=False, index_col=0,
+        )
+
+    data_dict = separate_unit_data(frs_data, nei_data, ghgrp_unit_data)
+
+    with open('energy_data_dict.pkl', 'wb') as handle:
+        pickle.dump(data_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    ocs_energy, nonocs_energy = blend_energy_estimates(
+        data_dict['nei_shared'],
+        data_dict['ghgrp_shared']
+        )
+
+    ocs_energy.to_pickle('ocs_energy.pkl')
+    nonocs_energy.to_pickle('nonocs_energy.pkl')
+
+# mining_energy = calc_mining_energy(year)  # Estimate mining energy intensity by NAICS, fuel, and location
+
+# ag_energy = calc_ag_energy(year)  # Estimate ag energy intensity by NAICS, fuel, and location
+
+# q_hours = calc_quarterly_op_hours(year)  # Get quarterly estimates of weekly operating hours from Censusn with standard error +/- [est, +, min]
+
+# # Need a generic method for quickly matching sub-6-digit NAICS to 6-D NAICS
+
+# frs_json = merge_and_make_json(frs_facs, ghgrp_fac_energy)
 
 
