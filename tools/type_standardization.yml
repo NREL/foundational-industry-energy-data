@@ -24,7 +24,7 @@ Butane: lpgHGL
 Subbituminous: coal 
 Natural Gasoline: other 
 Biodiesel (100%): other
-Municipal Solid Waste: othertp
+Municipal Solid Waste: other
 Plastics: other
 Agricultural Byproducts: biomass
 Distillate Fuel Oil No. 4: other
@@ -53,6 +53,7 @@ Wood and Wood Residuals: biomass
 Biogenic Process Derived Fuel (PDF): other 
 HYD-01: other 
 Process Gas: other
+Refinery Fuel Gas: other
 Refinery Fuel Gas 1: other 
 Refinery Fuel Gas 2: other 
 Carbon Monoxide: other
@@ -133,6 +134,9 @@ Residual/Crude Oil: other
 Digester Gas: other
 Lignite Coal: coal
 Kerosene: other
+Heavy Residue: other
+None: null
+none: null
 
 # ---
 # # units:

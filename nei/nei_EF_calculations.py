@@ -62,6 +62,53 @@ class NEI:
 
         self._data_schema = import_data_schema(self._data_source)
 
+    def check_capacity_uom(self, row):
+        """
+        
+        """
+
+        # Dictionary to convert reported unit capacities to annual MJ.
+        # Assume continuous operation, 8760 hours/year
+        uom_types = {
+            'E6BTU/HR': 8760 * 1055.87,  # -> MMBtu->MJ
+            'KW': 8760 * 3.6,  # ->kWh->MJ
+            'HP': 0.7457 * 8760 * 3.6,  # ->kW->kWh->MJ
+            'MW': 1000 * 8760*3.6  # ->kW->kWh->MJ
+            }
+        
+    def check_unit_description(self, row):
+        """"
+        
+        """
+
+        s = row['unitDescription']
+
+        sm = re.search(r'(\S+)(\s)(?=(mmbtu/hr))', s)
+
+        if sm:
+
+            try:
+                smf = float(sm)
+
+            except ValueError:
+                return 
+            
+            else:
+                value = smf * 8760 & 1055.87  # Convert from MMBtu/hr to MJ
+            
+
+
+    def check_calculation(self, row):
+        """
+        Check energy estimates. Uses a maximum unit combustion MJ
+        estimated from EPA GHGRP data, assuming any estimate above this
+        value is an error.
+
+        """
+
+        # Max estimated unit energy from GHGRP in 2017 (MJ).
+        ghgrp_max = 7.925433e+10
+
     @staticmethod
     def match_partial(full_list, partial_list):
         """
@@ -382,7 +429,6 @@ class NEI:
 
         return nei
 
-
     # for throughput calculation,
     #   convert NEI emissions to LB; NEI EFs to LB/TON;
     #   and WebFire EFs to LB/TON
@@ -394,15 +440,13 @@ class NEI:
     def convert_emissions_units(self, nei):
         """
         Convert reported emissions factors into emissions factors that
-        can be used to estimate mass throughput (in short tons) or 
+        can be used to estimate mass throughput (in short tons) or
         energy (in MJ). 
         Uses conversion factors defined in self._unit_conv.
-
 
         Parameters
         ----------
         nei : pandas.DataFrame
-    
 
         Returns
         -------

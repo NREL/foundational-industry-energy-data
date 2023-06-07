@@ -98,32 +98,6 @@ def main():
     #nei_data = NEI().main()
     nei_data = pd.read_csv('formatted_estimated_nei.csv')
 
-
-def load_fueltype_dict():
-    """
-    Opens and loads a yaml that specifies the mapping of
-    GHGRP fuel types to standard fuel types that have
-    aready been applied to NEI data.
-
-    Returns
-    -------
-    fuel_dict : dictionary
-        Dictionary of mappings between GHGRP fuel types and
-        generic fuel types that have been applied to NEI data.
-    """
-
-    with open('./tools/type_standardization.yml', 'r') as file:
-        docs = yaml.safe_load_all(file)
-
-        for i, d in enumerate(docs):
-            if i == 0:
-                fuel_dict = d
-            else:
-                continue
-
-    return fuel_dict
-
-
 def melt_multiple_ids(frs_data, other_data):
     """
     Melt FRS data for facilities, extracting multiple NEI or GHGRP IDs.
@@ -140,7 +114,7 @@ def melt_multiple_ids(frs_data, other_data):
     Returns
     -------
     melted : pandas.DataFrame
-        Melted DataFrame with columns of registryID and either ghgrpID or 
+        Melted DataFrame with columns of registryID and either ghgrpID or
         eisFacilityID.
 
     """
@@ -189,34 +163,10 @@ def melt_multiple_ids(frs_data, other_data):
 
     melted.dropna(inplace=True)
 
+    melted = melted.drop_duplicates(subset=[col_names[0]])
+
     return melted
 
-
-def harmonize_fuel_type(ghgrp_unit_data):
-    """
-    Applies fuel type mapping to fuel types reported under GHGRP
-
-    Parameters
-    ----------
-    ghgrp_unit_data : pandas.DataFrame
-
-    Returns
-    -------
-    ghgrp_unit_data : pandas.DataFrame
-    """
-
-    fuel_dict = load_fueltype_dict()
-
-    ghgrp_unit_data.fuelType.update(
-        ghgrp_unit_data.fuelType.map(fuel_dict)
-        )
-
-    # drop any fuelTypes that are null
-    ghgrp_unit_data = ghgrp_unit_data.where(
-        ghgrp_unit_data.fuelType != 'None'
-        ).dropna(how='all')
-
-    return ghgrp_unit_data
 
 
 def harmonize_unit_type(df):
@@ -444,28 +394,43 @@ def allocate_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
     ocs_energy : pd.DataFrame
 
     """
+    
+    nei_data_shared_ocs.to_pickle('nei_data_shared_ocs.pkl')
+    ghgrp_data_shared_ocs.to_pickle('ghgrp_data_shared_ocs.pkl')
 
     nei_data_shared_ocs.set_index(
-        ['registryID', 'fuelType', 'eisProcessID', 'eisUnitID'],
+        ['registryID', 'eisFacilityID', 'fuelType', 'eisProcessID',
+         'eisUnitID'],
         inplace=True
         )
 
     nei_data_shared_ocs.sort_index(inplace=True)
 
-    nei_data_shared_portion = pd.DataFrame(
-        nei_data_shared_ocs.energyMJ.sum(
-            level=[0, 1]
+    nei_data_shared_portion = nei_data_shared_ocs.energyMJ.sum(
+        level=[0, 1, 2]
+        )
+
+    nei_data_shared_portion = nei_data_shared_ocs.energyMJ.divide(
+            nei_data_shared_portion, fill_value=0
             )
+
+    nei_data_shared_portion.name = 'energyMJPortion'
+
+    nei_data_shared_ocs = pd.concat(
+        [nei_data_shared_ocs, nei_data_shared_portion], axis=1
         )
 
-    nei_data_shared_ocs.reset_index(inplace=True)
-    nei_data_shared_portion.reset_index(inplace=True)
-
-    nei_data_shared_ocs.loc[:, 'energyMJPortion'] = nei_data_shared_ocs.energyMJ.divide(
-        nei_data_shared_portion.energyMJ, fill_value=0
+    nei_data_shared_ocs.reset_index(
+        ['eisFacilityID', 'eisProcessID', 'eisUnitID'], drop=False,
+        inplace=True
         )
+    # nei_data_shared_portion.reset_index(inplace=True)
 
-    nei_data_shared_ocs.set_index(['registryID', 'fuelType'], inplace=True)
+    # nei_data_shared_ocs.loc[:, 'energyMJPortion'] = nei_data_shared_ocs.energyMJ.divide(
+    #     nei_data_shared_portion.energyMJ, fill_value=0
+    #     )
+
+    # nei_data_shared_ocs.set_index(['registryID', 'fuelType'], inplace=True)
     nei_data_shared_ocs.sort_index(inplace=True)
     ghgrp_data_shared_ocs.set_index(['registryID', 'fuelType'], inplace=True)
     ghgrp_data_shared_ocs.sort_index(inplace=True)
@@ -570,8 +535,8 @@ def unit_regex(unitType):
     elif ut_std[0] == 'cupola':
         ut_std = 'other combustion'
 
-    elif ut_std[0] in other_boilers:
-        utd_std = 'boi'ler'
+    elif any([x in ut_std[0] for x in other_boilers]):
+        ut_std = 'boiler'
 
     else:
         ut_std = ut_std[0]
@@ -579,10 +544,11 @@ def unit_regex(unitType):
     return ut_std
 
 
+ # #TODO look here for creating duplicates
 def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
     """
     All facilities have FRS ID. Not all GHGRP facilities have EIS IDs and
-    vice versa. 
+    vice versa.
 
     Parameters
     ----------
@@ -598,12 +564,12 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
     data_dict : dictionary of pandas.DataFrames
     """
 
-    # Harmonize fuel types for GHGRP data
-    ghgrp_unit_data = harmonize_fuel_type(ghgrp_unit_data)
-
     # Harmonize/standardize unit types
     nei_data = harmonize_unit_type(nei_data)
     ghgrp_unit_data = harmonize_unit_type(ghgrp_unit_data)
+
+    nei_data.to_pickle('nei_data.pkl')
+    ghgrp_unit_data.to_pickle('ghgrp_data_postharm.pkl')
 
     nei_no_ghgrp = frs_data.query(
         'eisFacilityID.notnull() & ghgrpID.isnull()', engine='python'
@@ -633,6 +599,11 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         how='inner'
         )
 
+    logging.info(f'NEI IDS no GHGRP len:{len(nei_ids_noghgrp)}')
+    logging.info(
+        f"Lens after merge (ids, merged data, nei data): ({len(nei_only_data.eisFacilityID.unique())}, {len(nei_only_data)}, {len(nei_data)}"
+        )
+
     # GHGRP facility IDs that don't report to NEI
     ghgrp_ids_noeis = melt_multiple_ids(ghgrp_no_eis, ghgrp_unit_data)
 
@@ -642,12 +613,23 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         how='inner'
         )
 
+    logging.info(f'GHGRP IDS no NEI len:{len(ghgrp_ids_noeis)}')
+    logging.info(
+        f"Lens after merge (ids, merged data, ghgrp data): ({len(ghgrp_ids_noeis.ghgrpID.unique())}, {len(ghgrp_only_data)}, {len(ghgrp_unit_data.ghgrpID.unique())}"
+        )
+
+    # NEI and GHGRP facilities
     nei_ids_shared = melt_multiple_ids(nei_and_ghgrp, nei_data)
 
     nei_data_shared = pd.merge(
         nei_ids_shared,
         nei_data, on='eisFacilityID',
         how='inner'
+        )
+
+    logging.info(f'NEI IDS and ghgrp len:{len(nei_ids_shared)}')
+    logging.info(
+        f"Lens after merge (ids, merged data, nei data): ({len(nei_ids_shared.registryID.unique())}, {len(nei_data_shared)}, {len(nei_data)}"
         )
 
     ghgrp_ids_shared = melt_multiple_ids(nei_and_ghgrp, ghgrp_unit_data)
@@ -659,6 +641,11 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         how='inner'
         )
 
+    logging.info(f'GHGRP IDS and NEI len:{len(ghgrp_ids_shared)}')
+    logging.info(
+        f"Lens after merge (ids, merged data, nei data): ({len(ghgrp_ids_shared.registryID.unique())}, {len(ghgrp_data_shared)}, {len(ghgrp_unit_data)}"
+        )
+
     data_dict = {
         'nei_shared': nei_data_shared,  # EIS data for facilities without GHGRP reporting
         'nei_only': nei_only_data,  # #TODO report out for final data set
@@ -667,6 +654,7 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         }
 
     return data_dict
+
 
 if __name__ == '__main__':
     year = 2017
@@ -683,12 +671,12 @@ if __name__ == '__main__':
         frs_data = frs_methods.import_format_frs(combined=True)
         frs_data.to_csv('./data/FRS/frs_data_formatted.csv', index=True)
 
-     # ghgrp_energy_file = GHGRP.main(year, year)
+    # ghgrp_energy_file = GHGRP.main(year, year)
     ghgrp_energy_file = "ghgrp_energy_20230508-1606.parquet"
     ghgrp_unit_data = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
     ghgrp_unit_data.registryID.update(ghgrp_unit_data.registryID.astype(float))
 
-    #nei_data = NEI().main()
+    # nei_data = NEI().main()
     nei_data = pd.read_csv(
         'formatted_estimated_nei.csv', low_memory=False, index_col=0,
         )

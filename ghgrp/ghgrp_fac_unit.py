@@ -2,6 +2,7 @@
 import pandas as pd
 import os
 import zipfile
+import yaml
 import json
 import requests
 from io import BytesIO
@@ -47,6 +48,60 @@ class GHGRP_unit_char():
             return data_schema
 
         self._data_schema = import_data_schema(self._data_source)
+
+    def load_fueltype_dict(self):
+        """
+        Opens and loads a yaml that specifies the mapping of
+        GHGRP fuel types to standard fuel types that have
+        aready been applied to NEI data.
+
+        Returns
+        -------
+        fuel_dict : dictionary
+            Dictionary of mappings between GHGRP fuel types and
+            generic fuel types that have been applied to NEI data.
+        """
+
+        with open('./tools/type_standardization.yml', 'r') as file:
+            docs = yaml.safe_load_all(file)
+
+            for i, d in enumerate(docs):
+                if i == 0:
+                    fuel_dict = d
+                else:
+                    continue
+
+        return fuel_dict
+
+    def harmonize_fuel_type(self, ghgrp_unit_data, fuel_type_column):
+        """
+        Applies fuel type mapping to fuel types reported under GHGRP
+
+        Parameters
+        ----------
+        ghgrp_unit_data : pandas.DataFrame
+
+        fuel_type_column : str
+            Name of column containing fuel types.
+
+        Returns
+        -------
+        ghgrp_unit_data : pandas.DataFrame
+
+        """
+
+        fuel_dict = self.load_fueltype_dict()
+
+        ghgrp_unit_data[fuel_type_column].update(
+            ghgrp_unit_data[fuel_type_column].map(fuel_dict)
+            )
+
+        # drop any fuelTypes that are null
+        ghgrp_unit_data = ghgrp_unit_data.where(
+            ghgrp_unit_data[fuel_type_column] != 'None'
+            ).dropna(how='all')
+
+        return ghgrp_unit_data
 
     def download_unit_data(self):
         """
@@ -165,15 +220,19 @@ class GHGRP_unit_char():
 
         ghgrp_df = ghgrp_df.query("REPORTING_YEAR==@self._reporting_year")
 
+        # Harmonize fuel types for GHGRP data
+        ghgrp_df = self.harmonize_fuel_type(ghgrp_df, 'FUEL_TYPE_FINAL')
+
+        logging.info(f'ghgrp_df.head: {ghgrp_df.head()}')
+
         # Aggregate. Units may combust multiple types of 
         # fuels and have multiple observations (estimates)
         # of energy use.
         ghgrp_df = ghgrp_df.groupby(
-            ['FACILITY_ID', 'REPORTING_YEAR',
-                'FUEL_TYPE_FINAL', 'UNIT_NAME',
-                'FRS_REGISTRY_ID', 'UNIT_TYPE',
-                'MAX_CAP_MMBTU_per_HOUR'], as_index=False
-            ).TJ_TOTAL.sum()
+            ['FACILITY_ID', 'FRS_REGISTRY_ID', 'REPORTING_YEAR',
+             'FUEL_TYPE_FINAL', 'UNIT_NAME',
+             'UNIT_TYPE', 'MAX_CAP_MMBTU_per_HOUR'], as_index=False
+             ).TJ_TOTAL.sum()
 
         ghgrp_df.loc[:, "energyMJ"] = ghgrp_df.TJ_TOTAL * 10**6
 
@@ -185,7 +244,7 @@ class GHGRP_unit_char():
                 ghgrp_df.loc[item[0], 'designCapacity'] = item[1]*0.2931  # Convert to MW
 
             except TypeError:
-                logging.error(f"Can't convert this: {item[1]}")
+                logging.error(f"Can't convert this design capacity: {item[1]}")
                 ghgrp_df.loc[item[0], 'designCapacity'] = None
 
             else:
@@ -328,7 +387,7 @@ class GHGRP_unit_char():
         ghgrp_df = self.format_ghgrp_df(ghgrp_df)
 
         ghgrp_df.to_csv(
-            os.path.join(self._data_dir, 
+            os.path.join(self._data_dir,
                          self._ghgrp_energy_file.split('.')[0]
                          )+'_unittype_final.csv'
             )
@@ -337,6 +396,6 @@ class GHGRP_unit_char():
 
 
 if __name__ == '__main__':
-    ghgrp_energy_file = 'ghgrp_energy_20221223-1455.parquet'
+    ghgrp_energy_file = 'ghgrp_energy_20230508-1606.parquet'
     reporting_year = 2017
     ghgrp_df = GHGRP_unit_char(ghgrp_energy_file, reporting_year).main()
