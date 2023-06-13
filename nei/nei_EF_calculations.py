@@ -3,6 +3,7 @@ import numpy as np
 import os
 import json
 import yaml
+import re
 import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
@@ -38,6 +39,8 @@ class NEI:
         self._scc_units_path = os.path.abspath('./scc/iden_scc.csv')
 
         self._data_source = 'NEI'
+
+        logging.basicConfig(level=logging.INFO)
 
         def import_data_schema(data_source):
             """
@@ -75,10 +78,10 @@ class NEI:
             'HP': 0.7457 * 8760 * 3.6,  # ->kW->kWh->MJ
             'MW': 1000 * 8760*3.6  # ->kW->kWh->MJ
             }
-        
+
     def check_unit_description(self, row):
         """"
-        
+    
         """
 
         s = row['unitDescription']
@@ -91,12 +94,12 @@ class NEI:
                 smf = float(sm)
 
             except ValueError:
-                return 
-            
+                pass
+
             else:
                 value = smf * 8760 & 1055.87  # Convert from MMBtu/hr to MJ
-            
 
+        return value
 
     def check_calculation(self, row):
         """
@@ -280,7 +283,7 @@ class NEI:
         """
         Load all EPA WebFire emissions factors, downloading from
         https://www.epa.gov/electronic-reporting-air-emissions/webfire
-        if necessary. 
+        if necessary.
         """
 
         if os.path.exists(self._webfires_data_path):
@@ -346,8 +349,10 @@ class NEI:
         Parameters
         ----------
         nei_data : pandas.DataFrame
+            NEI emissions data
 
         webfr : pandas.DataFrame
+            WebFires Emissions Factors
 
         Returns
         -------
@@ -415,17 +420,23 @@ class NEI:
         for c in ['unit_description', 'process_description', 'scc_fuel_type']:
             nei.loc[:, c] = nei[c].str.lower()
 
+        nei.loc[:, 'fuel_type'] = nei.loc[:, 'scc_fuel_type']
+
+        nei_no_scc_ft = nei[nei.scc_fuel_type.isnull()]
+
         for f in self._unit_conv['fuel_dict'].keys():
 
             # search for fuel types listed in NEI unit/process descriptions
-            nei.loc[(nei['unit_description'].str.contains(f, na=False)) |
-                    (nei['process_description'].str.contains(f, na=False)),
-                     'fuel_type'] = self._unit_conv['fuel_dict'][f]
+            nei_no_scc_ft.loc[(nei_no_scc_ft['unit_description'].str.contains(f, na=False)) |
+                              (nei_no_scc_ft['process_description'].str.contains(f, na=False)),
+                        'fuel_type'] = self._unit_conv['fuel_dict'][f]
 
             # search for the same fuel types listed in SCC
-            nei.loc[(nei['fuel_type'].isnull()) &
-                    (nei['scc_fuel_type'].str.contains(f, na=False)),
+            nei_no_scc_ft.loc[(nei_no_scc_ft['fuel_type'].isnull()) &
+                              (nei_no_scc_ft['scc_fuel_type'].str.contains(f, na=False)),
                     'fuel_type'] = self._unit_conv['fuel_dict'][f]
+
+            nei.fuel_type.update(nei_no_scc_ft.fuel_type)
 
         return nei
 
@@ -441,7 +452,7 @@ class NEI:
         """
         Convert reported emissions factors into emissions factors that
         can be used to estimate mass throughput (in short tons) or
-        energy (in MJ). 
+        energy (in MJ).
         Uses conversion factors defined in self._unit_conv.
 
         Parameters
@@ -479,11 +490,15 @@ class NEI:
         # convert NEI emission_factor to LB/MJ for energy input
         for f in nei.fuel_type.dropna().unique():
 
-            nei.loc[nei.fuel_type == f, 'nei_denom_fuel_fac'] = \
-                nei['ef_denominator_uom'].map(
-                    self._unit_conv['unit_to_mj']).map(
-                        self._unit_conv['energy_units'][f]
-                        )
+            try:
+                nei.loc[nei.fuel_type == f, 'nei_denom_fuel_fac'] = \
+                    nei['ef_denominator_uom'].map(
+                        self._unit_conv['unit_to_mj']).map(
+                            self._unit_conv['energy_units'][f]
+                            )
+
+            except KeyError:
+                continue
 
         # if there is no fuel type listed,
         #   use energy to energy units only OR assume NG for E6FT3
@@ -525,9 +540,13 @@ class NEI:
         # convert WebFire EF to LB/E6BTU for energy input
         for f in nei.fuel_type.dropna().unique():
 
-            nei.loc[nei.fuel_type==f, 'web_denom_fuel_fac'] = nei['MEASURE'].map(
-                self._unit_conv['unit_to_mj']
-                ).map(self._unit_conv['energy_units'][f])
+            try:
+                nei.loc[nei.fuel_type == f, 'web_denom_fuel_fac'] = nei['MEASURE'].map(
+                    self._unit_conv['unit_to_mj']
+                    ).map(self._unit_conv['energy_units'][f])
+
+            except KeyError:
+                continue
 
         # if there is no fuel type listed, 
         #   use energy to energy units only OR assume NG for E6FT3
@@ -576,25 +595,39 @@ class NEI:
 
         nei.loc[check_nei_ef_idx, 'nei_ef_LB_per_TON'] = np.nan
 
-        # if there is an NEI EF, use NEI EF
-        nei.loc[(nei['nei_ef_LB_per_TON'] > 0), 'throughput_TON'] = \
-            nei['total_emissions_LB'] / nei['nei_ef_LB_per_TON']
+        for f in ['nei', 'web']:
 
-        nei.loc[(nei['nei_ef_LB_per_MJ'] > 0), 'energy_MJ'] = \
-            nei['total_emissions_LB'] / nei['nei_ef_LB_per_MJ']
+            for v in ['throughput_TON', 'energy_MJ']:
 
-        # if there is not an NEI EF, use WebFire EF
-        nei.loc[(nei['nei_ef_LB_per_TON'].isnull()) & 
-                (nei['web_ef_LB_per_TON'] > 0), 'throughput_TON'] = \
-            nei['total_emissions_LB'] / nei['web_ef_LB_per_TON'] 
+                nei.loc[:, f'{v}_{f}'] = nei.total_emissions_LB.divide(
+                    nei[f'{f}_ef_LB_per_{v.split("_")[1]}']
+                    )
 
-        nei.loc[(nei['nei_ef_LB_per_MJ'].isnull()) & 
-                (nei['web_ef_LB_per_MJ'] > 0), 'energy_MJ'] = \
-            nei['total_emissions_LB'] / nei['web_ef_LB_per_MJ']
+            # remove throughput_TON if WebFire ACTION is listed as Burned
+            nei.loc[(~nei[f'throughput_TON_{f}'].isnull()) & 
+                (nei['ACTION'] == 'Burned'), f'throughput_TON_{f}'] = np.nan
 
-        # remove throughput_TON if WebFire ACTION is listed as Burned
-        nei.loc[(~nei['throughput_TON'].isnull()) & 
-                (nei['ACTION'] == 'Burned'), 'throughput_TON'] = np.nan
+
+        # # if there is an NEI EF, use NEI EF
+        # nei.loc[(nei['nei_ef_LB_per_TON'] > 0), 'throughput_TON'] = \
+        #     nei['total_emissions_LB'] / nei['nei_ef_LB_per_TON']
+
+        # nei.loc[(nei['nei_ef_LB_per_MJ'] > 0), 'energy_MJ'] = \
+        #     nei['total_emissions_LB'] / nei['nei_ef_LB_per_MJ']
+
+        # # if there is not an NEI EF, use WebFire EF
+        # nei.loc[(nei['nei_ef_LB_per_TON'].isnull()) & 
+        #         (nei['web_ef_LB_per_TON'] > 0), 'throughput_TON'] = \
+        #     nei['total_emissions_LB'] / nei['web_ef_LB_per_TON'] 
+
+        # nei.loc[(nei['nei_ef_LB_per_MJ'].isnull()) & 
+        #         (nei['web_ef_LB_per_MJ'] > 0), 'energy_MJ'] = \
+        #     nei['total_emissions_LB'] / nei['web_ef_LB_per_MJ']
+
+        # # remove throughput_TON if WebFire ACTION is listed as Burned
+        # nei.loc[(~nei['throughput_TON'].isnull()) & 
+        #         (nei['ACTION'] == 'Burned'), 'throughput_TON'] = np.nan
+
 
         return nei
 
@@ -696,15 +729,59 @@ class NEI:
         """
         # This is the primary output of estimating throughput and energy from NEI
 
-        med_unit = nei.query(
-            "throughput_TON > 0 | energy_MJ > 0"
-            ).groupby(
-                ['eis_facility_id',
-                 'eis_process_id',
-                 'eis_unit_id',
-                 'unit_type',
-                 'fuel_type']
-                )[['throughput_TON', 'energy_MJ']].median()
+        med_unit = pd.concat(
+            [pd.melt(
+                nei[['eis_facility_id',
+                     'eis_process_id',
+                     'eis_unit_id',
+                     'unit_type',
+                     'fuel_type',
+                     f'{v}_nei',
+                     f'{v}_web']],
+                id_vars=['eis_facility_id',
+                         'eis_process_id',
+                         'eis_unit_id',
+                         'unit_type',
+                         'fuel_type'],
+                value_vars=[f'{v}_nei',
+                            f'{v}_web'],
+                var_name='EF_source',
+                value_name=f'{v}'
+                ) for v in ['energy_MJ', 'throughput_TON']], axis=0
+            )
+
+        med_unit = med_unit.query(
+                "throughput_TON > 0 | energy_MJ > 0"
+                ).groupby(
+                    ['eis_facility_id',
+                     'eis_process_id',
+                     'eis_unit_id',
+                     'unit_type',
+                     'fuel_type']
+                    )[['throughput_TON', 'energy_MJ']].quantile([0, 0.5, 0.75])
+
+        med_unit.reset_index(inplace=True)
+        med_unit.level_5.replace({0: 'q0', 0.5: 'q2', 0.75: 'q3'}, inplace=True)
+        med_unit = med_unit.pivot_table(
+            index=['eis_facility_id',
+                   'eis_process_id',
+                   'eis_unit_id',
+                   'unit_type',
+                   'fuel_type'],
+            columns='level_5', values=['energy_MJ', 'throughput_TON'])
+
+        m = med_unit.columns.map('_'.join)
+        med_unit = med_unit.groupby(m, axis=1).mean()
+
+        # med_unit = nei.query(
+        #     "throughput_TON > 0 | energy_MJ > 0"
+        #     ).groupby(
+        #         ['eis_facility_id',
+        #          'eis_process_id',
+        #          'eis_unit_id',
+        #          'unit_type',
+        #          'fuel_type']
+        #         )[['throughput_TON', 'energy_MJ']].median()
 
         # other_info = med_unit.drop_duplicates([
         #     'eis_facility_id',
@@ -730,6 +807,7 @@ class NEI:
                 )
             )
 
+        logging.info(f'med_unit columns: {med_unit.columns}')
         med_unit.reset_index(inplace=True)
 
         # MATERIAL and ACTION columns can have multiple values for same
@@ -766,13 +844,17 @@ class NEI:
 
         """
 
-        missing_zero = nei.query("throughput_TON==0 & energy_MJ==0")
+        missing_zero = nei.query(
+            "throughput_TON_nei==0 & energy_MJ_nei==0 & throughput_TON_web==0 & energy_MJ_web==0"
+            )
         missing_zero = missing_zero.where(
             missing_zero.unit_type.notnull()
             ).dropna(how='all')
 
-        missing_na = nei.query("throughput_TON.isna() & energy_MJ.isna()",
-                               engine='python')
+        missing_na = nei.query(
+            "throughput_TON_nei.isna() & energy_MJ_nei.isna() & throughput_TON_web.isna() & energy_MJ_web.isna()",
+            engine='python'
+            )
 
         missing_na = missing_na.where(
             missing_na.unit_type.notnull()
@@ -821,10 +903,15 @@ class NEI:
             'eis_process_id': 'eisProcessID',
             'process_description': 'processDescription',
             'throughput_Tonne': 'throughputTonne',
-            'energy_MJ': 'energyMJ'
+            'energy_MJ_q0': 'energyMJq0',
+            'energy_MJ_q2': 'energyMJq2',
+            'energy_MJ_q3': 'energyMJq3'
             }
 
-        df.loc[:, 'throughput_Tonne'] = df.throughput_TON * 0.907  # Convert to metric tonnes
+        for q in ['q0', 'q2', 'q3']:
+
+            df.loc[:, f'throughputTonneQ{q[1]}'] = df[f'throughput_TON_{q}'] * 0.907  # Convert to metric tonnes
+
         logging.info(f'Semi-final columns: {df.columns}')
 
         keep_cols = [
@@ -832,20 +919,21 @@ class NEI:
             'unit_type', 'unit_description', 'design_capacity',
             'design_capacity_uom', 'fuel_type', 'eis_process_id',
             'process_description',
-            'energy_MJ', 'throughput_Tonne'
+            'energy_MJ_q0', 'energy_MJ_q2', 'energy_MJ_q3',
+            'throughputTonneQ0', 'throughputTonneQ2', 'throughputTonneQ3'
             ]
 
         # Standardize fuel types #TODO make into a tool for use across classes?
         fuels_map = {
             'natural_gas': "naturalGas",
             'distillate_oil': "diesel",
-            'gasoline': "gasoline", 
+            'gasoline': "gasoline",
             'LPG': "lpgHGL",
             'process_gas': "other",
             'residual_oil': "resFuelOil",
-            'wood': "biomass", 
-            'coal': "coal", 
-            'pet_coke': "other", 
+            'wood': "biomass",
+            'coal': "coal",
+            'pet_coke': "other",
             'coke': "coke",
             'bagasse': "biomass",
             'lignite': "coal"
@@ -857,14 +945,13 @@ class NEI:
 
         df.rename(columns=rename_dict, inplace=True)
 
-        levels = [k for k in self._data_schema.keys() if self._data_schema[k]==True]
+        # levels = [k for k in self._data_schema.keys() if self._data_schema[k]==True]
 
         # df.set_index(levels, inplace=True)
 
         df.fuelType.update(
             df.fuelType.map(fuels_map)
             )
-
 
         return df
 
@@ -973,11 +1060,11 @@ class NEI:
         nei_char = nei.merge_med_missing(med_unit, missing_unit)
         logging.info(f"nei_char columns: {nei_char.columns}")
 
-        # nei_char = pd.concat(
-        #     [nei.get_median_throughput_and_energy(nei_char),
-        #         nei.separate_missing_units(nei_char)], axis=0,
-        #     ignore_index=True
-        #     )
+        nei_char = pd.concat(
+            [nei.get_median_throughput_and_energy(nei_char),
+                nei.separate_missing_units(nei_char)], axis=0,
+            ignore_index=True
+            )
 
         nei_char = nei.format_nei_char(nei_char)
 
@@ -988,8 +1075,8 @@ class NEI:
 
 if __name__ == '__main__':
 
-    nei_char = main()
-    nei_char.to_csv('formatted_estimated_nei.csv')
+    nei_char = NEI().main()
+    nei_char.to_csv('formatted_estimated_nei_updated.csv')
 
 # nei_emiss = match_webfire_to_nei(nei_emiss, webfr)
 # nei_emiss = get_unit_and_fuel_type(nei_emiss, iden_scc)
