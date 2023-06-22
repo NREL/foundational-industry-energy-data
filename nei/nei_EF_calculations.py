@@ -79,25 +79,51 @@ class NEI:
             'MW': 1000 * 8760*3.6  # ->kW->kWh->MJ
             }
 
-    def check_unit_description(self, row):
+    def check_unit_description(row):
         """"
-    
+        
         """
+        cap_types = {
+            'mmbtu/hr': 8760 * 1055.87,
+            'mm btu/hr': 8760 * 1055.87,
+            'mw': 8760 * 3600,
+            'million btu per hour': 8760 * 1055.87,
+            'mmbtu/hour': 8760 * 1055.87,
+            'mbtu/hr': 8760 * 1055.87,
+            'mmb': 8760 * 1055.87,
+            'kw': 8760 * 3600000
+            }
+
+        value = None
 
         s = row['unitDescription']
 
-        sm = re.search(r'(\S+)(\s)(?=(mmbtu/hr))', s)
+        if type(s) == str:
+            for k in cap_types.keys():
 
-        if sm:
+                sm = re.search(fr'(\S+)(\s)(?=({k}))', s)
+                # sm = re.search(r'(\S+)(\s)(?=(mmbtu/hr))', s)
 
-            try:
-                smf = float(sm)
+                if sm:
 
-            except ValueError:
-                pass
+                    # Some unit descriptions have capacities in parentheses
+                    sm = sm.group().replace('(', '')
+                    sm = sm.replace(',', '')
 
-            else:
-                value = smf * 8760 & 1055.87  # Convert from MMBtu/hr to MJ
+                    try:
+                        smf = float(sm)
+
+                    except ValueError:
+                        value = None
+
+                    else:
+                        value = smf * cap_types[k]  # Convert from MMBtu/hr or MWh to MJ 
+
+                else:
+                    continue
+
+        else:
+            pass
 
         return value
 
@@ -872,6 +898,61 @@ class NEI:
         # missing = self.format_nei_char(missing)
 
         return missing
+    
+    def load_fueltype_dict(self):
+        """
+        Opens and loads a yaml that specifies the mapping of
+        GHGRP fuel types to standard fuel types that have
+        aready been applied to NEI data.
+
+        Returns
+        -------
+        fuel_dict : dictionary
+            Dictionary of mappings between GHGRP fuel types and
+            generic fuel types that have been applied to NEI data.
+        """
+
+        with open('./tools/type_standardization.yml', 'r') as file:
+            docs = yaml.safe_load_all(file)
+
+            for i, d in enumerate(docs):
+                if i == 0:
+                    fuel_dict = d
+                else:
+                    continue
+
+        return fuel_dict
+
+    #TODO use tools method
+    def harmonize_fuel_type(self, ghgrp_unit_data, fuel_type_column):
+        """
+        Applies fuel type mapping to fuel types reported under GHGRP
+
+        Parameters
+        ----------
+        ghgrp_unit_data : pandas.DataFrame
+
+        fuel_type_column : str
+            Name of column containing fuel types.
+
+        Returns
+        -------
+        ghgrp_unit_data : pandas.DataFrame
+
+        """
+
+        fuel_dict = self.load_fueltype_dict()
+
+        ghgrp_unit_data[fuel_type_column].update(
+            ghgrp_unit_data[fuel_type_column].map(fuel_dict)
+            )
+
+        # drop any fuelTypes that are null
+        ghgrp_unit_data = ghgrp_unit_data.where(
+            ghgrp_unit_data[fuel_type_column] != 'None'
+            ).dropna(how='all')
+
+        return ghgrp_unit_data
 
     def format_nei_char(self, df):
         """"
@@ -923,22 +1004,6 @@ class NEI:
             'throughputTonneQ0', 'throughputTonneQ2', 'throughputTonneQ3'
             ]
 
-        # Standardize fuel types #TODO make into a tool for use across classes?
-        fuels_map = {
-            'natural_gas': "naturalGas",
-            'distillate_oil': "diesel",
-            'gasoline': "gasoline",
-            'LPG': "lpgHGL",
-            'process_gas': "other",
-            'residual_oil': "resFuelOil",
-            'wood': "biomass",
-            'coal': "coal",
-            'pet_coke': "other",
-            'coke': "coke",
-            'bagasse': "biomass",
-            'lignite': "coal"
-            }
-
         df = df[keep_cols]
 
         logging.info(f'Final columns: {df.columns}')
@@ -949,9 +1014,7 @@ class NEI:
 
         # df.set_index(levels, inplace=True)
 
-        df.fuelType.update(
-            df.fuelType.map(fuels_map)
-            )
+        df = self.harmonize_fuel_type(df, 'fuelType')
 
         return df
 
