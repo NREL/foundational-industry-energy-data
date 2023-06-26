@@ -455,6 +455,10 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
     nei_data_shared_portion = nei_data_shared_ocs.energyMJq0.sum(
         level=[0, 1, 2]
         )
+    
+    nei_data_shared_portion = nei_data_shared_portion.where(
+        nei_data_shared_portion > 0
+        ).dropna(how='all')
 
     nei_data_shared_portion = nei_data_shared_ocs.energyMJq0.divide(
             nei_data_shared_portion, fill_value=0
@@ -468,6 +472,7 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
         nei_data_shared_portion
         )
 
+    nei_data_shared_ocs.dropna(subset=['energyMJPortion'], inplace=True)
     # nei_data_shared_ocs = pd.concat(
     #     [nei_data_shared_ocs, nei_data_shared_portion], axis=1
     #     )
