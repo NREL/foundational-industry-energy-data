@@ -7,11 +7,14 @@ import yaml
 import re
 import pickle
 import pandas as pd
+import numpy as np
 # import ghgrp.run_GHGRP as GHGRP
 from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
 from nei.nei_EF_calculations import NEI
 from frs.frs_extraction import FRS
 
+
+logging.basicConfig(level=logging.INFO)
 
 def split_multiple(x, col_names):
     """"
@@ -366,8 +369,9 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
 
 def reconcile_nonocs_energy(ghgrp_data_shared_nonocs, nei_data_shared_nonocs):
     """
-    Select between GHGRP and NEI energy estimates when a 
+    Select between GHGRP and NEI energy estimates when a
     facility doesn't report an OCS unit for a fuel type.
+    Currently defaults to using ghgrp data.
 
     Parameters
     ----------
@@ -388,7 +392,26 @@ def reconcile_nonocs_energy(ghgrp_data_shared_nonocs, nei_data_shared_nonocs):
     nei_data_shared_nonocs.to_pickle('nei_data_shared_nonocs.pkl')
     ghgrp_data_shared_nonocs.to_pickle('ghgrp_data_shared_nonocs.pkl')
 
-    return None
+    # shared = pd.merge(
+    #     nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
+    #     ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
+    #     how='outer',
+    #     on=['registryID', 'unitTypeStd', 'fuelType'],
+    #     indicator=True,
+    #     suffixes=('_nei', '_ghgrp')
+    #     )
+ 
+    # shared_na = pd.concat(
+    #     [nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
+    #      ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType'])],
+    #     axis=0,
+    #     ignore_index=True
+    #     )
+
+    # # Use GHGRP estimates 
+    # shared[shared._merge=='both'].where(shared.energyMJq0 < shared.energyMJ).dropna(how='all')
+
+    return ghgrp_data_shared_nonocs
 
 
 def calc_share_ocs(ghgrp_data_shared_ocs, cutoff=0.5):
@@ -455,7 +478,7 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
     nei_data_shared_portion = nei_data_shared_ocs.energyMJq0.sum(
         level=[0, 1, 2]
         )
-    
+
     nei_data_shared_portion = nei_data_shared_portion.where(
         nei_data_shared_portion > 0
         ).dropna(how='all')
@@ -464,18 +487,28 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
             nei_data_shared_portion, fill_value=0
             )
 
+    # Order of index levels is getting mixed up after the above division
+    if nei_data_shared_portion.index.names == ['registryID', 'eisFacilityID', 'fuelType', 'eisUnitID']:
+        nei_data_shared_portion = nei_data_shared_portion.swaplevel('eisUnitID', 'eisProcessID')
+
+    else:
+        pass
+
     nei_data_shared_portion.name = 'energyMJPortion'
 
     nei_data_shared_portion = pd.DataFrame(nei_data_shared_portion)
 
-    nei_data_shared_ocs = nei_data_shared_ocs.join(
-        nei_data_shared_portion
-        )
+    # nei_data_shared_portion.dropna(inplace=True)
 
-    nei_data_shared_ocs.dropna(subset=['energyMJPortion'], inplace=True)
-    # nei_data_shared_ocs = pd.concat(
-    #     [nei_data_shared_ocs, nei_data_shared_portion], axis=1
+    # nei_data_shared_ocs = nei_data_shared_ocs.join(
+    #     nei_data_shared_portion
     #     )
+
+    # The join (as well as merge) were causing a crash
+    nei_data_shared_ocs.loc[:, 'energyMJPortion'] = np.nan
+    nei_data_shared_ocs.update(nei_data_shared_portion)
+
+    # nei_data_shared_ocs.dropna(subset=['energyMJPortion'], inplace=True)
 
     nei_data_shared_ocs.reset_index(
         ['eisFacilityID', 'eisProcessID', 'eisUnitID'], drop=False,
@@ -501,7 +534,7 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
 
     for i in ghgrp_data_shared_ocs.index.drop_duplicates():
 
-        if i in ocs_energy.index:
+        if i in ocs_share.index:
 
             ghgrp_sum = ghgrp_data_shared_ocs.xs(i).energyMJ.sum()
 
@@ -516,23 +549,26 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
                 # nei_sum = nei_data_shared_ocs.xs(i).energyMJ.sum()
 
             except KeyError as e:
-                logging.error(f'Check fuel type standardization: {e}')
-
-            if nei_sum[0] > 0:
-
-                if nei_sum[0] < ghgrp_sum:
-
-                # if nei_sum > ghgrp_sum:
-
-                    energy_use = nei_data_shared_ocs.loc[i, 'energyMJq0']
-
-                else:
-
-                    energy_use = nei_data_shared_ocs.loc[i, 'energyMJPortion'] * ghgrp_sum
+                logging.info(f'Check fuel type standardization: {e}')
+                energy_use = ghgrp_data_shared_ocs.loc[i, :]
 
             else:
 
-                energy_use = ghgrp_data_shared_ocs.loc[i, :]
+                if nei_sum[0] > 0:
+
+                    if nei_sum[0] < ghgrp_sum:
+
+                        energy_use = nei_data_shared_ocs.loc[i, :]
+
+                    else:
+                        energy_use = nei_data_shared_ocs.loc[i, :]
+                        energy_use.loc[:, 'energyMJ'] = \
+                            energy_use.loc[:, 'energyMJPortion'] * ghgrp_sum
+                        logging.info(f"energy_use: {energy_use}")
+
+                else:
+
+                    energy_use = ghgrp_data_shared_ocs.loc[i, :]
 
         else:
             energy_use = ghgrp_data_shared_ocs.loc[i, :]
@@ -765,10 +801,17 @@ if __name__ == '__main__':
         data_dict['nei_shared'],
         data_dict['ghgrp_shared']
         )
+    
+    final_data = pd.concat(
+        [ocs_energy, nonocs_energy, data_dict['ghgrp_only'], data_dict['nei_only']],
+        axis=0, ignore_index=True
+        )
 
-    logging.info('Pickling ocs-related')
+    logging.info('Pickling ocs-related and final data')
     ocs_energy.to_pickle('ocs_energy.pkl')
     nonocs_energy.to_pickle('nonocs_energy.pkl')
+    final_data.to_pickle('final_data.pkl')
+
 
 # mining_energy = calc_mining_energy(year)  # Estimate mining energy intensity by NAICS, fuel, and location
 

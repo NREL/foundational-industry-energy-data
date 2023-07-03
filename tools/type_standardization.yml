@@ -90,6 +90,9 @@ Bagasse: biomass
 Solid Waste: other
 Liquid Waste: other
 Geothermal Power Plants: other
+No6 Fuel Oil Blend: 
+Blend (bituminous/subituminous): coal
+Waste Supplemental Fuel: other
 Methanol: other
 Hydrogen: other
 Coal-based Synfuel: other
@@ -137,41 +140,93 @@ Kerosene: other
 Heavy Residue: other
 None: null
 none: null
+natural gas: naturalGas
+distillate oil (diesel): diesel
+natural_gas: naturalGas
+nan: null
+distillate oil: diesel
+diesel: diesel
+gasoline: gasoline
+coal: coal
+process gas: other
+residual oil: other
+liquified petroleum gas (lpg): lpgHGL
+propane: lpgHGL 
+bituminous/subbituminous coal: coal
+coke: coke
+other biomass: biomass
+wood/bark waste: biomass
+anthracite coal: coal
+bituminous coal: coal
+liquified petroleum gas: lpgHGL
+liquid waste: other
+solid waste: other 
+distillate oil (no. 2): diesel
+methanol: other
+gas: other
+waste oil: other
+natural gas fired: naturalGas
+and coke: other
+direct wood: biomass
+direct natural gas: naturalGas
+co boiler: other
+kerosene/naphtha (jet fuel): other
+tire-derived fuel: other
+petroleum coke: other 
+wood residuals: biomass
+residual/crude oil: other
+landfill gas: other
+recovered solvents: other
+dual fuel: other
+oil: other
+all indirect: other 
+natural_gas: naturalGas
+distillate_oil: diesel
+gasoline: gasoline
+LPG: lpgHGL
+process_gas: other
+residual_oil: resFuelOil
+wood: biomass
+coal: coal
+pet_coke: other
+coke: coke
+bagasse: biomass
+lignite: coal
 
 # ---
 # # units:
 # boiler:
-#  - BFB (Boiler, bubbling fluidized bed)
+#  - BFB (Boiler bubbling fluidized bed)
 #  - boiler
-#  - CFB (Boiler, circulating fluidized bed)
-#  - OB (Boiler, other)
-#  - PCO (Pulverized coal, other)
-#  - PCT (Pulverized coal, tangentially-fired)
-#  - PCWD (Pulverized coal, wall-fired, dry bottom)
-#  - PCWW (Pulverized coal, wall-fired, wet bottom)
-#  - OFB (Fluidized bed, other)
-#  - PFB (Boiler, pressurized fluidized bed)
+#  - CFB (Boiler circulating fluidized bed)
+#  - OB (Boiler other)
+#  - PCO (Pulverized coal other)
+#  - PCT (Pulverized coal tangentially-fired)
+#  - PCWD (Pulverized coal wall-fired dry bottom)
+#  - PCWW (Pulverized coal wall-fired wet bottom)
+#  - OFB (Fluidized bed other)
+#  - PFB (Boiler pressurized fluidized bed)
 #  - S (Stoker Boiler)
 #  Boiler
-# Boiler, Traveling Grate (Overfeed) Stoker
-# Boiler, Wet Bottom
-# Boiler, Dry Bottom
-# Boiler, Cyclone Furnace
-# Boiler, Spreader Stoker
-# Boiler, Wet Bottom Tangential-fired
-# Boiler, Dry Bottom Tangential-fired
-# Boiler, Atmospheric Fluidized Bed Combustion Bubbling Bed
-# Boiler, Atmospheric Fluidized Bed Combustion Circulating Bed
-# Boiler, Dry Bottom Wall-fired
-# Boiler, Atmospheric Fluidized Bed (See 101003-17 & -18)
+# Boiler Traveling Grate (Overfeed) Stoker
+# Boiler Wet Bottom
+# Boiler Dry Bottom
+# Boiler Cyclone Furnace
+# Boiler Spreader Stoker
+# Boiler Wet Bottom Tangential-fired
+# Boiler Dry Bottom Tangential-fired
+# Boiler Atmospheric Fluidized Bed Combustion Bubbling Bed
+# Boiler Atmospheric Fluidized Bed Combustion Circulating Bed
+# Boiler Dry Bottom Wall-fired
+# Boiler Atmospheric Fluidized Bed (See 101003-17 & -18)
 # Bubbling Bed
 # Circulating Bed
-# Boiler, Normal Firing
-# Boiler, Tangential-fired
+# Boiler Normal Firing
+# Boiler Tangential-fired
 # Normal Firing
 # Tangential Firing
-# Boiler, >= 100 Million BTU/hr
-# Boiler < 100 Million BTU, except tangential
+# Boiler >= 100 Million BTU/hr
+# Boiler < 100 Million BTU except tangential
 # Boiler < 100 Million Btu/hr
 # All Boiler Sizes
 # Bark-fired Boiler
@@ -181,9 +236,9 @@ none: null
 # Fuel cell/Dutch oven boilers
 # Stoker boilers
 # Fluidized bed combustion boiler
-# Biomass Solids, Boiler type unknown (use 10101209 or -10)
-# Boiler, Stoker
-# Boiler, Non-stoker
+# Biomass Solids Boiler type unknown (use 10101209 or -10)
+# Boiler Stoker
+# Boiler Non-stoker
 # Fluidized Bed Boiler Burning Anthracite-Culm Fuel
 # Pulverized Coal Wet Bottom
 # Pulverized Coal Dry Bottom
@@ -195,12 +250,12 @@ none: null
 # Atmospheric Fluidized Bed Combustion Circulating Bed
 # Traveling Grate (Overfeed) Stoker
 # Wet Bottom
-# Dry Bottom, Wall Fired
-# Dry Bottom, Tangential Fired
+# Dry Bottom Wall Fired
+# Dry Bottom Tangential Fired
 # Boiler > 100 Million BTU/hr
-# Bark-fired Boiler (< 50,000 Lb Steam)
-# Wood/Bark-fired Boiler (< 50,000 Lb Steam)
-# Wood-fired Boiler (< 50,000 Lb Steam)
+# Bark-fired Boiler (< 50000 Lb Steam)
+# Wood/Bark-fired Boiler (< 50000 Lb Steam)
+# Wood-fired Boiler (< 50000 Lb Steam)
 # Industrial Boiler
 # Hand-fired
 # POTW Digester Gas-fired Boiler
@@ -220,7 +275,7 @@ none: null
 #  - C (Calciner)
 #  - calciner
 #  - Calcining: Vertical Kiln
-#  - Calcining: Rotary Kiln (See SCC Codes 3-05-016-18,-19,-20,-21)
+#  - Calcining: Rotary Kiln (See SCC Codes 3-05-016-18-19-20-21)
 #  - Calcining: Gas-fired Calcimatic Kiln
 #  - Fluidized Bed Kiln
 #  - Multiple Hearth Calciner
@@ -237,10 +292,10 @@ none: null
 #  - Carbon Reactivation/Impregnation Kiln
 #  - Cement Kiln/Dryer
 #  - Lime Kiln (Bituminous)
-#  - Calcining, rotary calciner
-#  - Calcining, multiple hearth furnace
-#  - Calcining, flash calciner
-#  - Calcining, calciner NEC
+#  - Calcining rotary calciner
+#  - Calcining multiple hearth furnace
+#  - Calcining flash calciner
+#  - Calcining calciner NEC
 #  - Natural Gas-fired Rotary Calciner
 #  - Fuel Oil-fired Rotary Calciner
 #  - Rotary Cooler Following Calciner
@@ -301,8 +356,8 @@ none: null
 #  - CH (Comfort heater)
 #  - space heater
 # turbine:
-#  - CCCT (CC (Turbine, combined cycle))
-#  - SCCT (CT (Turbine, simple cycle combustion))
+#  - CCCT (CC (Turbine combined cycle))
+#  - SCCT (CT (Turbine simple cycle combustion))
 #  - turbine
 #  Turbine: Cogeneration
 #  Refinery Gas: Turbine
@@ -314,11 +369,11 @@ none: null
 #  - Coating Oven
 #  - Prime/Base Coat Oven
 #  - Topcoat Oven
-#  - Two Piece Can Curing Ovens: General (Includes Codes 41, 42, and 43)
+#  - Two Piece Can Curing Ovens: General (Includes Codes 41 42 and 43)
 #  - Two Piece Can Base Coat Oven
 #  - Two Piece Can Over Varnish Oven
 #  - Two Piece Can Interior Body Coat Oven
-#  - Three Piece Can Curing Ovens (Includes Codes 46, 47, 48, and 49)
+#  - Three Piece Can Curing Ovens (Includes Codes 46 47 48 and 49)
 #  - Three Piece Can Sheet Base Coat (Interior) Oven
 #  - Three Piece Can Sheet Base Coat (Exterior) Oven
 #  - Three Piece Can Sheet Lithographic Coating Oven
@@ -337,7 +392,7 @@ none: null
 #  - Curing Oven
 #  - Curing Oven: Rotary Spun (Wool-type Fiber)
 #  - Hardboard: Bake Oven
-#  - Lamination, Kettles/Oven
+#  - Lamination Kettles/Oven
 #  - Electric Sinter Oven Vents
 #  - Electric Sinter Oven Gas Burners
 # furnace:
@@ -463,22 +518,22 @@ none: null
 # Blast Furnace: Raw Materials Handling/Transfer/Storage
 # Basic Oxygen Furnace (BOF): Melt Shop Roof Monitor
 # Basic Oxygen Furnace (BOF)
-# Basic Oxygen Furnace (BOF): Top Blown Furnace: Secondary, Melt Shop
+# Basic Oxygen Furnace (BOF): Top Blown Furnace: Secondary Melt Shop
 # Basic Oxygen Furnace (BOF): Top Blown Furnace: Primary
-# Basic Oxygen Furnace (BOF): Bottom Blown Furnace: Secondary, Melt Shop
-# Basic Oxygen Furnace (BOF), Top Blown: Hot Metal Transfer
-# Basic Oxygen Furnace (BOF), Top Blown: Charging and Tapping
+# Basic Oxygen Furnace (BOF): Bottom Blown Furnace: Secondary Melt Shop
+# Basic Oxygen Furnace (BOF) Top Blown: Hot Metal Transfer
+# Basic Oxygen Furnace (BOF) Top Blown: Charging and Tapping
 # Basic Oxygen Furnace (BOF): Open Hood Stack
 # Basic Oxygen Furnace (BOF): Closed Hood Stack
 # Basic Oxygen Furnace (BOF): Charging
 # Basic Oxygen Furnace (BOF): Tapping
-# Basic Oxygen Furnace (BOF), Bottom Blown: Melting and Refining
-# Basic Oxygen Furnace (BOF), Bottom Blown: Charging and Tapping
+# Basic Oxygen Furnace (BOF) Bottom Blown: Melting and Refining
+# Basic Oxygen Furnace (BOF) Bottom Blown: Charging and Tapping
 # Electric Arc Furnace (EAF): Specialty Steel
 # Electric Arc Furnace (EAF): Specialty Steel: Charging
 # Electric Arc Furnace (EAF): Specialty Steel: Melting and Refining
 # Electric Arc Furnace (EAF): Specialty Steel: Tapping
-# Electric Arc Furnace (EAF): Specialty Steel: Charging, Melting and Refining, Tapping
+# Electric Arc Furnace (EAF): Specialty Steel: Charging Melting and Refining Tapping
 # Electric Arc Furnace (EAF): Specialty Steel: Melt Shop Roof Monitor
 # Electric Arc Furnace (EAF): Specialty Steel: Dust Handling Control System
 # Electric Arc Furnace (EAF): Specialty Steel: Dust Handling Fugitive Emissions
@@ -487,7 +542,7 @@ none: null
 # Electric Arc Furnace (EAF): Carbon Steel: Tapping
 # Electric Arc Furnace (EAF): Carbon Steel
 # Electric Arc Furnace (EAF): Carbon Steel: Melt Shop Roof Monitor
-# Electric Arc Furnace (EAF): Carbon Steel: Charging, Melting and Refining, Tapping
+# Electric Arc Furnace (EAF): Carbon Steel: Charging Melting and Refining Tapping
 # Electric Arc Furnace (EAF): Carbon Steel: Dust Handling Control System
 # Electric Arc Furnace (EAF): Carbon Steel: Dust Handling Fugitive Emissions
 # Open Hearth Furnace: Charging
@@ -580,15 +635,15 @@ none: null
 #  - Cyclone Furnace
 
 # combustionTreatment:
-#  - ICI (Incinerator, commercial and industrial)
-#  - II (Incinerator, institutional)
+#  - ICI (Incinerator commercial and industrial)
+#  - II (Incinerator institutional)
 #  - MWC (Municipal waste combustor)
 #  - oxidizer
 #  - FLR (Flare)
 #  - Chemical Recovery Combustion Unit
 #  - RCO (Regenerative catalytic oxidizer)
 #  - RTO (Regenerative thermal oxidizer)
-#  - TODF (Thermal oxidizer, direct fired, no heat recovery)
+#  - TODF (Thermal oxidizer direct fired no heat recovery)
 #  - Incinerator/Afterburner
 #  - Flares
 #  - Incinerator
@@ -624,16 +679,16 @@ none: null
 #  - Wire Burning: Incinerator
 #  - Wire Incinerator
 # otherCombustion:
-#  - CatH (Heater,  catalytic)
+#  - CatH (Heater  catalytic)
 #  - COB (By-product recovery coke oven battery combustion stacks (98.172))
 #  - cupola
 #  - Electricity Generator
 #  - generator
 #  - heater
-#  - HMH (Heater, heat medium for heat exchange)
+#  - HMH (Heater heat medium for heat exchange)
 #  - FeFL (Subpart Q - ladle reheater)
-#  - HWH (Heater, hot water)
-#  - NGLH (Heater, natural gas line)
+#  - HWH (Heater hot water)
+#  - NGLH (Heater natural gas line)
 #  - OCS (Other combustion source)
 #  - PRH (Process Heater)
 #  - Q (Other Subpart Q combustion sources not otherwise listed.)
@@ -649,7 +704,7 @@ none: null
 # - Asphalt Heater: Distillate Oil
 # - Asphalt Heater: LPG
 # - Asphalt Heater: Waste Oil
-# - Broilers: Enteric, Confinement, Manure Handling, Storage, Land Application
+# - Broilers: Enteric Confinement Manure Handling Storage Land Application
 # - Broiling Food: Natural Gas
 # - Distillate Oil (No. 2): Process Heaters
 # - Residual Oil: Process Heaters
@@ -808,44 +863,44 @@ none: null
 #  - Sand Drying: Oil-fired Rotary Dryer
 #  - Sand Drying: Gas-fired Fluidized Bed Dryer
 #  - Sand Drying: Oil-fired Fluidized Bed Dryer
-#  - Vermiculite Concentrate Drying: Rotary Dryer, Gas-fired
-#  - Vermiculite Concentrate Drying: Rotary Dryer, Oil-fired
-#  - Vermiculite Concentrate Drying: Fluidized Bed Dryer, Gas-fired
-#  - Vermiculite Concentrate Drying: Fluidized Bed Dryer, Oil-fired
-#  - Drying, rotary dryer
-#  - Drying, spray dryer
-#  - Drying, apron dryer
-#  - Drying, vibrating grate dryer
-#  - Drying, dryer NEC
+#  - Vermiculite Concentrate Drying: Rotary Dryer Gas-fired
+#  - Vermiculite Concentrate Drying: Rotary Dryer Oil-fired
+#  - Vermiculite Concentrate Drying: Fluidized Bed Dryer Gas-fired
+#  - Vermiculite Concentrate Drying: Fluidized Bed Dryer Oil-fired
+#  - Drying rotary dryer
+#  - Drying spray dryer
+#  - Drying apron dryer
+#  - Drying vibrating grate dryer
+#  - Drying dryer NEC
 #  - Natural Gas Fired Crude Ore Dryer
 #  - Fuel Oil Fired Crude Ore Dryer
 #  - Natural Gas-fired Rotary Dryer
 #  - Fuel Oil-fired Rotary Dryer
-#  - Direct Wood-fired Rotary Dryer, Unspecified Pines, <730F Inlet Air
-#  - Direct Wood-fired Rotary Dryer, Unspecified Pines, >900F Inlet Air
-#  - Direct Wood-fired Rotary Dryer, Southern Yellow Pine
-#  - Direct Wood-fired Rotary Dryer, Softwood
-#  - Direct Wood-fired Rotary Dryer, mixed soft/hardwoods
-#  - Direct Wood-fired Rotary Dryer, Hardwoods
-#  - Direct Natural Gas-Fired Rotary Dryer, Unspecified Pines
-#  - Direct Wood-fired Rotary Final Dryer, Unspecified Pines
-#  - Direct Wood-fired Rotary Dryer, Softwood, green (>50%inlet moisture)
-#  - Direct Wood-fired Rotary Dryer, mixed soft/hardwoods, green
-#  - Direct Wood-fired Rotary Predryer, Douglas Fir
-#  - Direct Wood-fired Tube Final Dryer, Douglas Fir
-#  - Direct Natural Gas-fired Rotary Dryer, Softwood
-#  - Direct Natural Gas-fired Rotary Dryer, Softwood, green (>50% moisture)
-#  - Direct Natural Gas-fired Rotary Dryer, Hardwood
-#  - Dry Rotary Dryer: Indirect-heated: <600F Inlet air, <30%MC: Softwood
-#  - Dry Rotary Dryer: Indirect-heated: <600F Inlet air, <30%MC: Hardwood
-#  - Dry Rotary Dryer: Indirect-heated: <600F Inlet air, <30%MC: Mixed Softwood/Hardwood
-#  - Direct Wood-fired Tube Dryer, Hardwood, blowline blend, UF Resin
-#  - Dry Rotary Dryer: Direct Wood-fired: <600F Inlet air, <30%MC: Hardwood
-#  - Dry Rotary Dryer: Direct Wood-fired: <600F Inlet air, <30%MC: Softwood
-#  - Dry Rotary Dryer: Direct Wood-fired: <600F Inlet air, <30%MC: Mixed Softwood/Hardwood
-#  - Dry Rotary Dryer: Direct Natural Gas-fired: <600F Inlet air, <30%MC: Hardwood
-#  - Dry Rotary Dryer: Direct Natural Gas-fired: <600F Inlet air, <30%MC: Softwood
-#  - Dry Rotary Dryer: Direct Natural Gas-fired: <600F Inlet air, <30%MC: Mixed Softwood/Hardwood
+#  - Direct Wood-fired Rotary Dryer Unspecified Pines <730F Inlet Air
+#  - Direct Wood-fired Rotary Dryer Unspecified Pines >900F Inlet Air
+#  - Direct Wood-fired Rotary Dryer Southern Yellow Pine
+#  - Direct Wood-fired Rotary Dryer Softwood
+#  - Direct Wood-fired Rotary Dryer mixed soft/hardwoods
+#  - Direct Wood-fired Rotary Dryer Hardwoods
+#  - Direct Natural Gas-Fired Rotary Dryer Unspecified Pines
+#  - Direct Wood-fired Rotary Final Dryer Unspecified Pines
+#  - Direct Wood-fired Rotary Dryer Softwood green (>50%inlet moisture)
+#  - Direct Wood-fired Rotary Dryer mixed soft/hardwoods green
+#  - Direct Wood-fired Rotary Predryer Douglas Fir
+#  - Direct Wood-fired Tube Final Dryer Douglas Fir
+#  - Direct Natural Gas-fired Rotary Dryer Softwood
+#  - Direct Natural Gas-fired Rotary Dryer Softwood green (>50% moisture)
+#  - Direct Natural Gas-fired Rotary Dryer Hardwood
+#  - Dry Rotary Dryer: Indirect-heated: <600F Inlet air <30%MC: Softwood
+#  - Dry Rotary Dryer: Indirect-heated: <600F Inlet air <30%MC: Hardwood
+#  - Dry Rotary Dryer: Indirect-heated: <600F Inlet air <30%MC: Mixed Softwood/Hardwood
+#  - Direct Wood-fired Tube Dryer Hardwood blowline blend UF Resin
+#  - Dry Rotary Dryer: Direct Wood-fired: <600F Inlet air <30%MC: Hardwood
+#  - Dry Rotary Dryer: Direct Wood-fired: <600F Inlet air <30%MC: Softwood
+#  - Dry Rotary Dryer: Direct Wood-fired: <600F Inlet air <30%MC: Mixed Softwood/Hardwood
+#  - Dry Rotary Dryer: Direct Natural Gas-fired: <600F Inlet air <30%MC: Hardwood
+#  - Dry Rotary Dryer: Direct Natural Gas-fired: <600F Inlet air <30%MC: Softwood
+#  - Dry Rotary Dryer: Direct Natural Gas-fired: <600F Inlet air <30%MC: Mixed Softwood/Hardwood
 #  - Green Rotary Dryer: Direct Wood-fired: Hardwood
 #  - Green Rotary Dryer: Direct Wood-fired: Softwood
 #  - Green Rotary Dryer: Direct Wood-fired: Mixed Softwood/Hardwood
@@ -895,10 +950,10 @@ none: null
 #  - Rotary Pre-dryer
 #  - Rotary Dryer: Steam Tube
 #  - Primary Cyclone and Dryer (use -11 thru -14)
-#  - Gas-fired, Triple-Pass Dryer Cyclone
-#  - Coal-fired, Triple-Pass Dryer Cyclone
-#  - Gas-fired, Single-Pass Dryer Cyclone
-#  - Wood-fired, Single-Pass Dryer Cyclone
+#  - Gas-fired Triple-Pass Dryer Cyclone
+#  - Coal-fired Triple-Pass Dryer Cyclone
+#  - Gas-fired Single-Pass Dryer Cyclone
+#  - Wood-fired Single-Pass Dryer Cyclone
 #  - Steam or Hot Air Drying of Decaffeinated Green Coffee Beans
 #  - No. 1 Dryer and Cleaner
 #  - No. 2 Dryer and Cleaner
@@ -931,25 +986,25 @@ none: null
 #  - Brewers Grain Dryer: Steam-heated
 #  - Dryer House Operations
 #  - Rotary Dryer Conventional Plant with Cycloneuse (use 3-05-002-01 w/CTL)
-#  - Batch Mix Plant: Hot Elevators, Screens, Bins, Mixer & NG Rot Dryer
-#  - Batch Mix Plant: Hot Elevators, Screens, Bins, Mixer& #2 Oil Rot Dryer
-#  - Batch Mix Plant: Hot Elevators, Screens, Bins, Mixer & Propane Rot Dryer
+#  - Batch Mix Plant: Hot Elevators Screens Bins Mixer & NG Rot Dryer
+#  - Batch Mix Plant: Hot Elevators Screens Bins Mixer& #2 Oil Rot Dryer
+#  - Batch Mix Plant: Hot Elevators Screens Bins Mixer & Propane Rot Dryer
 #  - Conventional Continuous Mix (outside of drum) Plant: Rotary Dryer
-#  - Batch Mix Plant: Rotary Dryer, Natural Gas-Fired (also see -45)
-#  - Batch Mix Plant: Rotary Dryer, Oil-Fired (also see -46)
-#  - Batch Mix Plant: Rotary Dryer, Waste/Drain/# 6 Oil-Fired (also see -47
-#  - Drum Mix Plant: Rotary Drum Dryer/Mixer, Propane-Fired
-#  - Drum Mix Plant: Rotary Drum Dryer / Mixer, Natural Gas-Fired
-#  - Drum Mix Plant: Rotary Drum Dryer / Mixer, Natural Gas, Parallel Flow
-#  - Drum Mix Plant: Rotary Drum Dryer / Mixer, Natural Gas, Counterflow
-#  - Drum Mix Plant: Rotary Drum Dryer / Mixer, #2 Oil-Fired
-#  - Drum Mix Plant: Rotary Drum Dryer / Mixer, #2 Oil-Fired, Parallel Flow
-#  - Drum Mix Plant: Rotary Drum Dryer / Mixer, #2 Oil-Fired, Counterflow
-#  - Drum Mix Plant: Rotary Drum Dryer/Mixer, Waste/Drain/#6 Oil-Fired
-#  - Drum Mix Pl: Rotary Drum Dryer/Mixer, Waste/Drain/#6 Oil, Parallel Flo
-#  - Drum Mix Pl: Rotary Drum Dryer/Mixer, Waste/Drain/#6 Oil, Counterflow
-#  - Drum Mix Plant: Rotary Drum Dryer / Mixer, Propane, Parallel Flow
-#  - Drum Mix Plant: Rotary Drum Dryer / Mixer, Propane, Counterflo
+#  - Batch Mix Plant: Rotary Dryer Natural Gas-Fired (also see -45)
+#  - Batch Mix Plant: Rotary Dryer Oil-Fired (also see -46)
+#  - Batch Mix Plant: Rotary Dryer Waste/Drain/# 6 Oil-Fired (also see -47
+#  - Drum Mix Plant: Rotary Drum Dryer/Mixer Propane-Fired
+#  - Drum Mix Plant: Rotary Drum Dryer / Mixer Natural Gas-Fired
+#  - Drum Mix Plant: Rotary Drum Dryer / Mixer Natural Gas Parallel Flow
+#  - Drum Mix Plant: Rotary Drum Dryer / Mixer Natural Gas Counterflow
+#  - Drum Mix Plant: Rotary Drum Dryer / Mixer #2 Oil-Fired
+#  - Drum Mix Plant: Rotary Drum Dryer / Mixer #2 Oil-Fired Parallel Flow
+#  - Drum Mix Plant: Rotary Drum Dryer / Mixer #2 Oil-Fired Counterflow
+#  - Drum Mix Plant: Rotary Drum Dryer/Mixer Waste/Drain/#6 Oil-Fired
+#  - Drum Mix Pl: Rotary Drum Dryer/Mixer Waste/Drain/#6 Oil Parallel Flo
+#  - Drum Mix Pl: Rotary Drum Dryer/Mixer Waste/Drain/#6 Oil Counterflow
+#  - Drum Mix Plant: Rotary Drum Dryer / Mixer Propane Parallel Flow
+#  - Drum Mix Plant: Rotary Drum Dryer / Mixer Propane Counterflo
 # Laminated Strand Lumber (LSL) Manufacture: Rotary Strand Dryer: Direct Wood-fired: Hardwood
 # Laminated Strand Lumber (LSL) Manufacture: Rotary Strand Dryer: Direct Wood-fired: Softwood
 # Laminated Strand Lumber (LSL) Manufacture: Rotary Strand Dryer: Direct Wood-fired: Mixed Softwood/Hardwood
@@ -979,12 +1034,12 @@ none: null
 # Parallel Strand Lumber (PSL) Manufacture: Veneer Redryer: Radio Frequency-heated: Softwood
 # Parallel Strand Lumber (PSL) Manufacture: Veneer Redryer: Other: Hardwood
 # Parallel Strand Lumber (PSL) Manufacture: Veneer Redryer: Other: Softwood
-# Tube dryer, second stage, indirect heated, hardwood
+# Tube dryer second stage indirect heated hardwood
 # Press Pre-Dryer: Phenol Formaldehyde Resin
 # Press Pre-Dryer: Non-Phenol Formaldehyde Resin
-# Humidification kiln, indirect heated
-# Board dryer, indirect heated, softwood, starch binder (heated zones)
-# Board dryer,indirect htd, softwood, 6-12% asphalt binder(heated zones)
+# Humidification kiln indirect heated
+# Board dryer indirect heated softwood starch binder (heated zones)
+# Board dryerindirect htd softwood 6-12% asphalt binder(heated zones)
 # Mat Dryer: Indirect-heated: Starch binder: Softwood
 # Mat Dryer: Indirect-heated: Starch binder: Hardwood
 # Mat Dryer: Indirect-heated: Starch binder: Mixed Softwood/Hardwood
@@ -1041,7 +1096,7 @@ none: null
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Non-Urea Formaldehyde Resin: Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Non-Urea Formaldehyde Resin: Mixed Softwood/Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Non-Urea Formaldehyde Resin: Softwood
-# Direct Wood-fired Tube Dryer, Unspecified Pines
+# Direct Wood-fired Tube Dryer Unspecified Pines
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Urea Formaldehyde Resin: Softwood
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Urea Formaldehyde Resin: Mixed Softwood/Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Urea Formaldehyde Resin: Hardwood
@@ -1050,20 +1105,20 @@ none: null
 # Pressurized Refiner/Primary Tube Dryer: Direct Natural Gas-fired: Non-Blowline Blend: Mixed Softwood/Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Indirect-heated: Blowline Blend: Non-Urea Formaldehyde Resin: Softwood
 # Pressurized Refiner/Primary Tube Dryer: Indirect-heated: Blowline Blend: Non-Urea Formaldehyde Resin: Hardwood
-# Indirect-heated Tube Dryer, Unspecified Pines
+# Indirect-heated Tube Dryer Unspecified Pines
 # Pressurized Refiner/Primary Tube Dryer: Indirect-heated: Blowline Blend: Urea Formaldehyde Resin: Softwood
-# Indirect-heated Tube Dryer, Non-blowline Blend, Softwoods
+# Indirect-heated Tube Dryer Non-blowline Blend Softwoods
 # Pressurized Refiner/Primary Tube Dryer: Indirect-heated: Blowline Blend: Non-Urea Formaldehyde Resin: Mixed Softwood/Hardwood
-# Indirect-heated Tube Dryer, Hardwoods
+# Indirect-heated Tube Dryer Hardwoods
 # Pressurized Refiner/Primary Tube Dryer: Indirect-heated: Blowline Blend: Urea Formaldehyde Resin: Hardwood
-# Indirect-heated Second Stage Tube Dryer, Blowline Blend, Softwoods
+# Indirect-heated Second Stage Tube Dryer Blowline Blend Softwoods
 # Pressurized Refiner/Primary Tube Dryer: Indirect-heated: Blowline Blend: Urea Formaldehyde Resin: Mixed Softwood/Hardwood
-# Direct Natural Gas-fired Rotary Predryer, Softwoods
+# Direct Natural Gas-fired Rotary Predryer Softwoods
 # Secondary Tube Dryer: All Indirect-fired Units
 # Secondary Tube Dryer: All Direct-fired Units
 # Fiber Dryers: Other
-# Direct Wood-fired Rotary Dryer, Unspecified Pines
-# Direct Wood-fired Rotary Dryer, Aspen
+# Direct Wood-fired Rotary Dryer Unspecified Pines
+# Direct Wood-fired Rotary Dryer Aspen
 # Rotary Strand Dryer: Direct Wood-fired: Softwood
 # Rotary Strand Dryer: Direct Wood-fired: Hardwood
 # Rotary Strand Dryer: Direct Wood-fired: Mixed Softwood/Hardwood
@@ -1073,7 +1128,7 @@ none: null
 # Rotary Strand Dryer: Indirect-heated: Hardwood
 # Rotary Strand Dryer: Indirect-heated: Softwood
 # Rotary Strand Dryer: Indirect-heated: Mixed Softwood/Hardwood
-# Indirect-heated Conveyor Dryer, Softwoods
+# Indirect-heated Conveyor Dryer Softwoods
 # Conveyor Dryer: Heated Zones: Hardwood
 # Conveyor Dryer: Heated Zones: Softwood
 # Conveyor Dryer: Heated Zones: Mixed Hardwood/Softwood
@@ -1093,7 +1148,7 @@ none: null
 # Pressurized Refiner/Primary Tube Dryer: Natural Gas-fired: Blowline Blend: Phenol Formaldehyde Resin: Softwood
 # Pressurized Refiner/Primary Tube Dryer: Natural Gas-fired: Blowline Blend: Phenol Formaldehyde Resin: Mixed Softwood/Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Natural Gas-fired: Blowline Blend: Phenol Formaldehyde Resin: Hardwood
-# Board dryer,direct NG-fired,softwood, linseed oil binder(heated zones)
+# Board dryerdirect NG-firedsoftwood linseed oil binder(heated zones)
 # Pressurized Refiner/Primary Tube Dryer: Indirect-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Indirect-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Softwood
 # Pressurized Refiner/Primary Tube Dryer: Indirect-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Mixed Softwood/Hardwood
@@ -1138,7 +1193,7 @@ none: null
 # Dryers and Coolers
 # High Density Dryers and Coolers (scb
 # Dryers
-# Spandex, Reaction Spun: Product Dryer
+# Spandex Reaction Spun: Product Dryer
 # Wet Process: Dryer
 # Continuous Process: Finishing: Dryers
 # Batch Process: Finishing: Dryers
@@ -1237,23 +1292,23 @@ none: null
 # Fire (Furnace) Refining
 
 
-# Unload Ore, Pellets, Limestone, into Blast Furnace
+# Unload Ore Pellets Limestone into Blast Furnace
 
 
 # Grate/Kiln Furnace Feed
 # Grate/Kiln Furnace Discharge
-# Induration: Grate/Kiln, Gas-fired, Acid Pellets
-# Induration: Grate/Kiln, Gas-fired, Flux Pellets
-# Induration: Grate/Kiln, Gas & Oil-fired, Acid Pellets
-# Induration: Grate/Kiln, Gas & Oil-fired, Flux Pellets
-# Induration: Grate/Kiln, Coke-fired, Acid Pellets
-# Induration: Grate/Kiln, Coke-fired, Flux Pellets
-# Induration: Grate/Kiln, Coke & Coal-fired, Acid Pellets
-# Induration: Grate/Kiln, Coke & Coal-fired, Flux Pellets
-# Induration: Grate/Kiln, Coal-fired, Acid Pellets
-# Induration: Grate/Kiln, Coal-fired, Flux Pellets
-# Induration: Grate/Kiln, Coal & Oil-fired, Acid Pellets
-# Induration: Grate/Kiln, Coal & Oil-fired, Flux Pellets
+# Induration: Grate/Kiln Gas-fired Acid Pellets
+# Induration: Grate/Kiln Gas-fired Flux Pellets
+# Induration: Grate/Kiln Gas & Oil-fired Acid Pellets
+# Induration: Grate/Kiln Gas & Oil-fired Flux Pellets
+# Induration: Grate/Kiln Coke-fired Acid Pellets
+# Induration: Grate/Kiln Coke-fired Flux Pellets
+# Induration: Grate/Kiln Coke & Coal-fired Acid Pellets
+# Induration: Grate/Kiln Coke & Coal-fired Flux Pellets
+# Induration: Grate/Kiln Coal-fired Acid Pellets
+# Induration: Grate/Kiln Coal-fired Flux Pellets
+# Induration: Grate/Kiln Coal & Oil-fired Acid Pellets
+# Induration: Grate/Kiln Coal & Oil-fired Flux Pellets
 
 
 
@@ -1281,12 +1336,12 @@ none: null
 # Neutral Sulfite Semichemical Pulping: Evaporator
 # Neutral Sulfite Semichemical Pulping: Liquor combustion (incl recovery furnace and fluidized bed reactors)
 # Semi-chemical (non-sulfur): Liquor evaporator system
-# Empty-cell process with steam heating, creosote
-# Empty-cell process with steam heating, pentachlorophenol
-# Empty-cell process with steam heating, other oilborne preservative
-# Empty-cell process with steam heating, chromated copper arsenate
-# Empty-cell process with steam heating, other waterborne preservative
-# Softwood Plywood, Log Steaming Vat
+# Empty-cell process with steam heating creosote
+# Empty-cell process with steam heating pentachlorophenol
+# Empty-cell process with steam heating other oilborne preservative
+# Empty-cell process with steam heating chromated copper arsenate
+# Empty-cell process with steam heating other waterborne preservative
+# Softwood Plywood Log Steaming Vat
 
 
 # Storage Bins: Trimming and Dryer Exhaust Cyclone Dust
@@ -1305,7 +1360,7 @@ none: null
 
 
 
-# Tempering oven, direct natural gas-fired, hardwood
+# Tempering oven direct natural gas-fired hardwood
 # Hardboard Oven
 
 # Predryer

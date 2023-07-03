@@ -27,6 +27,8 @@ class NEI:
 
     def __init__(self):
 
+        logging.basicConfig(level=logging.INFO)
+
         self._nei_data_path = os.path.abspath('./data/NEI/nei_ind_data.csv')
         self._webfires_data_path = \
             os.path.abspath('./data/WebFire/webfirefactors.csv')
@@ -40,7 +42,18 @@ class NEI:
 
         self._data_source = 'NEI'
 
-        logging.basicConfig(level=logging.INFO)
+        self.cap_conv = {
+            'energy': {  # Convert to MJ
+                'MMBtu/hr': 8760 * 1055.87,
+                'MW': 8760 * 3600,
+                'KW': 8760 * 3600000
+                },
+            'power': {  # Convert to MW
+                'MMBtu/hr': 0.293297,
+                'KW': 1/1000,
+                'MW': 1
+                }
+            }
 
         def import_data_schema(data_source):
             """
@@ -65,41 +78,136 @@ class NEI:
 
         self._data_schema = import_data_schema(self._data_source)
 
-    def check_capacity_uom(self, row):
+    def find_missing_cap(self, df):
         """
-        
+        Look for missing capacity data in unit description
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            NEI data.
+
+        Returns
+        -------
+        df : pandas.DataFrame
+            Original data frame with updated capacity data.
+
         """
 
-        # Dictionary to convert reported unit capacities to annual MJ.
-        # Assume continuous operation, 8760 hours/year
-        uom_types = {
-            'E6BTU/HR': 8760 * 1055.87,  # -> MMBtu->MJ
-            'KW': 8760 * 3.6,  # ->kWh->MJ
-            'HP': 0.7457 * 8760 * 3.6,  # ->kW->kWh->MJ
-            'MW': 1000 * 8760*3.6  # ->kW->kWh->MJ
+        missing_cap = df[df.designCapacity.isnull()]
+
+        found_cap = pd.DataFrame(
+            data=[x for x in missing_cap.unitDescription.apply(
+                lambda x: self.check_unit_description(x, energy=False)
+                )],
+            columns=['raw'],
+            index=missing_cap.index
+            )
+
+        found_cap.dropna(how='all')
+
+        for i, v in enumerate(['designCapacity', 'designCapacityUOM']):
+            try:
+                data = found_cap.raw.apply(lambda x: x[i])
+
+            except TypeError:
+                continue
+
+            else:
+                found_cap[v] = data
+
+        found_cap.drop('raw', axis=1, inplace=True)
+
+        df.update(found_cap)
+
+        return df
+
+    def convert_capacity(self, df):
+        """
+        Converts capacity to MW for NEI dataframe
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            NEI data
+
+        Returns
+        -------
+        df : pandas.DataFrame
+            Original dataframe with capacity UOM and design capacity values
+        updated
+
+        """
+        nei_uom = {
+            'E6BTU/HR': 0.29307107,
+            'HP': 1/1341,
+            'BLRHP': 1/1341,
+            'KW': 1/1000,
+            'MW': 1,
+            'BTU/HR': 0.29307107 * 10**-6
             }
 
-    def check_unit_description(row):
+        conv_df = pd.DataFrame.from_dict(nei_uom, orient='index',
+                                         columns=['conversion'])
+
+        df = pd.merge(df, conv_df, left_on='designCapacityUOM',
+                      right_index=True, how='left')
+
+        conv_ = df.dropna(subset=['conversion'])
+
+        df.loc[conv_.index, 'designCapacity'] = conv_.designCapacity.multiply(
+            conv_.conversion
+            )
+
+        df.loc[conv_.index, 'designCapacityUOM'] = 'MW'
+
+        df.drop(['conversion'], axis=1, inplace=True)
+
+        return df
+
+    def check_unit_description(self, unit_description, energy=True):
         """"
-        
+        Checks a unit description field using regex to determine if a 
+        unit capacity is reported. If a capacity is found, the method
+        estimates an annual energy use based on the assumption of
+        continuous use (8760 hours/year).
+
+        Parameters
+        ----------
+        unit_description : str
+            Description of unit, which may contain capacity data.
+
+        energy : bool; default is True
+            If true, estimates annual energy use (in MJ) of found capacity
+        assuming 8760 hours/year operation.
+
+        Returns
+        -------
+        value : tuple or None
+            Tuple of either capacity or estimated annual energy (float), and
+        unit of measurement ('MW' or 'MJ'). Capacities and their units are changed to MW.
+        None returned if no capacity information is found.
+
         """
-        cap_types = {
-            'mmbtu/hr': 8760 * 1055.87,
-            'mm btu/hr': 8760 * 1055.87,
-            'mw': 8760 * 3600,
-            'million btu per hour': 8760 * 1055.87,
-            'mmbtu/hour': 8760 * 1055.87,
-            'mbtu/hr': 8760 * 1055.87,
-            'mmb': 8760 * 1055.87,
-            'kw': 8760 * 3600000
+        uom_fixes = {
+            'mmbtu/hr': 'MMBtu/hr',
+            'mm btu/hr': 'MMBtu/hr',
+            'mw': 'MW',
+            'million btu per hour': 'MMBtu/hr',
+            'mmbtu/hour': 'MMBtu/hr',
+            'mbtu/hr': 'MMBtu/hr',
+            'mmb': 'MMBtu/hr',
+            'kw': 'KW'
             }
+
+
 
         value = None
 
-        s = row['unitDescription']
+        s = unit_description
 
         if type(s) == str:
-            for k in cap_types.keys():
+            for k in uom_fixes.keys():
 
                 sm = re.search(fr'(\S+)(\s)(?=({k}))', s)
                 # sm = re.search(r'(\S+)(\s)(?=(mmbtu/hr))', s)
@@ -117,7 +225,13 @@ class NEI:
                         value = None
 
                     else:
-                        value = smf * cap_types[k]  # Convert from MMBtu/hr or MWh to MJ 
+                        uom = uom_fixes[k]
+
+                        if energy:
+                            value = (smf * self.cap_conv['energy'][uom], 'MJ')
+
+                        else:
+                            value = (smf * self.cap_conv['power'][uom], 'MW')
 
                 else:
                     continue
@@ -127,16 +241,47 @@ class NEI:
 
         return value
 
-    def check_calculation(self, row):
+    def check_estimates(self, df):
         """
         Check energy estimates. Uses a maximum unit combustion MJ
         estimated from EPA GHGRP data, assuming any estimate above this
         value is an error.
+        Re
 
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            NEI data
+
+        Returns
+        -------
+        df : pandas.DataFrame
+            NEI data with offending energy estimates either
+        updated or removed.
         """
 
         # Max estimated unit energy from GHGRP in 2017 (MJ).
         ghgrp_max = 7.925433e+10
+
+        flagged = df.query("energyMJq0 > @ghgrp_max")
+
+        df.loc[flagged.index, ['energyMJq0', 'energyMJq2', 'energyMJq3']] = None
+
+        energy_update = pd.DataFrame(
+            index=flagged.index,
+            columns=['energyMJq0', 'energyMJq2', 'energyMJq3']
+            )
+
+        for i, v in flagged.iterrows():
+            if v['designCapacityUOM'] in self.cap_conv['energy'].keys():
+                value = self.cap_conv['energy'][v['designCapacityUOM']] * \
+                    v['designCapacity']
+                energy_update.loc[i, :] = value
+
+        df.update(energy_update)
+
+        return df
+
 
     @staticmethod
     def match_partial(full_list, partial_list):
@@ -463,6 +608,9 @@ class NEI:
                     'fuel_type'] = self._unit_conv['fuel_dict'][f]
 
             nei.fuel_type.update(nei_no_scc_ft.fuel_type)
+
+        # remove some non-combustion related unit types
+        nei = self.remove_unit_types(nei) 
 
         return nei
 
@@ -898,7 +1046,7 @@ class NEI:
         # missing = self.format_nei_char(missing)
 
         return missing
-    
+
     def load_fueltype_dict(self):
         """
         Opens and loads a yaml that specifies the mapping of
@@ -922,6 +1070,38 @@ class NEI:
                     continue
 
         return fuel_dict
+
+    # #TODO these unit types should be removed before this point. Maybe based on SCC analysis 
+    # and associated methods. 
+    def remove_unit_types(self, df):
+        """
+        Remove records associated with unit types that are not associated 
+        with combustion or electricity use.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            NEI data
+
+        Returns
+        -------
+        df : pands.DataFrame
+            NEI data with records removed based on unitType.
+        """
+
+        remove = [
+            'Storage Tank',
+            'Process Equipment Fugitive Leaks',
+            'Transfer Point',
+            'Open Air Fugitive Source',
+            'Other fugitive',
+            ]
+
+        df = df.where(~df.unit_type.isin(remove)).dropna(how='all')
+
+        df.reset_index(inplace=True, drop=True)
+
+        return df
 
     #TODO use tools method
     def harmonize_fuel_type(self, ghgrp_unit_data, fuel_type_column):
@@ -1130,6 +1310,10 @@ class NEI:
             )
 
         nei_char = nei.format_nei_char(nei_char)
+
+        nei_char = nei.find_missing_cap(nei_char)  # Fill in missing capacity data, where possible
+        nei_char = nei.convert_capacity(nei_char)  # Convert energy capacities all to MW
+        nei_char = nei.check_estimates(nei_char)  # check estimates 
 
         return nei_char
 
