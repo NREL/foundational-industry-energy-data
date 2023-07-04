@@ -981,7 +981,6 @@ class NEI:
                 )
             )
 
-        logging.info(f'med_unit columns: {med_unit.columns}')
         med_unit.reset_index(inplace=True)
 
         # MATERIAL and ACTION columns can have multiple values for same
@@ -1173,8 +1172,6 @@ class NEI:
 
             df.loc[:, f'throughputTonneQ{q[1]}'] = df[f'throughput_TON_{q}'] * 0.907  # Convert to metric tonnes
 
-        logging.info(f'Semi-final columns: {df.columns}')
-
         keep_cols = [
             'eis_facility_id', 'eis_unit_id', 'SCC',
             'unit_type', 'unit_description', 'design_capacity',
@@ -1185,8 +1182,6 @@ class NEI:
             ]
 
         df = df[keep_cols]
-
-        logging.info(f'Final columns: {df.columns}')
 
         df.rename(columns=rename_dict, inplace=True)
 
@@ -1283,25 +1278,24 @@ class NEI:
     def main(self):
 
         nei = NEI()
-        # logging.info("Getting NEI data...")
+        logging.info("Getting NEI data...")
         nei_data = nei.load_nei_data()
         iden_scc = nei.load_scc_unittypes()
         webfr = nei.load_webfires()
-        # logging.info("Merging WebFires data...")
+        logging.info("Merging WebFires data...")
         nei_char = nei.match_webfire_to_nei(nei_data, webfr)
-        # logging.info("Merging SCC data...")
+        logging.info("Merging SCC data...")
         nei_char = nei.assign_types_nei(nei_char, iden_scc)
-        #  logging.info("Converting emissions units...")
+        logging.info("Converting emissions units...")
         nei_char = nei.convert_emissions_units(nei_char)
-        # logging.info("Estimating throughput and energy...")
+        logging.info("Estimating throughput and energy...")
         nei_char = nei.calc_unit_throughput_and_energy(nei_char)
-        logging.info("Final assembly...")
+        logging.info("Final NEI data assembly...")
 
         med_unit = nei.get_median_throughput_and_energy(nei_char)
         missing_unit = nei.separate_missing_units(nei_char)
 
         nei_char = nei.merge_med_missing(med_unit, missing_unit)
-        logging.info(f"nei_char columns: {nei_char.columns}")
 
         nei_char = pd.concat(
             [nei.get_median_throughput_and_energy(nei_char),

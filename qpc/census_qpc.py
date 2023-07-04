@@ -5,205 +5,213 @@ from scipy.signal import detrend
 from statsmodels.formula.api import ols
 import os
 import urllib
+import tools.naics_matcher
 
 class QPC:
 
     def __init__(self):
 
-        def get_qpc_data(year):
-            """
-            Quarterly survey began 2008; start with 2010 due to  2007-2009
-            recession.
-            """
-            y = str(year)
+        self._data_path = os.path.abspath('./data/QPC/')
 
-            if year < 2017:
+    @staticmethod
+    def force_format(naics):
+        """
+        Some NAICS aren't converting from string to int using .astype
+        e.g., '31519'
 
-                excel_ex = '.xls?#'
+        """
 
-            else:
+        try:
+            naics = int(naics)
 
-                excel_ex = '.xlsx?#'
+            return naics
 
-            qpc_data = pd.DataFrame()
+        except ValueError:
 
-            base_url = 'https://www2.census.gov/programs-surveys/qpc/tables/'
+            return naics
 
-            for q in ['q'+str(n) for n in range(1, 5)]:
+    @staticmethod
+    def format_naics(df):
+        """
+        Formats results that aggregate NAICS codes (e.g., "3113, 4")
+        """
 
-                if year >= 2017:
+        for naics in df.NAICS.unique():
 
-                    y_url = '{!s}/{!s}_qtr_table_final_'
+            all_naics = []
 
-                # elif year < 2010:
-                #
-                #     y_url = \
-                #         '{!s}/qpc-quarterly-tables/{!s}_qtr_combined_tables_final_'
+            if naics == '31-33':
 
-                else:
+                continue
 
-                    y_url = '{!s}/qpc-quarterly-tables/{!s}_qtr_table_final_'
+            if type(naics) != str:
 
-                if (year == 2016) & (q == 'q4'):
+                continue
 
-                    url = base_url + y_url.format(y, y) + q + '.xlsx?#'
+            elif ',' in naics:
 
-                else:
+                all_naics.append(int(naics.split(',')[0]))
 
-                    url = base_url + y_url.format(y, y) + q + excel_ex
+                for n in naics.split(',')[1:]:
 
-                print(url)
+                    n = n.strip()
 
-                #Excel formatting for 2008 is different than all other years.
-                #Will need to revise skiprows and usecols.
-                try:
-                    data = pd.read_excel(url, sheet_name=1, skiprows=4,
-                                         usecols=6,header=0)
-
-                except urllib.error.HTTPError:
-
-                    return
-
-                data.drop(data.columns[2], axis=1, inplace=True)
-
-                data.columns = ['NAICS', 'Description', 'Utilization Rate',
-                                'UR_Standard Error',
-                                'Weekly_op_hours',
-                                'Hours_Standard Error']
-
-                data.dropna(inplace=True)
-
-                data['Q'] = q
-
-                data['Year'] = year
-
-                qpc_data = qpc_data.append(data, ignore_index=True)
-
-            # Some NAICS aren't converting from string to int using .astype
-            # e.g., '31519'
-            def force_format(naics):
-
-                try:
-                    naics = int(naics)
-
-                    return naics
-
-                except ValueError:
-
-                    return naics
-
-            def format_naics(df):
-                """
-                Formats results that aggregate NAICS codes (e.g., "3113, 4")
-                """
-
-                for naics in df.NAICS.unique():
-
-                    all_naics = []
-
-                    if naics == '31-33':
-
-                        continue
-
-                    if type(naics) != str:
-
-                        continue
-
-                    elif ',' in naics:
-
-                        all_naics.append(int(naics.split(',')[0]))
-
-                        for n in naics.split(',')[1:]:
-
-                            n = n.strip()
-
-                            if '-' in n:
-
-                                for m in range(
-                                    int(naics.split('-')[0][-1])+1,
-                                        int(naics.split('-')[1])+1
-                                    ):
-
-                                    all_naics.append(
-                                        int(naics.split(',')[0][:-1]+str(m))
-                                        )
-
-                            else:
-
-                                all_naics.append(
-                                    int(naics.split(',')[0][:-1]+n)
-                                    )
-
-                    elif (',' not in naics) & ('-' in naics):
-
-                        all_naics.append(int(naics.split('-')[0]))
+                    if '-' in n:
 
                         for m in range(
                             int(naics.split('-')[0][-1])+1,
                                 int(naics.split('-')[1])+1
-                            ):
+                                ):
 
                             all_naics.append(
-                                int(naics.split('-')[0][:-1]+str(m))
+                                int(naics.split(',')[0][:-1]+str(m))
                                 )
 
-                    new_rows = pd.DataFrame(
-                        np.tile(df[df.NAICS == naics].values,
-                        (len(all_naics), 1)), columns=df.columns
+                    else:
+
+                        all_naics.append(
+                            int(naics.split(',')[0][:-1]+n)
+                            )
+
+            elif (',' not in naics) & ('-' in naics):
+
+                all_naics.append(int(naics.split('-')[0]))
+
+                for m in range(
+                    int(naics.split('-')[0][-1])+1,
+                        int(naics.split('-')[1])+1
+                    ):
+
+                    all_naics.append(
+                        int(naics.split('-')[0][:-1]+str(m))
                         )
 
-                    new_rows['NAICS'] = np.repeat(all_naics,
-                                                  len(new_rows)/len(all_naics))
-
-                    # Delete original data
-                    df = df[df.NAICS != naics]
-
-                    df = df.append(new_rows, ignore_index=True)
-
-                return df
-
-            qpc_data.NAICS.update(
-                qpc_data.NAICS.apply(lambda x: force_format(x))
+            new_rows = pd.DataFrame(
+                np.tile(df[df.NAICS == naics].values,
+                (len(all_naics), 1)), columns=df.columns
                 )
 
-            qpc_data = format_naics(qpc_data)
-
-            # Drop withheld estimates
-            qpc_data = qpc_data[qpc_data.Weekly_op_hours != 'D']
-
-            #Interpolate for single value == 'S'
-            qpc_data.replace({'S':np.nan,'Z':np.nan}, inplace=True)
-
-            qpc_data.Weekly_op_hours.update(
-                qpc_data.Weekly_op_hours.interpolate()
+            new_rows['NAICS'] = np.repeat(
+                all_naics,
+                len(new_rows)/len(all_naics)
                 )
 
-            qpc_data['Hours_Standard Error'].update(
-                qpc_data['Hours_Standard Error'].interpolate()
-                )
+            # Delete original data
+            df = df[df.NAICS != naics]
 
-            self.qpc_data.fillna(0, inplace=True)
+            df = df.append(new_rows, ignore_index=True)
 
-            qpc_data['Weekly_op_hours'] = \
-                qpc_data.Weekly_op_hours.astype(np.float32)
+        return df
 
-            return qpc_data
+    def get_qpc_data(self, year):
+        """
+        Quarterly survey began 2008; start with 2010 due to  2007-2009
+        recession.
+        """
+        y = str(year)
 
-        if 'qpc_data_allraw.csv' in os.listdir('../calculation_data'):
+        if year < 2017:
 
-            self.qpc_data = pd.read_csv(
-                '../calculation_data/qpc_data_allraw.csv'
-                )
+            excel_ex = '.xls?#'
 
         else:
 
-            self.qpc_data = pd.concat(
-                [get_qpc_data(year) for year in range(2010, 2020)],
-                axis=0, ignore_index=True
-                )
+            excel_ex = '.xlsx?#'
 
-            self.qpc_data.to_csv('../calculation_data/qpc_data_allraw.csv',
-                                 index=False)
+        qpc_data = pd.DataFrame()
+
+        base_url = 'https://www2.census.gov/programs-surveys/qpc/tables/'
+
+        for q in ['q'+str(n) for n in range(1, 5)]:
+
+            if year >= 2017:
+
+                y_url = '{!s}/{!s}_qtr_table_final_'
+
+            # elif year < 2010:
+            #
+            #     y_url = \
+            #         '{!s}/qpc-quarterly-tables/{!s}_qtr_combined_tables_final_'
+
+            else:
+
+                y_url = '{!s}/qpc-quarterly-tables/{!s}_qtr_table_final_'
+
+            if (year == 2016) & (q == 'q4'):
+
+                url = base_url + y_url.format(y, y) + q + '.xlsx?#'
+
+            else:
+
+                url = base_url + y_url.format(y, y) + q + excel_ex
+
+            #Excel formatting for 2008 is different than all other years.
+            #Will need to revise skiprows and usecols.
+            try:
+                data = pd.read_excel(url, sheet_name=1, skiprows=4,
+                                     usecols=range(0, 7), header=0)
+
+            except urllib.error.HTTPError:
+
+                return
+
+            data.drop(data.columns[2], axis=1, inplace=True)
+
+            data.columns = ['NAICS', 'Description', 'Utilization Rate',
+                            'UR_Standard Error',
+                            'Weekly_op_hours',
+                            'Hours_Standard Error']
+
+            data.dropna(inplace=True)
+
+            data['Q'] = q
+
+            data['Year'] = year
+
+            qpc_data = qpc_data.append(data, ignore_index=True)
+
+        qpc_data.NAICS.update(
+            qpc_data.NAICS.apply(lambda x: QPC.force_format(x))
+            )
+
+        qpc_data = QPC.format_naics(qpc_data)
+
+        # Drop withheld estimates
+        qpc_data = qpc_data[qpc_data.Weekly_op_hours != 'D']
+
+        #Interpolate for single value == 'S'
+        qpc_data.replace({'S': np.nan, 'Z': np.nan}, inplace=True)
+
+        qpc_data.Weekly_op_hours.update(
+            qpc_data.Weekly_op_hours.interpolate()
+            )
+
+        qpc_data['Hours_Standard Error'].update(
+            qpc_data['Hours_Standard Error'].interpolate()
+            )
+
+        qpc_data.fillna(0, inplace=True)
+
+        qpc_data['Weekly_op_hours'] = \
+            qpc_data.Weekly_op_hours.astype(np.float32)
+
+        return qpc_data
+
+        # if 'qpc_data_allraw.csv' in self._data_path.listdir():
+
+        #     self.qpc_data = pd.read_csv(
+        #         os.path.join(self._data_path, 'qpc_data_allraw.csv')
+        #         )
+
+        # else:
+
+        #     self.qpc_data = pd.concat(
+        #         [get_qpc_data(year) for year in range(2010, 2020)],
+        #         axis=0, ignore_index=True
+        #         )
+
+        #     self.qpc_data.to_csv('../calculation_data/qpc_data_allraw.csv',
+        #                          index=False)
 
     def test_seasonality(self, qpc_data_naics):
         """
@@ -245,19 +253,21 @@ class QPC:
         ols_final = pd.DataFrame(np.nan, columns=['q1', 'q2', 'q3', 'q4'],
                                  index=[qpc_data_naics.NAICS.unique()[0]])
 
-        if any(ols_season.pvalues<0.05):
+        if any(ols_season.pvalues < 0.05):
 
             ols_res = pd.DataFrame(
-                np.multiply(ols_season.pvalues<0.05, ols_season.params),
+                np.multiply(ols_season.pvalues < 0.05, ols_season.params),
                 )
 
-            ols_res = ols_res[ols_res>0].T
+            ols_res = ols_res[ols_res > 0].T
 
             ols_res.rename(
-                columns={'Intercept': 'q1', 'C(Q)[T.q2]': 'q2',
-                   'C(Q)[T.q2]': 'q2',
-                   'C(Q)[T.q3]': 'q3',
-                   'C(Q)[T.q4]': 'q4'},
+                columns={
+                    'Intercept': 'q1', 'C(Q)[T.q2]': 'q2',
+                    'C(Q)[T.q2]': 'q2',
+                    'C(Q)[T.q3]': 'q3',
+                    'C(Q)[T.q4]': 'q4'
+                    },
                 index={0:qpc_data_naics.NAICS.unique()[0]}, inplace=True
                 )
 
@@ -268,31 +278,52 @@ class QPC:
         return ols_final
 
     def calc_hours_CI(self, selected_qpc_data, CI=95):
+        """
+        Calculates confidence interval of average weekly operating hours using
+        reported standard error.
+
+        Parameters
+        ----------
+        selected_qpc_data : pandas.DataFrame
+            DataFrame of formatted QPC data for one year
+
+        CI : int; 90, 95, or 99. Default is 95
+            Confidence interval to use.
+
+        Returns
+        -------
+        selected_qpc_data : pandas.DataFrame
+            Original DataFRame updated with columns for
+        high and low weekly operating hours. 
+
+        """
 
         #t distribution values for CI probabilities
-        ci_dict = {90:1.65, 95:1.96, 99:2.58}
+        ci_dict = {90: 1.65, 95: 1.96, 99: 2.58}
 
-        qpc_data_ci = pd.DataFrame(self.qpc_data.set_index(
-            ['NAICS', 'Year', 'Q']
-            )['Hours_Standard Error']).astype(float32)*ci_dict[CI]
+        qpc_data_ci = \
+            selected_qpc_data['Hours_Standard Error'].astype(np.float32) * ci_dict[CI]
 
-        selected_qpc_data.set_index(['NAICS', 'Year', 'Q'], inplace=True)
-
-        selected_qpc_data['Weekly_op_hours_high'] = \
-            selected_qpc_data.Weekly_op_hours.add(
-                qpc_data_ci['Hours_Standard Error']
-                )
+        selected_qpc_data.loc[:, 'Weekly_op_hours_high'] = \
+            selected_qpc_data.Weekly_op_hours.add(qpc_data_ci)
 
         selected_qpc_data['Weekly_op_hours_low'] = \
-            selected_qpc_data.Weekly_op_hours.subtract(
-                qpc_data_ci['Hours_Standard Error']
-                )
+            selected_qpc_data.Weekly_op_hours.subtract(qpc_data_ci)
 
-        selected_qpc_data = selected_qpc_data.where(
-            selected_qpc_data.Weekly_op_hours_low>0
-            ).fillna(0)
+        op_hour_min = selected_qpc_data.where(
+            selected_qpc_data.Weekly_op_hours_low > 0
+            ).Weekly_op_hours_low.fillna(np.nan).min()
 
-        selected_qpc_data.reset_index(inplace=True)
+        # Constrain to positive operating hours.
+        # Assume minimum of data set.
+        selected_qpc_data.loc[:, 'Weekly_op_hours_low'] = selected_qpc_data.where(
+            selected_qpc_data.Weekly_op_hours_low > 0
+            ).Weekly_op_hours_low.fillna(op_hour_min)
+
+        # Constrain to <168 weekly operating hours
+        selected_qpc_data.loc[:, 'Weekly_op_hours_high'] = selected_qpc_data.where(
+            selected_qpc_data.Weekly_op_hours_high < 168
+            ).Weekly_op_hours_low.fillna(168)
 
         return selected_qpc_data
 
@@ -391,21 +422,50 @@ class QPC:
 
         return ann_avg
 
+    def format_foundational(self, qpc_data):
+        """
+        Reformat QPC data, including CI calculations.
 
-# qpc_data = pd.concat(
-#     [get_qpc_data(y) for y in range(2010, 2019)], axis=0, ignore_index=True
-#     )
-# qpc = QPC()
-#
-#
-# qpc_seasonality = pd.concat(
-#     [qpc.test_seasonality(
-#         qpc.qpc_data[qpc.qpc_data.NAICS == naics]
-#         ) for naics in qpc.qpc_data.NAICS.unique()], axis=0, ignore_index=False
-#     )
-#
-# qpc_weekly_hours = qpc.calc_quarterly_avgs(
-#     qpc.qpc_data[qpc.qpc_data.Year ==2014], qpc_seasonality
-#     )
-#
-# qpc_weekly_hours.to_csv('../calculation_data/qpc_weekly_hours_2014.csv')
+        """
+        qpc_data.rename(columns={
+            'Weekly_op_hours_low': 'weeklyOpHoursLow',
+            'Weekly_op_hours': 'weeklyOpHours',
+            'Weekly_op_hours_high': 'weeklyOpHoursHigh'},
+            inplace=True
+            )
+
+        qpc_data = qpc_data.pivot(
+            index='NAICS',
+            columns='Q',
+            values=['weeklyOpHoursLow', 'weeklyOpHours', 'weeklyOpHoursHigh']
+            )
+
+        naics_6d = tools.naics_matcher.naics_matcher(
+            qpc_data.reset_index().NAICS
+            )
+
+        naics_6d.rename(columns={'original': 'NAICS', 'n6': 'naicsCode'},
+                        inplace=True)
+
+        naics_6d.set_index('NAICS', inplace=True)
+
+        qpc_data = pd.merge(
+            qpc_data, naics_6d,
+            left_index=True, right_index=True, how='inner'
+            )
+
+        qpc_data.reset_index(drop=True, inplace=True)
+
+        return qpc_data
+
+    def main(self, year):
+        qpc_data = self.get_qpc_data(year)
+        qpc_data = self.calc_hours_CI(qpc_data)
+        qpc_data = self.format_foundational(qpc_data)
+
+        return qpc_data
+
+if __name__ == '__main__':
+    qpc = QPC()
+    qpc_data = qpc.get_qpc_data(2017)
+    qpc_data = qpc.calc_hours_CI(qpc_data)

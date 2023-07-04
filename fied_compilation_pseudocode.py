@@ -10,8 +10,10 @@ import pandas as pd
 import numpy as np
 # import ghgrp.run_GHGRP as GHGRP
 from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
+from ghgrp.get_GHGRP_data import get_GHGRP_records
 from nei.nei_EF_calculations import NEI
 from frs.frs_extraction import FRS
+from qpc.census_qpc import QPC
 
 
 logging.basicConfig(level=logging.INFO)
@@ -256,7 +258,6 @@ def blend_energy_estimates(nei_data_shared, ghgrp_data_shared):
     #         )]
     #     )
 
-    #  TODO Return these dataframes, alon with the _ocs versions?
     # #TODO only return energy estimates for ghgrp_shared_nonocs (disregard nei_shared estimates), 
     # shared_ocs_energy[including ranges], and nei_only [with ranges] and ghgrp_only?
     ghgrp_data_shared_nonocs = id_ghgrp_units(ghgrp_data_shared, ocs=False)
@@ -578,6 +579,8 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
             axis=0, ignore_index=True, sort=True
             )
 
+    ocs_energy.drop(['energyMJPortion'], axis=1, inplace=True)
+
     return ocs_energy
 
 
@@ -662,12 +665,11 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
 
     Parameters
     ----------
+    frs_data : pandas.DataFrame
 
-    frs_data :
+    nei_data : pandas.DataFrame
 
-    nei_data :
-
-    ghgrp_unit_id :
+    ghgrp_unit_id : pandas.DataFrame
 
     Returns
     -------
@@ -709,11 +711,6 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         how='inner'
         )
 
-    logging.info(f'NEI IDS no GHGRP len:{len(nei_ids_noghgrp)}')
-    logging.info(
-        f"Lens after merge (ids, merged data, nei data): ({len(nei_only_data.eisFacilityID.unique())}, {len(nei_only_data)}, {len(nei_data)}"
-        )
-
     # GHGRP facility IDs that don't report to NEI
     ghgrp_ids_noeis = melt_multiple_ids(ghgrp_no_eis, ghgrp_unit_data)
 
@@ -721,11 +718,6 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         ghgrp_ids_noeis['ghgrpID'],
         ghgrp_unit_data, on='ghgrpID',
         how='inner'
-        )
-
-    logging.info(f'GHGRP IDS no NEI len:{len(ghgrp_ids_noeis)}')
-    logging.info(
-        f"Lens after merge (ids, merged data, ghgrp data): ({len(ghgrp_ids_noeis.ghgrpID.unique())}, {len(ghgrp_only_data)}, {len(ghgrp_unit_data.ghgrpID.unique())}"
         )
 
     # NEI and GHGRP facilities
@@ -737,11 +729,6 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         how='inner'
         )
 
-    logging.info(f'NEI IDS and ghgrp len:{len(nei_ids_shared)}')
-    logging.info(
-        f"Lens after merge (ids, merged data, nei data): ({len(nei_ids_shared.registryID.unique())}, {len(nei_data_shared)}, {len(nei_data)}"
-        )
-
     ghgrp_ids_shared = melt_multiple_ids(nei_and_ghgrp, ghgrp_unit_data)
 
     ghgrp_data_shared = pd.merge(
@@ -749,11 +736,6 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         ghgrp_unit_data,
         on='ghgrpID',
         how='inner'
-        )
-
-    logging.info(f'GHGRP IDS and NEI len:{len(ghgrp_ids_shared)}')
-    logging.info(
-        f"Lens after merge (ids, merged data, nei data): ({len(ghgrp_ids_shared.registryID.unique())}, {len(ghgrp_data_shared)}, {len(ghgrp_unit_data)}"
         )
 
     data_dict = {
@@ -764,6 +746,167 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         }
 
     return data_dict
+
+# def fillin_ghgrp(final_data, year):
+#     """
+#     There are ~660 GHGRP-reporting facilities without FRS data.
+#     Use additional GHGRP data to fill in missing info, such
+#     as lat, long, name, etc.
+
+#     Parameters
+#     ----------
+#     final_data : pandas.DataFrame
+#         DataFrame after merging final_energy_data with frs_data
+
+#     year : int
+#         Data reporting year
+
+#     Returns
+#     -------
+#     final_data : pandas.DataFrame
+#         Original DataFrame with missing information (e.g., 
+#         location, name) filled in with GHGRP data.
+
+#     """
+
+#     missing = final_data.query(
+#         "name.isnull() & stateCode.isnull()", engine='python'
+#         ).ghgrpID.unique()
+
+#     table = 'V_GHG_EMITTER_FACILITIES'
+
+#     ghgrp_data = get_GHGRP_records(year, table)
+
+#     ghgrp_data = ghgrp_data[ghgrp_data.FACILITY_ID.isin(missing)]
+
+#     col_rename = {
+#         'FACILITY_ID': 'ghgrpID',
+#         'FACILITY_NAME': 'name',
+#         'ADDRESS1': 'locationAddress',
+#         'ZIP': 'postalCode',
+#         'LATITUDE': 'latitude',
+#         'LONGITUDE': 'longitude',
+#         'CITY': 'cityName',
+#         'COUNTY': 'countyName',
+#         'COUNTY_FIPS': 'countyFIPS',
+#         'PRIMARY_NAICS_CODE': 'naicsCode',
+#         'ADDITIONAL_NAICS_CODES': 'naicsCodeAdditional',
+#         'STATE': 'stateCode'
+#         }
+
+#     ghgrp_data.rename(columns=col_rename, inplace=True)
+
+#     grab_additional_naics = ghgrp_data[
+#         ghgrp_data.SECONDARY_NAICS_CODE.notnull() | ghgrp_data.naicsCodeAdditional.notnull()
+#         ]
+
+#     # Combine any secondary NAICS or additional NAICS as additional NAICS
+#     for i, r in grab_additional_naics.iterrows():
+
+#         add_naics = []
+
+#         if r['naicsCodeAdditional']:
+#             add_naics = [int(x) for x in r['naicsCodeAdditional'].split(',')]
+
+#         else:
+#             pass
+
+#         if r['SECONDARY_NAICS_CODE']:
+#             add_naics.append(int(r['SECONDARY_NAICS_CODE']))
+
+#         else:
+#             pass
+
+#         try:
+#             add_naics[0]
+
+#         except IndexError:
+#             grab_additional_naics.loc[i, 'naicsCodeAdditional'] = None
+
+#         else:
+#             grab_additional_naics.loc[i, 'naicsCodeAdditional'] = add_naics
+
+#     ghgrp_data.loc[:, 'naicsCodeAdditional'] = grab_additional_naics.naicsCodeAdditional
+
+#     ghgrp_data = pd.DataFrame(ghgrp_data[[v for v in col_rename.values()]]).set_index('ghgrpID')
+
+#     final_data.set_index('ghgrpID', inplace=True)
+#     final_data.update(ghgrp_data)
+
+#     final_data.reset_index(inplace=True, drop=False)
+
+#     return final_data
+
+
+def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
+    """
+    Pull together FRS data, energy estimates, and weekly operating
+    hour estimates into a single dataframe.
+
+    Parameters
+    ----------
+    final_energy_data : pandas.DataFrame
+        Estimated unit-level energy use and characterization
+
+    frs_data : pandas.DataFrame
+        Facility geographic information
+
+    qpc_data : pandas.DataFrame 
+        Weekly operating hours by quarter, including CI range
+
+    Returns
+    -------
+    final_data : pandas.DataFrame
+
+    """
+
+    # FRS DataFrame has 1:many registryID: eisFacilityIDs, whereas final_energy_data
+    # has 1:1 registryID: eisFacilityID.
+    final_energy_data.drop('eisFacilityID', axis=1, inplace=True)
+
+    # There are some discrepancies between registryIDs reported by
+    # FRS and by GHGRP. 
+    frs_melted_ghgrp = melt_multiple_ids(frs_data,
+                                         final_energy_data[['registryID', 'ghgrpID']])
+
+    frs_melted_ghgrp = pd.merge(frs_melted_ghgrp, frs_data, on='registryID',
+                                how='inner')
+
+    frs_melted_ghgrp.set_index('ghgrpID_x', inplace=True)
+
+    final_data = pd.merge(
+        final_energy_data,
+        frs_data,
+        on='registryID',
+        how='outer'
+        )
+
+    # Fix missing info
+    energy_missing_ghgrp = pd.DataFrame(
+        final_data[final_data['ghgrpID_x'].notnull() & 
+                   final_data['ghgrpID_y'].isnull()]
+        )
+
+    energy_missing_ghgrp.reset_index(inplace=True, drop=False)
+    energy_missing_ghgrp.set_index('ghgrpID_x', inplace=True)
+    energy_missing_ghgrp.update(frs_melted_ghgrp)
+    energy_missing_ghgrp.reset_index(inplace=True, drop=False)
+    energy_missing_ghgrp.set_index('index', inplace=True)
+
+    final_data.update(energy_missing_ghgrp)
+
+    final_data.drop('ghgrpID_x', inplace=True, axis=1)
+
+    # final_data = fillin_ghgrp(final_data, year)  # method isn't needed
+
+    final_data = pd.merge(
+        final_data,
+        qpc_data,
+        on='naicsCode',
+        how='left'
+        )
+
+    return final_data
 
 
 if __name__ == '__main__':
@@ -801,25 +944,30 @@ if __name__ == '__main__':
         data_dict['nei_shared'],
         data_dict['ghgrp_shared']
         )
-    
-    final_data = pd.concat(
+
+    final_energy_data = pd.concat(
         [ocs_energy, nonocs_energy, data_dict['ghgrp_only'], data_dict['nei_only']],
         axis=0, ignore_index=True
         )
 
-    logging.info('Pickling ocs-related and final data')
+    logging.info('Pickling ocs-related and final energy data')
     ocs_energy.to_pickle('ocs_energy.pkl')
     nonocs_energy.to_pickle('nonocs_energy.pkl')
+    final_energy_data.to_pickle('final_energy_data.pkl')
+
+    qpc_data = QPC().main(year)
+
+    final_data = assemble_final_df(final_energy_data, frs_data, qpc_data,
+                                   year=year)
+
+    logging.info('Pickling final dataframe')
     final_data.to_pickle('final_data.pkl')
+
 
 
 # mining_energy = calc_mining_energy(year)  # Estimate mining energy intensity by NAICS, fuel, and location
 
 # ag_energy = calc_ag_energy(year)  # Estimate ag energy intensity by NAICS, fuel, and location
-
-# q_hours = calc_quarterly_op_hours(year)  # Get quarterly estimates of weekly operating hours from Censusn with standard error +/- [est, +, min]
-
-# # Need a generic method for quickly matching sub-6-digit NAICS to 6-D NAICS
 
 # frs_json = merge_and_make_json(frs_facs, ghgrp_fac_energy)
 
