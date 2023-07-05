@@ -543,12 +543,9 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
                     ['energyMJq0', 'energyMJq2', 'energyMJq3']
                     ].sum()
 
-                logging.info(f'NEI sum: {nei_sum}')
-
-                # nei_sum = nei_data_shared_ocs.xs(i).energyMJ.sum()
+                # logging.info(f'NEI sum: {nei_sum}')
 
             except KeyError as e:
-                logging.info(f'Check fuel type standardization: {e}')
                 energy_use = ghgrp_data_shared_ocs.loc[i, :]
 
             else:
@@ -563,7 +560,6 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
                         energy_use = nei_data_shared_ocs.loc[i, :]
                         energy_use.loc[:, 'energyMJ'] = \
                             energy_use.loc[:, 'energyMJPortion'] * ghgrp_sum
-                        logging.info(f"energy_use: {energy_use}")
 
                 else:
 
