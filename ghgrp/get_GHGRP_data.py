@@ -104,10 +104,8 @@ def get_GHGRP_records(reporting_year, table, rows=None):
 
 
         # logging.info(f'XML tree counts: {counts}')
-        
 
         # if counts[0] == []:
-    
         #     nrecords = int(counts[1][0].text)
 
         nrecords = counts

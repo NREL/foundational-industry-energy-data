@@ -14,6 +14,8 @@ Landfill Gas: other
 Solid Byproducts: biomass
 Kerosene: other
 Residual Fuel Oil No. 6: resFuelOil 
+residual fuel oil: resFuelOil
+digester gas: other
 Heavy Gas Oils: other
 Distillate Fuel Oil No. 1: other 
 Bituminous: coal
@@ -40,6 +42,9 @@ Propylene: lpgHGL
 Special Naphtha: other
 Anthracite: coal
 Ethane: lpgHGL
+\#2 oil: diesel
+\#6 oil: resFuelOil
+NG: naturalGas
 Vegetable Oil: other
 Ethanol (100%): other
 Ethylene: other 
@@ -117,8 +122,12 @@ Fuel Oil: resFuelOil
 Oil: other
 Coke: coke
 Sawdust: biomass
+sawdust: biomass
 Dual Fuel: other
 Exhaust From Sawdust: biomass
+exhaust from sawdust: biomass
+No6 Fuel Oil Blend: resiFuelOil
+
 and Gas: other
 and Coke: coke
 or Oil: resFuelOil

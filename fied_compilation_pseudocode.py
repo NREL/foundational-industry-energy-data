@@ -9,8 +9,8 @@ import pickle
 import pandas as pd
 import numpy as np
 # import ghgrp.run_GHGRP as GHGRP
+from scc.scc_unit_id import SCC_ID
 from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
-from ghgrp.get_GHGRP_data import get_GHGRP_records
 from nei.nei_EF_calculations import NEI
 from frs.frs_extraction import FRS
 from qpc.census_qpc import QPC
@@ -18,11 +18,12 @@ from qpc.census_qpc import QPC
 
 logging.basicConfig(level=logging.INFO)
 
+
 def split_multiple(x, col_names):
     """"
     Takes a pandas DataFrame row slice and for
     specified columns, splits out multiple values contained
-    in the selection into a new dataframe. 
+    in the selection into a new dataframe.
 
     Parameters
     ----------
@@ -34,9 +35,6 @@ def split_multiple(x, col_names):
     -------
     mult : pandas.DataFrame
     """
-
-        # data = [[x[col_names[0]], x[col_names[1]]]]
-        # index = [x.registryID]
 
     if type(x[col_names[1]]) is str:
 
@@ -401,7 +399,7 @@ def reconcile_nonocs_energy(ghgrp_data_shared_nonocs, nei_data_shared_nonocs):
     #     indicator=True,
     #     suffixes=('_nei', '_ghgrp')
     #     )
- 
+
     # shared_na = pd.concat(
     #     [nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
     #      ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType'])],
@@ -895,7 +893,8 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
 
     final_data.update(energy_missing_ghgrp)
 
-    final_data.drop('ghgrpID_x', inplace=True, axis=1)
+    final_data.drop(['ghgrpID_x', 'SCC'], inplace=True, axis=1)
+    final_data.rename(columns={'ghgrpID_y': 'ghgrpID'}, inplace=True)
 
     # final_data = fillin_ghgrp(final_data, year)  # method isn't needed
 
@@ -912,6 +911,8 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
 if __name__ == '__main__':
     year = 2017
 
+    SCC_ID().main()
+
     try:
         frs_data = pd.read_csv(
             './data/FRS/frs_data_formatted.csv', low_memory=False
@@ -927,7 +928,6 @@ if __name__ == '__main__':
     # ghgrp_energy_file = GHGRP.main(year, year)
     ghgrp_energy_file = "ghgrp_energy_20230508-1606.parquet"
     ghgrp_unit_data = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
-    ghgrp_unit_data.registryID.update(ghgrp_unit_data.registryID.astype(float))
 
     nei_data = NEI().main()
     # nei_data = pd.read_csv(
@@ -936,9 +936,9 @@ if __name__ == '__main__':
 
     data_dict = separate_unit_data(frs_data, nei_data, ghgrp_unit_data)
 
-    logging.info('Pickling energy data')
-    with open('energy_data_dict.pkl', 'wb') as handle:
-        pickle.dump(data_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    # logging.info('Pickling energy data')
+    # with open('energy_data_dict.pkl', 'wb') as handle:
+    #     pickle.dump(data_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     ocs_energy, nonocs_energy = blend_energy_estimates(
         data_dict['nei_shared'],
@@ -950,10 +950,10 @@ if __name__ == '__main__':
         axis=0, ignore_index=True
         )
 
-    logging.info('Pickling ocs-related and final energy data')
-    ocs_energy.to_pickle('ocs_energy.pkl')
-    nonocs_energy.to_pickle('nonocs_energy.pkl')
-    final_energy_data.to_pickle('final_energy_data.pkl')
+    # logging.info('Pickling ocs-related and final energy data')
+    # ocs_energy.to_pickle('ocs_energy.pkl')
+    # nonocs_energy.to_pickle('nonocs_energy.pkl')
+    # final_energy_data.to_pickle('final_energy_data.pkl')
 
     qpc_data = QPC().main(year)
 

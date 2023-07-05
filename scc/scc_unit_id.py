@@ -97,7 +97,7 @@ class SCC_ID:
 
     def build_id(self):
         """
-        Identify all relevant unit types and fuel 
+        Identify all relevant unit types and fuel
         types in SCCs.
 
         Returns
@@ -130,7 +130,7 @@ class SCC_ID:
         all_scc.dropna(subset=['unit_type', 'fuel_type'],
                        how='all', inplace=True)
 
-        all_scc = self.ft_clean_up(all_scc)
+        # all_scc = self.ft_clean_up(all_scc)
 
         return all_scc
 
@@ -214,52 +214,52 @@ class SCC_ID:
 
         return scc_exc
 
-        if ':' in scc_level_four:
-            unit_type = scc_level_four.split(': ')[-1]
+        # if ':' in scc_level_four:
+        #     unit_type = scc_level_four.split(': ')[-1]
 
-            if unit_type in other_fuels:
-                unit_type = 'Boiler'
+        #     if unit_type in other_fuels:
+        #         unit_type = 'Boiler'
 
-            else:
-                pass
+        #     else:
+        #         pass
 
-        else:
-            unit_type = scc_level_four
+        # else:
+        #     unit_type = scc_level_four
 
-        if scc_level_four in other_fuels:
-            unit_type = 'Boiler'
+        # if scc_level_four in other_fuels:
+        #     unit_type = 'Boiler'
 
-        else:
-            pass
+        # else:
+        #     pass
 
-        fuel_type = scc_level_three
+        # fuel_type = scc_level_three
 
-        if fuel_type == 'CO Boiler':
-            fuel_type = scc_level_four
+        # if fuel_type == 'CO Boiler':
+        #     fuel_type = scc_level_four
 
-        else:
-            pass
+        # else:
+        #     pass
 
-        if fuel_type in ['Industrial', 'Commercial/Institutional']:
-            unit_type = scc_level_two
-            fuel_type = scc_level_four.split(':')[0]
+        # if fuel_type in ['Industrial', 'Commercial/Institutional']:
+        #     unit_type = scc_level_two
+        #     fuel_type = scc_level_four.split(':')[0]
 
-        else:
-            pass
+        # else:
+        #     pass
 
-        if unit_type in ['All', 'Butane', 'Propane']:
-            unit_type = 'Boiler'
+        # if unit_type in ['All', 'Butane', 'Propane']:
+        #     unit_type = 'Boiler'
 
-        else:
-            pass
+        # else:
+        #     pass
 
-        if 'Wood-fired' in unit_type:
-            unit_type = 'Boiler'
+        # if 'Wood-fired' in unit_type:
+        #     unit_type = 'Boiler'
 
-        else:
-            pass
+        # else:
+        #     pass
 
-        return unit_type, fuel_type
+        # return unit_type, fuel_type
 
     def id_ice(self, all_scc):
         """
@@ -536,33 +536,40 @@ class SCC_ID:
         unit_types_detail = []
         fuel_types = []
 
+        other_counter = []
+
         for i, r in scc_ind.iterrows():
 
+            ft = None
+            ut = None
+
             if 'Commercial Cooking' in r['scc_level_three']:
-                unit_types_detail.append(r['scc_level_four'])
-                fuel_types.append(None)
+                ut = r['scc_level_four']
+                ft = None
 
             elif (r['scc_level_two'] == 'In-process Fuel Use') & \
                 (r['scc_level_four'] != 'Total') & \
                 ('Fuel Storage' not in r['scc_level_three']):
 
-                unit_types_detail.append(r['scc_level_four'])
-                fuel_types.append(r['scc_level_three'])
+                ut = r['scc_level_four']
+                ft = r['scc_level_three']
+                other_counter.append(i)
 
             elif r['scc_level_three'] == 'Ammonia Production':
 
                 if ':' in r['scc_level_four']:
-                    unit_types_detail.append(r['scc_level_four'].split(': ')[0])
-                    fuel_types.append(r['scc_level_four'].split(': ')[1])
+                    ut = r['scc_level_four'].split(': ')[0]
+                    ft = r['scc_level_four'].split(': ')[1]
 
                 else:
-                    unit_types_detail.append(r['scc_level_four'])
-                    fuel_types.append(None)
+                    ut = r['scc_level_four']
+                    ft = None
 
             elif (r['scc_level_two'] != 'In-process Fuel Use') & \
                 (any([x in r['scc_level_four'].lower() for x in [
                     'calciner', 'evaporator', 'furnace', 'dryer', 'kiln',
-                    'oven',
+                    'oven', 'flares', 'incinerators', 'turbines', 'turbine',
+                    'engines', 'engine',
                     'incinerator', 'distillation', 'heater', 'broil', 'flare',
                     'stove', 'steam'
                     ]])):
@@ -571,12 +578,12 @@ class SCC_ID:
                     x, y = r['scc_level_four'].split(': ')
 
                     if any([z in x for z in ['Distillate', 'Residual', 'Gas', 'Liquid', 'Propane']]):
-                        fuel_types.append(x)
-                        unit_types_detail.append(y)
+                        ft = x
+                        ut = y
 
                     else:
-                        fuel_types.append(y)
-                        unit_types_detail.append(x)
+                        ft = y
+                        ut = x
 
                 else:
                     ut = r['scc_level_four']
@@ -589,39 +596,82 @@ class SCC_ID:
                                 ).group()
 
                         except AttributeError:
-                            fuel_types.append(None)
+
+                            try:
+                                ft = re.search(
+                                    r'cbm|nat gas|natural gas|distillate oil|residual oil|#2 oil|#6 oil|propane|coal|process gas', 
+                                    ut.lower()
+                                    ).group()
+
+                            except AttributeError:
+                                ft = None
+
+                            else:
+                                if ft.lower() == 'nat gas':
+                                    ft = 'Natural Gas'
+
+                                elif ft.lower() == 'cbm':
+                                    ft = 'Natural Gas'
+
+                                elif ft.lower() == "#2 oil":
+                                    ft = 'Diesel'
+
+                                elif ft.lower() == "#6 oil":
+                                    ft = 'Residual Fuel Oil'
 
                         else:
-                            fuel_types.append(ft)
+                            if 'fired' in ft.lower():
+                                ft = ft.lower().split(' fired')[0]
 
-                        unit_types_detail.append(ut)
+                            elif 'direct' in ft.lower():
+                                try:
+                                    ft = ft.lower().split('direct ')[1]
+
+                                except IndexError:
+                                    ft = None
+                                else:
+                                    pass
+
+                            elif ('and' in ft.lower()) | ('or' in ft.lower()):
+                                ft = ft.split(' ')[1]
+
+                            # Assume that "...Gas-Fired..." equipment refers to natural gas.
+                            elif ft.lower() == 'gas':
+                                ft = 'Natural Gas'
+
+                            elif ft.lower() == 'oil':
+                                ft = 'Residual Fuel Oil'
 
                     else:
-                        fuel_types.append(None)
-                        unit_types_detail.append(ut)
+                        if 'diesel' in ut.lower():
+                            ft = 'Diesel'
+
+                        else:
+                            ft = None
 
             elif r['scc_level_three'] == 'Fuel Fired Equipment':
 
                 if r['sector'] == 'Industrial Processes - Chemical Manuf':
 
                     try:
-                        fuel_types.append(r['scc_level_four'].split(': ')[1])
-                        unit_types_detail.append(r['scc_level_four'].split(': ')[0])
+                        ft = r['scc_level_four'].split(': ')[1]
+                        ut = r['scc_level_four'].split(': ')[0]
 
                     except IndexError:
-                        fuel_types.append(None)
-                        unit_types_detail.append(r['scc_level_four'])
+                        ft = None 
+                        ut = r['scc_level_four']
 
                 else:
-                    blah = r['scc_level_four']
-                    logging.info(f'Look at this: {blah}')
-                    fuel_types.append(r['scc_level_four'].split(': ')[0])
-                    unit_types_detail.append(r['scc_level_four'].split(': ')[1])
-                    logging.info(f'Last fuel type is {fuel_types[-1]}\nLast unit type is {unit_types_detail[-1]} ')
-            else:
 
-                fuel_types.append(None)
-                unit_types_detail.append(None)
+                    ft = r['scc_level_four'].split(': ')[0]
+                    ut = r['scc_level_four'].split(': ')[1]
+                    logging.info(f'Last fuel type is {fuel_types[-1]}\nLast unit type is {unit_types_detail[-1]} ')
+
+            # elif r['tier_1_description'] == 'Fuel Comb. Industrial':
+            #     ft = f'{r["tier_3_description"]} {"tier_2_description"}'
+
+            fuel_types.append(ft)
+            unit_types_detail.append(ut)
 
         scc_ind.loc[:, 'unit_type'] = unit_types_detail
         scc_ind.loc[:, 'fuel_type'] = fuel_types
@@ -649,6 +699,11 @@ class SCC_ID:
             )
 
         return scc_ind
+
+    def main(self):
+        id_scc = SCC_ID()
+        id_scc_df = id_scc.build_id()
+        id_scc_df.to_csv('./scc/iden_scc.csv')
 
     # def apply_id_method(self, method):
     #     """

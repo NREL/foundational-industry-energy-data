@@ -73,9 +73,10 @@ class GHGRP_unit_char():
 
         return fuel_dict
 
+    # #TODO make into a tools method
     def harmonize_fuel_type(self, ghgrp_unit_data, fuel_type_column):
         """
-        Applies fuel type mapping to fuel types reported under GHGRP
+        Applies fuel type mapping to fuel types reported under GHGRP.
 
         Parameters
         ----------
@@ -267,6 +268,8 @@ class GHGRP_unit_char():
             'FRS_REGISTRY_ID': 'registryID',
             'UNIT_TYPE': 'unitType'
             }, inplace=True)
+        
+        ghgrp_df.registryID.update(ghgrp_df.registryID.astype(float))
 
         return ghgrp_df
 
@@ -385,6 +388,7 @@ class GHGRP_unit_char():
         ghgrp_df = self.get_unit_type()
         ghgrp_df = self.get_unit_capacity(ghgrp_df)
         ghgrp_df = self.format_ghgrp_df(ghgrp_df)
+
 
         ghgrp_df.to_csv(
             os.path.join(self._data_dir,
