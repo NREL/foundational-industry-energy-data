@@ -126,8 +126,8 @@ sawdust: biomass
 Dual Fuel: other
 Exhaust From Sawdust: biomass
 exhaust from sawdust: biomass
-No6 Fuel Oil Blend: resiFuelOil
-
+No6 Fuel Oil Blend: resFuelOil
+gassified coal: other
 and Gas: other
 and Coke: coke
 or Oil: resFuelOil
