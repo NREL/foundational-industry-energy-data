@@ -170,6 +170,9 @@ class QPC:
 
             qpc_data = qpc_data.append(data, ignore_index=True)
 
+        # Don't use the aggregate manufacturing NAICS
+        qpc_data = qpc_data.query("NAICS != '31-33'")
+
         qpc_data.NAICS.update(
             qpc_data.NAICS.apply(lambda x: QPC.force_format(x))
             )
@@ -196,22 +199,6 @@ class QPC:
             qpc_data.Weekly_op_hours.astype(np.float32)
 
         return qpc_data
-
-        # if 'qpc_data_allraw.csv' in self._data_path.listdir():
-
-        #     self.qpc_data = pd.read_csv(
-        #         os.path.join(self._data_path, 'qpc_data_allraw.csv')
-        #         )
-
-        # else:
-
-        #     self.qpc_data = pd.concat(
-        #         [get_qpc_data(year) for year in range(2010, 2020)],
-        #         axis=0, ignore_index=True
-        #         )
-
-        #     self.qpc_data.to_csv('../calculation_data/qpc_data_allraw.csv',
-        #                          index=False)
 
     def test_seasonality(self, qpc_data_naics):
         """

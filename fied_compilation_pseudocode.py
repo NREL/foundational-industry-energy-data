@@ -8,7 +8,7 @@ import re
 import pickle
 import pandas as pd
 import numpy as np
-import tools.naics_matcher
+from tools.naics_matcher import naics_matcher
 # import ghgrp.run_GHGRP as GHGRP
 from scc.scc_unit_id import SCC_ID
 from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
@@ -855,7 +855,7 @@ def merge_qpc_data(final_data, qpc_data):
         Final data set with QPC weekly operating hours.
 
     """
-    naics = tools.naics_matcher(final_data.naicsCode)
+    naics = naics_matcher(final_data.naicsCode)
 
     other_qpc = pd.merge(
         naics, qpc_data,

@@ -90,7 +90,7 @@ def naics_matcher(naics_column, naics_vintage=2017):
             )
 
         ncmatch = pd.DataFrame(ncog).join(ncmatch['n6'])
-    
+
         ncmatch.reset_index(inplace=True, drop=True)
 
     else:
