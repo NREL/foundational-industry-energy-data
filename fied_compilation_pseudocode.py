@@ -8,6 +8,7 @@ import re
 import pickle
 import pandas as pd
 import numpy as np
+import tools.naics_matcher
 # import ghgrp.run_GHGRP as GHGRP
 from scc.scc_unit_id import SCC_ID
 from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
@@ -832,6 +833,52 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
 #     return final_data
 
 
+def merge_qpc_data(final_data, qpc_data):
+    """
+    Original QPC data were expanded to 6-digit NAICS,
+    but FRS data contain <6-digit NAICS codes. Need to
+    match these FRS-provided NAICS to their 6-digit 
+    equivalents before merging with QPC data.
+
+    Paramters
+    ---------
+    final_data : pandas.DataFrame
+        Final foundational data after merging final_energy_data 
+        and frs_data.
+
+    qpc_data : pandas.DataFrame
+        Census Quarterly Survey of Plant Capacity Utilization data.
+
+    Returns
+    -------
+    final_data : pandas.DataFrame
+        Final data set with QPC weekly operating hours.
+
+    """
+    naics = tools.naics_matcher(final_data.naicsCode)
+
+    other_qpc = pd.merge(
+        naics, qpc_data,
+        left_on='n6', right_on='naicsCode', how='inner',
+        suffixes=('', '_y')
+        )
+
+    other_qpc.drop(['n6', 'naicsCode_y'], axis=1, inplace=True)
+
+    # Merge in QPC data matched to <6-digit NAICS
+    qpc_data = pd.concat([qpc_data, other_qpc], axis=0, sort=False,
+                         ignore_index=True)
+
+    final_data = pd.merge(
+        final_data,
+        qpc_data,
+        on='naicsCode',
+        how='left'
+        )
+
+    return final_data
+
+
 def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     """
     Pull together FRS data, energy estimates, and weekly operating
@@ -894,12 +941,7 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
 
     # final_data = fillin_ghgrp(final_data, year)  # method isn't needed
 
-    final_data = pd.merge(
-        final_data,
-        qpc_data,
-        on='naicsCode',
-        how='left'
-        )
+    final_data = merge_qpc_data(final_data, qpc_data)
 
     return final_data
 

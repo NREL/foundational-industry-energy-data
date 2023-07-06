@@ -43,10 +43,13 @@ def naics_matcher(naics_column, naics_vintage=2017):
             lambda x: int(str(x)[0:n])
             )
 
+    # Drop duplicates
+    naics_column = naics_column.drop_duplicates()
+
     # Match only < 6-digit NAICS
     if any([len(str(x)) == 6 for x in naics_column]):
         naics_column = naics_column.where(
-            naics_column.apply(lambda x: len(str(x)) < 6)
+            naics_column.apply(lambda x: len(str(int(x))) < 6)
         ).dropna()
 
     else:
@@ -54,10 +57,10 @@ def naics_matcher(naics_column, naics_vintage=2017):
 
     # Int format
     if naics_column.dtype != 'int32':
+
         for i, v in naics_column.iteritems():
 
             try:
-
                 naics_column.loc[i] = int(v)
 
             except ValueError:
@@ -66,11 +69,11 @@ def naics_matcher(naics_column, naics_vintage=2017):
     else:
         pass
 
-    # Drop duplicates
-    naics_column = naics_column.drop_duplicates()
+    # Loop not converting to int
+    naics_column = naics_column.astype(int)
 
     ncmatch = pd.concat(
-        [pd.merge(nctest, pd.DataFrame(naics_column),
+        [pd.merge(nctest[column], pd.DataFrame(naics_column),
                   left_on=column, right_on=naics_column.name,
                   how='left')
             for column in ['n6', 'n5', 'n4', 'n3']], axis=1
@@ -78,11 +81,23 @@ def naics_matcher(naics_column, naics_vintage=2017):
 
     ncmatch = ncmatch[naics_column.name].dropna(how='all').join(nctest['n6'])
 
-    ncmatch = pd.concat(
-        [ncmatch[naics_column.name].apply(lambda x: int(x.dropna()), axis=1),
-         ncmatch['n6']], axis=1
-        )
+    nclen = len(ncmatch[naics_column.name].columns)
 
-    ncmatch.columns = ['original', 'n6']
+    if nclen > 1:
+        ncog = pd.concat(
+            [ncmatch.iloc[:, n].dropna().astype(int) for n in range(0, nclen)],
+            axis=0, ignore_index=False
+            )
+
+        ncmatch = pd.DataFrame(ncog).join(ncmatch['n6'])
+    
+        ncmatch.reset_index(inplace=True, drop=True)
+
+    else:
+
+        ncmatch = pd.concat(
+            [ncmatch[naics_column.name].apply(lambda x: int(x.dropna()), axis=1),
+            ncmatch['n6']], axis=1
+            )
 
     return ncmatch

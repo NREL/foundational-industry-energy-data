@@ -444,7 +444,7 @@ class QPC:
             qpc_data.reset_index().NAICS
             )
 
-        naics_6d.rename(columns={'original': 'NAICS', 'n6': 'naicsCode'},
+        naics_6d.rename(columns={'n6': 'naicsCode'},
                         inplace=True)
 
         naics_6d.set_index('NAICS', inplace=True)
