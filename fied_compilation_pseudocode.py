@@ -15,6 +15,10 @@ from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
 from nei.nei_EF_calculations import NEI
 from frs.frs_extraction import FRS
 from qpc.census_qpc import QPC
+import geocoder.geo_tools
+# from geocoder.geo_tools import fcc_block_api
+# from geocoder.geo_tools import get_blocks_parallelized
+# from geocoder.get_tools
 
 
 logging.basicConfig(level=logging.INFO)
@@ -579,6 +583,14 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
     return ocs_energy
 
 
+def calculate_facility_energy(final_data):
+    """"
+    
+    """
+
+    return
+
+
 def unit_regex(unitType):
     """
     Use regex to standardize unit types,
@@ -598,6 +610,7 @@ def unit_regex(unitType):
 
     other_boilers = ['PCWD', 'PCWW', 'PCO', 'PCT', 'OFB']
 
+    # Combustion unit types
     unit_types = [
         'kiln', 'dryer', 'oven', 'furnace',
         'boiler', 'incinerator', 'flare',
@@ -605,7 +618,8 @@ def unit_regex(unitType):
         'stove', 'distillation', 'other combustion',
         'engine', 'generator', 'oxidizer', 'pump',
         'compressor', 'building heat', 'cupola',
-        'PCWD', 'PCWW', 'PCO', 'PCT', 'OFB'
+        'PCWD', 'PCWW', 'PCO', 'PCT', 'OFB', 'broil',
+        'reciprocating'
         ]
 
     ut_std = []
@@ -627,10 +641,10 @@ def unit_regex(unitType):
             continue
 
     if (len(ut_std) > 1):
-        ut_std = 'other'
+        ut_std = 'other combustion'
 
     elif (len(ut_std) == 0):
-        ut_std = None
+        ut_std = 'other'
 
     elif ut_std[0] == 'calciner':
         ut_std = 'kiln'
@@ -641,11 +655,14 @@ def unit_regex(unitType):
     elif ut_std[0] == 'buidling heat':
         ut_std = 'heater'
 
-    elif ut_std[0] == 'cupola':
+    elif ut_std[0] in ['cupola', 'broil']:
         ut_std = 'other combustion'
 
     elif any([x in ut_std[0] for x in other_boilers]):
         ut_std = 'boiler'
+
+    elif ut_std[0] == 'reciprocating':
+        ut_std = 'engine'
 
     else:
         ut_std = ut_std[0]
@@ -998,14 +1015,18 @@ if __name__ == '__main__':
     final_data = assemble_final_df(final_energy_data, frs_data, qpc_data,
                                    year=year)
 
+    logging.info(f'len(final_data), starting: {len(final_data)}')
+    logging.info('Finding Census Blocks. This takes awhile...')
+    final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
+    logging.info(f'len(final_data), post census blocks: {len(final_data)}')
+    final_data = geocoder.geo_tools.fix_county_fips(final_data)
+    logging.info(f'len(final_data), post county fips fix: {len(final_data)}')
+    final_data = geocoder.geo_tools.find_missing_congress(final_data)
+
     logging.info('Pickling final dataframe')
     final_data.to_pickle('final_data.pkl')
 
 
-
-# mining_energy = calc_mining_energy(year)  # Estimate mining energy intensity by NAICS, fuel, and location
-
-# ag_energy = calc_ag_energy(year)  # Estimate ag energy intensity by NAICS, fuel, and location
 
 # frs_json = merge_and_make_json(frs_facs, ghgrp_fac_energy)
 

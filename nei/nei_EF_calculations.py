@@ -163,6 +163,14 @@ class NEI:
 
         df.drop(['conversion'], axis=1, inplace=True)
 
+        # There's a facility (eisFacilityID == 7622911)
+        # that has mis-reported capacity by 6 orders of magnitude
+        f = df.query(
+            'designCapacityUOM=="MW" & designCapacity > 10**6'
+            )
+        
+        df.loc[f.index, 'designCapacity'] = f.designCapacity/10**6
+
         return df
 
     def check_unit_description(self, unit_description, energy=True):
@@ -199,8 +207,6 @@ class NEI:
             'mmb': 'MMBtu/hr',
             'kw': 'KW'
             }
-
-
 
         value = None
 
