@@ -1015,13 +1015,13 @@ if __name__ == '__main__':
     final_data = assemble_final_df(final_energy_data, frs_data, qpc_data,
                                    year=year)
 
-    logging.info(f'len(final_data), starting: {len(final_data)}')
+
     logging.info('Finding Census Blocks. This takes awhile...')
     final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
 
     final_data = geocoder.geo_tools.fix_county_fips(final_data)
 
-    # final_data = geocoder.geo_tools.find_missing_congress(final_data)
+    final_data = geocoder.geo_tools.find_missing_congress(final_data)
 
     logging.info('Pickling final dataframe')
     final_data.to_pickle('final_data.pkl')
