@@ -54,6 +54,7 @@ def fix_county_fips(df):
 def find_missing_congress(df):
     """"
     Update Congressional Districts to 118th Congress, for 2020.
+    Update the FRS column legislativeDistrictNumber
     """
 
     cd = pd.read_csv(
@@ -61,12 +62,17 @@ def find_missing_congress(df):
         sep='|', header=0, usecols=[1, 8],
         dtype='str', names=['congressionalDistrictNumber','countyFIPS']
         )
-    
-    df = pd.merge(
-        df, cd,
-        on='countyFIPS',
-        how='left'
-        )
+
+    cd = dict(cd[['countyFIPS', 'congressionalDistrictNumber']].values)
+
+    df.loc[:, 'legislativeDistrictNumber'] = df.countyFIPS.map(cd)
+
+    # Merge created duplicate entries and was slower than mapping with dict.
+    # df = pd.merge(
+    #     df, cd,
+    #     on='countyFIPS',
+    #     how='left'
+    #     )
 
     return df
 
@@ -127,7 +133,7 @@ def get_blocks_parallelized(df):
 
     Returns
     -------
-    df : pandas.DataFrame
+    df : pandas.DataFramefind
         Final foundational energy dataframe with
         new colum for censusBlock
 

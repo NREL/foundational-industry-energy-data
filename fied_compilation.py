@@ -1018,10 +1018,10 @@ if __name__ == '__main__':
     logging.info(f'len(final_data), starting: {len(final_data)}')
     logging.info('Finding Census Blocks. This takes awhile...')
     final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
-    logging.info(f'len(final_data), post census blocks: {len(final_data)}')
+
     final_data = geocoder.geo_tools.fix_county_fips(final_data)
-    logging.info(f'len(final_data), post county fips fix: {len(final_data)}')
-    final_data = geocoder.geo_tools.find_missing_congress(final_data)
+
+    # final_data = geocoder.geo_tools.find_missing_congress(final_data)
 
     logging.info('Pickling final dataframe')
     final_data.to_pickle('final_data.pkl')
