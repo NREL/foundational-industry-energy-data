@@ -85,20 +85,20 @@ def split_multiple(x, col_names):
     return mult
 
 
-def main():
-    year = 2017
+# def main():
+#     year = 2017
 
-    frs_methods = FRS()
-    frs_methods.download_unzip_frs_data(combined=True)
-    frs_data = frs_methods.import_format_frs(combined=True)
-    frs_data.to_csv('./data/FRS/frs_data_formatted.csv', index=True)
+#     frs_methods = FRS()
+#     frs_methods.download_unzip_frs_data(combined=True)
+#     frs_data = frs_methods.import_format_frs(combined=True)
+#     frs_data.to_csv('./data/FRS/frs_data_formatted.csv', index=True)
 
-    # ghgrp_energy_file = GHGRP.main(year, year)
-    ghgrp_energy_file = "ghgrp_energy_20230508-1606.parquet"
-    ghgrp_fac_energy = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
+#     # ghgrp_energy_file = GHGRP.main(year, year)
+#     ghgrp_energy_file = "ghgrp_energy_20230508-1606.parquet"
+#     ghgrp_fac_energy = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
 
-    #nei_data = NEI().main()
-    nei_data = pd.read_csv('formatted_estimated_nei.csv')
+#     #nei_data = NEI().main()
+#     nei_data = pd.read_csv('formatted_estimated_nei.csv')
 
 
 def melt_multiple_ids(frs_data, other_data):
@@ -882,6 +882,8 @@ def merge_qpc_data(final_data, qpc_data):
 
     other_qpc.drop(['n6', 'naicsCode_y'], axis=1, inplace=True)
 
+    other_qpc = other_qpc.drop_duplicates(subset='naicsCode')
+
     # Merge in QPC data matched to <6-digit NAICS
     qpc_data = pd.concat([qpc_data, other_qpc], axis=0, sort=False,
                          ignore_index=True)
@@ -960,6 +962,16 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
 
     final_data = merge_qpc_data(final_data, qpc_data)
 
+    logging.info('Finding Census Blocks. This takes awhile...')
+    final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
+
+    final_data = geocoder.geo_tools.fix_county_fips(final_data)
+    final_data = geocoder.geo_tools.find_missing_congress(final_data)
+
+    # logging.info('Finding missig HUC Codes. This takes awhile...')
+    # frs_api = tools.misc_tools.FRS_API()
+    # final_data = misc_tools.
+
     return final_data
 
 
@@ -980,20 +992,16 @@ if __name__ == '__main__':
         frs_data = frs_methods.import_format_frs(combined=True)
         frs_data.to_csv('./data/FRS/frs_data_formatted.csv', index=True)
 
+    # Exclude all facilities that have neither EIS ID or
+    # GHGRP ID
+
     # ghgrp_energy_file = GHGRP.main(year, year)
     ghgrp_energy_file = "ghgrp_energy_20230508-1606.parquet"
     ghgrp_unit_data = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
 
     nei_data = NEI().main()
-    # nei_data = pd.read_csv(
-    #     'formatted_estimated_nei_updated.csv', low_memory=False, index_col=0,
-    #     )
 
     data_dict = separate_unit_data(frs_data, nei_data, ghgrp_unit_data)
-
-    # logging.info('Pickling energy data')
-    # with open('energy_data_dict.pkl', 'wb') as handle:
-    #     pickle.dump(data_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     ocs_energy, nonocs_energy = blend_energy_estimates(
         data_dict['nei_shared'],
@@ -1016,12 +1024,6 @@ if __name__ == '__main__':
                                    year=year)
 
 
-    logging.info('Finding Census Blocks. This takes awhile...')
-    final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
-
-    final_data = geocoder.geo_tools.fix_county_fips(final_data)
-
-    final_data = geocoder.geo_tools.find_missing_congress(final_data)
 
     logging.info('Pickling final dataframe')
     final_data.to_pickle('final_data.pkl')
