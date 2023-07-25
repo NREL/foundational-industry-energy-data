@@ -39,7 +39,7 @@ class FRS_API:
 
         Parameters
         ----------
-        registryID : int
+        registryID : int 
             Facility Registry Service ID
 
         Returns
@@ -110,7 +110,7 @@ class FRS_API:
 
         return results
 
-    def parallelize_huc(self, final_data):
+    def find_huc_parallelized(self, final_data):
         """
         Parallelized API call to get HUC codes 
         based on FRS Registry IDs
@@ -126,9 +126,10 @@ class FRS_API:
             key, value pairs
         """
 
+        # Need to make sure registryIDs are int
         ids_missing_huc = final_data.query(
             "hucCode8.isnull()", engine="python"
-            ).registryID.unique().astype(np.int64).astype(str)
+            ).registryID.unique().astype(np.int64)
         
         results = self.parallelize_api(self.find_huc, ids_missing_huc)
 
@@ -280,19 +281,19 @@ class FRS_API:
             unit_data = dict(registryID=data_list[0])
 
         except IndexError:
+            logging.error(f"No unit data for {registryID}?")
             unit_data = None
 
         return unit_data
 
-    def find_unit_data_parallelized(self, registryIDs):
+    def find_unit_data_parallelized(self, final_data):
         """
         Makes API calls to find program data and then
         emissions unit data for Registry IDs.
 
         Parameters
         ----------
-        registryIDs : np.array 
-            Array of Registry IDs
+        final_data : pandas.DataFrame
 
         Returns
         -------
@@ -300,6 +301,10 @@ class FRS_API:
             list of dictionaries.
         """
 
-        results = self.parallelize_api(self.find_unit_data, registryIDs)
+        final_data_noid = final_data.query(
+            "eisFacilityID.isnull() & ghgrpID.isnull()", engine='python'
+            ).registryIDs.unique().astype(np.int64)
+
+        results = self.parallelize_api(self.find_unit_data, final_data_noid)
 
         return results
