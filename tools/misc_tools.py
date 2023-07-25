@@ -66,6 +66,11 @@ class FRS_API:
 
             hucCode = None
 
+        except KeyError:
+            logging.error(f"No subbasin for {registryID}?")
+
+            hucCode = None
+
         return hucCode
 
     def parallelize_api(self, method, data):
