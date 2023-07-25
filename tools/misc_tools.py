@@ -47,6 +47,15 @@ class FRS_API:
             Hydrolic unit code. Can be [f'HUC_{n}' for n in range(2, 14, 2)]
         """
 
+        huc_name = {
+            "HUC_2": "Region",
+            "HUC_4": "Subregion",
+            "HUC_6": "Basin",
+            "HUC_8":  "Subbasin",
+            "HUC_10": "Watershed",
+            "HUC_12": "Subwatershed"
+            }
+
         params = {
             'registryID': registryID,
             'output': 'JSON'
@@ -58,7 +67,7 @@ class FRS_API:
 
         try:
             hucCode = dict(
-                registriyID=r.json()['Results']['Subbasin'][huc]
+                registriyID=r.json()['Results'][huc_name[huc]][huc]
                 )
 
         except json.JSONDecodeError:
@@ -67,7 +76,7 @@ class FRS_API:
             hucCode = None
 
         except KeyError:
-            logging.error(f"No subbasin for {registryID}?")
+            logging.error(f"No {huc_name[huc]} for {registryID}?")
 
             hucCode = None
 
