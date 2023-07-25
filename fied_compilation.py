@@ -9,6 +9,7 @@ import pickle
 import pandas as pd
 import numpy as np
 from tools.naics_matcher import naics_matcher
+from tools.misc_tools import FRS_API
 # import ghgrp.run_GHGRP as GHGRP
 from scc.scc_unit_id import SCC_ID
 from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
@@ -968,9 +969,15 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     final_data = geocoder.geo_tools.fix_county_fips(final_data)
     final_data = geocoder.geo_tools.find_missing_congress(final_data)
 
-    # logging.info('Finding missig HUC Codes. This takes awhile...')
-    # frs_api = tools.misc_tools.FRS_API()
-    # final_data = misc_tools.
+    logging.info('Finding missig HUC Codes. This takes awhile...')
+    frs_api = FRS_API()
+    missing_huc = frs_api.parallelize_huc(final_data)
+    missing_huc.to_pickle('missing_huc.pkl')
+    final_data.hucCode8.update(
+        frs_data.registryID.map(missing_huc)
+        )
+    
+    final_data.to_pickle('final_data.pkl')
 
     return final_data
 

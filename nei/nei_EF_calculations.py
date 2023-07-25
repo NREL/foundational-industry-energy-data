@@ -155,6 +155,19 @@ class NEI:
 
         conv_ = df.dropna(subset=['conversion'])
 
+        # Facilities reporting capacities in E6BTU/HR may
+        # be incorrectly accounting for units and
+        # mis-reporting. Largest capacity reported by 
+        # GHGRP for years 2015 - 2021 is 10,000 E6BTU/HR 
+        # (see https://www.epa.gov/system/files/other-files/2022-10/emissions_by_unit_and_fuel_type_c_d_aa_10_2022.zip)
+        # Assume these units are meant to be reported as BTU/HR and not E6BTU/HR.
+
+        f = conv_.query(
+            'designCapacityUOM=="E6BTU/HR" & designCapacity > 10**5'
+            )
+
+        conv_.loc[f.index, 'designCapacity'] = f.designCapacity/10**6
+
         df.loc[conv_.index, 'designCapacity'] = conv_.designCapacity.multiply(
             conv_.conversion
             )

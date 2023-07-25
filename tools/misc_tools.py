@@ -95,15 +95,14 @@ class FRS_API:
 
         return results
 
-    def parallelize_huc(self, registryIDs):
+    def parallelize_huc(self, final_data):
         """
         Parallelized API call to get HUC codes 
         based on FRS Registry IDs
 
         Parameters
         ----------
-        registryIDs : np.arrray
-            FRS RegistrydIDs
+        final_data : pandas.DataFrame
 
         Returns
         -------
@@ -112,20 +111,23 @@ class FRS_API:
             key, value pairs
         """
 
-        results = self.parallelize_api(self.find_huc, registryIDs)
-
-        return results
-    
-    def fix_missin_huc(self, final_data):
-        """
-        
-        """
-
         ids_missing_huc = final_data.query(
             "hucCode8.isnull()", engine="python"
             ).registryID.unique()
+
+        results = self.parallelize_api(self.find_huc, ids_missing_huc)
+
+        return results
+    
+    # def fix_missing_huc(self, final_data):
+    #     """
         
-        missing_huc = self.parallelize_huc(ids_missing_huc)
+    #     """
+
+
+        
+    #     missing_huc = self.parallelize_huc(ids_missing_huc)
+        
 
     def find_facility_program_data(self, registryID):
         """"
@@ -140,7 +142,7 @@ class FRS_API:
         Returns
         -------
         data : json
-    
+
         """
 
         params = {
@@ -200,7 +202,7 @@ class FRS_API:
         return program_data
 
 
-    def query_emissions_unit(acroynm, id):
+    def query_emissions_unit(self, acroynm, id):
         """
 
         Parameters
@@ -218,7 +220,8 @@ class FRS_API:
 
         url_unit = f'{url_base}programSystemAcronym={acronym}&programSystemId{id}'
 
-        headers = load_query_credentials()
+        # headers = self.load_query_credentials()
+        headers = self._cred
         headers['accept'] = 'application/json'
 
         r = requests.get(url_unit, headers=headers)
@@ -234,12 +237,6 @@ class FRS_API:
 
         return emissions_data
 
-    # def dict_to_series(self, registryID, emissions_dict):
-    #     """
-        
-    #     """
-
-    #     return
 
     def find_unit_data(self, registryID):
         """

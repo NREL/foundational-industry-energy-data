@@ -71,6 +71,68 @@ def summary_unit_table(final_data):
     return summary_table
 
 
+def unit_bubble_map(final_data, unit_type, measure, max_size=45):
+    """
+    Plot locations of a single standard unit type by
+    either energy (MJ) or design capacity.
+
+    Parameters
+    ----------
+    final_data : pandas.DataFrame
+
+    unit_type : str
+        Standard unit type: 'other combustion', 'kiln', 'dryer', 
+        'boiler', 'heater', 'turbine', 'oven', 'engine', 'furnace', 
+        'thermal oxidizer', 'incinerator',
+       'other', 'generator', 'flare', 'stove', 'compressor', 'pump',
+       'building heat', 'distillation'
+
+    measure : str
+        Either 'energy' (results in MJ) or 'power' (results in MW)
+
+    Returns
+    -------
+    fig :
+ 
+    """
+
+    plot_data = final_data.query("unitTypeStd == @unit_type")
+
+    plot_args = {
+        'lat': 'latitude',
+        'lon': 'longitude',
+        'scope': 'usa',
+        'color': 'unitTypeStd',
+        'title': f'Location of {unit_type.title()} Units Reporting {measure.title()} Data',
+        'size_max': max_size
+        }
+
+    if measure == 'energy':
+        plot_data = plot_data.query('energyMJ>0')
+        plot_args['size'] = plot_data.energyMJ.to_list()
+        plot_args['labels'] = {
+            'energyMJ': 'Unit Energy Use (MJ)'
+            }
+
+    elif measure == 'power':
+        plot_data = plot_data.query(
+            "designCapacityUOM=='MW' & designCapacity>0"
+            )
+        plot_args['size'] = plot_data.designCapacity.to_list()
+        plot_args['labels'] = {
+            'designCapacity': 'Unit Capacity (MW)'
+            }
+        plot_args['title'] = f'Location of {unit_type.title()} Units Reporting Capacity Data'
+
+    # sizeref = plot_args['size'].max()/max_size**2
+
+    fig = px.scatter_geo(plot_data, **plot_args)
+    fig.update_layout(showlegend=True)
+    fig.show()
+
+
+
+
 def stacked_bar_missing(final_data, naics_level=2):
     """"
     Creates stacked bar showing counts of facilities
