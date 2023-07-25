@@ -4,6 +4,8 @@ import json
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from urllib.request import urlopen
 
 logging.basicConfig(level=logging.INFO)
@@ -13,7 +15,7 @@ def summary_unit_table(final_data):
     """
     Creates a table that summarizes by industrial sector
     (i.e., 2-digit NAICS) various aspects of the 
-    dataset
+    dataset. Saves table to analysis directory and returns table.
 
     Parameters
     ----------
@@ -26,6 +28,20 @@ def summary_unit_table(final_data):
     """
 
     table_data = make_consistent_naics_column(final_data, n=2)
+
+    # Use unique units from both NEI and GHGRP
+    table_data = pd.concat(
+        [table_data.query(
+            "eisUnitID.notnull()", engine="python"
+            ).drop_duplicates(
+                subset=['registryID', 'eisUnitID']
+                ),
+         table_data.query(
+            "ghgrpID.notnull() & eisUnitID.isnull()", engine='python'
+            )],
+        axis=0,
+        ignore_index=True
+        )
 
     sectors = pd.DataFrame(
         [['ag', 11], ['cons', 21], ['mining', 23], ['mfg', 31], 
@@ -68,7 +84,70 @@ def summary_unit_table(final_data):
 
     summary_table = pd.DataFrame(_fac_count).join(summary_table)
 
+    summary_table.to_csv('./analysis/summary_unit_table.csv')
+
     return summary_table
+
+
+def summary_unit_bar(summary_table):
+    """
+    Make stacked bar chart showing units by Sector and total 
+    number of facilities reporting units
+
+    Paramters
+    ---------
+    summary_table : pandas.DataFrame
+        Output of `summary_unit_table` method.
+
+    """
+
+    plot_data = summary_table.reset_index()
+
+    plot_data.replace({
+        'ag': 'Agriculture',
+        'cons': 'Construction',
+        'mfg': 'Manufacturing',
+        'mining': 'Mining'
+        }, inplace=True)
+
+    len_unit_types = len(plot_data.unitTypeStd.unique())
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    fig.add_trace(
+        px.bar(
+            plot_data,
+            x='sector',
+            y='Count of Units',
+            labels={
+                'value': 'Facility Count',
+                'variable': 'Facilities'
+                },
+            template='simple_white',
+            color='unitTypeStd',
+            color_discrete_sequence=px.colors.sample_colorscale(
+                "viridis", [n/(len_unit_types-1) for n in range(len_unit_types)]
+                )
+        ), secondary_y=False
+    )
+
+    fac_counts = plot_data.drop_duplicates(['sector', 'Count of Facilities'])
+
+    fig.add_trace(
+        go.Scatter(
+            x=fac_counts.sector,
+            y=fac_counts['Count of Facilities'],
+            name= 'Count of Facilities',
+            mode="markers",
+            ), secondary_y=True
+        )
+    
+    fig.update_yaxes(automargin=True)
+    fig.update_xaxes(automargin=True)
+
+
+    
+    fig.show()
 
 
 def unit_bubble_map(final_data, unit_type, measure, max_size=45):
@@ -128,8 +207,11 @@ def unit_bubble_map(final_data, unit_type, measure, max_size=45):
 
     fig = px.scatter_geo(plot_data, **plot_args)
     fig.update_layout(showlegend=True)
-    fig.show()
+    fig.update_yaxes(automargin=True)
+    fig.update_xaxes(automargin=True)
 
+
+    fig.show()
 
 
 
@@ -169,12 +251,15 @@ def stacked_bar_missing(final_data, naics_level=2):
                     'value': 'Facility Count',
                     'variable': 'Facilities'
                     },
-                 template='simple_white',
+                 template='presentation',
                  color_discrete_map={
                     'Without Unit Characterization': "#bcbddc",
                     'With Unit Characterization': "#756bb1"
                     })
-    
+
+    fig.update_yaxes(automargin=True)
+    fig.update_xaxes(automargin=True)
+
     fig.show()
 
 
@@ -197,10 +282,10 @@ def plot_ut_by_naics(final_data, naics_level=None, variable='count'):
     """
     formatting = {
         'x': 'unitTypeStd',
-        'template': 'simple_white',
+        'template': 'presentation',
         'labels': {
             'unitTypeStd': 'Standardized Unit Type'
-            }
+            },
         }
 
     if not naics_level:
@@ -271,6 +356,9 @@ def plot_ut_by_naics(final_data, naics_level=None, variable='count'):
             )
         )
 
+    fig.update_yaxes(automargin=True)
+    fig.update_xaxes(automargin=True)
+
     fig.show()
 
 def make_consistent_naics_column(final_data, n):
@@ -318,10 +406,10 @@ def make_consistent_naics_column(final_data, n):
 
     return analysis_data
 
-def compare_energy_est_figure(ghgrp_est, nei_est, grouping): 
-    """
+# def compare_energy_est_figure(ghgrp_est, nei_est, grouping): 
+#     """
     
-    """
+#     """
 
 def unit_capacity_naics(df, naics='all'):
     """
@@ -385,4 +473,4 @@ def unit_capacity_naics(df, naics='all'):
         
     else:
         raise IndexError
-
+    

@@ -3,6 +3,7 @@ import requests
 import json
 import logging
 import concurrent.futures
+import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 
@@ -127,8 +128,8 @@ class FRS_API:
 
         ids_missing_huc = final_data.query(
             "hucCode8.isnull()", engine="python"
-            ).registryID.unique()
-
+            ).registryID.unique().astype(np.int64).astype(str)
+        
         results = self.parallelize_api(self.find_huc, ids_missing_huc)
 
         return results

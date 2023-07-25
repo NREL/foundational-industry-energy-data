@@ -971,12 +971,15 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
 
     logging.info('Finding missig HUC Codes. This takes awhile...')
     frs_api = FRS_API()
-    missing_huc = frs_api.parallelize_huc(final_data)
+    missing_huc = frs_api.find_huc_parallelized(final_data)
     missing_huc.to_pickle('missing_huc.pkl')
     final_data.hucCode8.update(
         frs_data.registryID.map(missing_huc)
         )
-    
+
+    missing_units = frs_api.find_unit_data_parallelized(final_data)
+    missing_units.to_pickle('missing_units.pkl')
+
     final_data.to_pickle('final_data.pkl')
 
     return final_data
