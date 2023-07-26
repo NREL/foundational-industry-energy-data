@@ -6,7 +6,6 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from urllib.request import urlopen
 
 logging.basicConfig(level=logging.INFO)
 
@@ -89,10 +88,31 @@ def summary_unit_table(final_data):
     return summary_table
 
 
+def id_sectors(final_data):
+    """
+
+    Make a new sector column for NAICS 2-digit
+    
+    """
+
+    df = make_consistent_naics_column(final_data, n=2)
+
+    sectors = pd.DataFrame(
+        [['Agriculture', 11], ['Construction', 21], ['Mining', 23], 
+         ['Manufacturing', 31], 
+         ['Manufacturing', 32], ['Manufacturing', 33]],
+        columns=['sector', 'n2']
+        )
+    
+    df = pd.merge(df, sectors, on='n2')
+
+    return df
+
+
 def summary_unit_bar(summary_table):
     """
-    Make stacked bar chart showing units by Sector and total 
-    number of facilities reporting units
+    Make stacked bar chart showing units by Sector and
+    total number of facilities reporting units
 
     Paramters
     ---------
@@ -114,39 +134,61 @@ def summary_unit_bar(summary_table):
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-    fig.add_trace(
-        px.bar(
-            plot_data,
-            x='sector',
-            y='Count of Units',
-            labels={
-                'value': 'Facility Count',
-                'variable': 'Facilities'
-                },
-            template='simple_white',
-            color='unitTypeStd',
-            color_discrete_sequence=px.colors.sample_colorscale(
-                "viridis", [n/(len_unit_types-1) for n in range(len_unit_types)]
-                )
-        ), secondary_y=False
-    )
+    fig_units = px.bar(
+        plot_data,
+        x='sector',
+        y='Count of Units',
+        labels={
+            'value': 'Facility Count',
+            'variable': 'Facilities'
+            },
+        template='simple_white',
+        color='unitTypeStd',
+        color_discrete_sequence=px.colors.sample_colorscale(
+            "viridis", [n/(len_unit_types-1) for n in range(len_unit_types)]
+            )
+        )
+
+    for d in range(0, len(fig_units.data)):
+        fig.add_trace(fig_units.data[d], secondary_y=False)
 
     fac_counts = plot_data.drop_duplicates(['sector', 'Count of Facilities'])
 
+    # fig_fac = px.scatter(
+    #     fac_counts,
+    #     x='sector',
+    #     y='Count of Facilities'
+    #     )
+
+    fig.update_layout(barmode='stack')
     fig.add_trace(
         go.Scatter(
+            mode='markers',
             x=fac_counts.sector,
             y=fac_counts['Count of Facilities'],
-            name= 'Count of Facilities',
-            mode="markers",
-            ), secondary_y=True
+            marker=dict(size=30, color='LightSkyBlue'),
+            showlegend=True,
+            name='Facilities'
+        ), secondary_y=True
         )
-    
-    fig.update_yaxes(automargin=True)
-    fig.update_xaxes(automargin=True)
 
+    fig.update_yaxes(automargin=True, title='Count of Units',
+                     secondary_y=False,
+                     range=[0, 70000],
+                     tickmode='linear',
+                     tick0=0,
+                     dtick=7000
+                     )
+    fig.update_yaxes(automargin=True, title='Count of Facilities',
+                     secondary_y=True, range=[0, 20000],
+                     tickmode='linear',
+                     tick0=0,
+                     dtick=2000)
+    fig.update_xaxes(automargin=True, title='Sector')
+    fig.update_layout(
+        template='presentation'
+        )
 
-    
     fig.show()
 
 
@@ -210,7 +252,6 @@ def unit_bubble_map(final_data, unit_type, measure, max_size=45):
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
 
-
     fig.show()
 
 
@@ -251,7 +292,7 @@ def stacked_bar_missing(final_data, naics_level=2):
                     'value': 'Facility Count',
                     'variable': 'Facilities'
                     },
-                 template='presentation',
+                 template='plotly_white',
                  color_discrete_map={
                     'Without Unit Characterization': "#bcbddc",
                     'With Unit Characterization': "#756bb1"
@@ -259,6 +300,7 @@ def stacked_bar_missing(final_data, naics_level=2):
 
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
+    fig.update_figure(template='presentation')
 
     fig.show()
 
@@ -299,15 +341,17 @@ def plot_ut_by_naics(final_data, naics_level=None, variable='count'):
         grouper = ['unitTypeStd', f'n{naics_level}']
 
         plot_data = make_consistent_naics_column(final_data, naics_level)
-        plot_data.loc[:, f'n{naics_level}'] = plot_data[f'n{naics_level}'].astype(str)
+        plot_data.loc[:, f'n{naics_level}'] = \
+            plot_data[f'n{naics_level}'].astype(str)
 
         len_naics = len(plot_data[f'n{naics_level}'].unique())
 
         formatting['labels'][f'n{naics_level}'] = 'NAICS Code'
         formatting['color'] = f'n{naics_level}'
         # formatting['color_discrete_sequence'] = px.colors.sequential.Plasma_r
-        formatting['color_discrete_sequence'] = \
-            px.colors.sample_colorscale("plasma_r", [n/(len_naics-1) for n in range(len_naics)])
+        formatting['color_discrete_sequence'] = px.colors.sample_colorscale(
+            "plasma_r", [n/(len_naics-1) for n in range(len_naics)]
+            )
 
     if variable == 'count':
         plot_data = plot_data.query(
@@ -361,6 +405,7 @@ def plot_ut_by_naics(final_data, naics_level=None, variable='count'):
 
     fig.show()
 
+
 def make_consistent_naics_column(final_data, n):
     """
     Creates a column of consisently aggregated NAICS codes
@@ -406,12 +451,8 @@ def make_consistent_naics_column(final_data, n):
 
     return analysis_data
 
-# def compare_energy_est_figure(ghgrp_est, nei_est, grouping): 
-#     """
-    
-#     """
 
-def unit_capacity_naics(df, naics='all'):
+def unit_capacity_nonintensive(final_data):
     """
     
     Parameters
@@ -430,47 +471,64 @@ def unit_capacity_naics(df, naics='all'):
     naics_plot : 
     
     """
-    df_naics = pd.DataFrame(df['naicsCode'].drop_duplicates())
+
+    # plot_data = id_sectors(final_data)
+
+
+    
+
+    # Make subplots, one each for non-mfg,
+    # intenstive, and other-mfg
+    fig = make_subplots(
+        rows=2, cols=2,
+        specs=[
+            [{}, {}],
+            [{"colspan": 2}, None]
+            ],
+        print_grid=False)
+    
+
+def summary_table_intensive(final_data):
+    """
+    Summary description of unit coverage for intensive 
+    and non-intensive industries.
+    
+    """
+
+
+    df_naics = pd.DataFrame(
+        final_data.naicsCode.drop_duplicates()
+        )
+
     df_naics.loc[:, 'n4'] = df_naics.naicsCode.apply(lambda x: int(str(x)[0:4]))
 
-    plot_data = df.copy()
-    plot_data = pd.merge(
-        plot_data, df_naics, on='naicsCode'
+    plot_data = dict(
+        all=pd.merge(final_data, df_naics, on='naicsCode')
         )
-    
-    # NAICS subsectors of Paper Manufacturing, Petroleum and Coal Products, 
+
+    # NAICS subsectors of Paper Manufacturing, Petroleum and Coal Products,
     # Chemical Manufacturing, Glass and Glass Product Manufacturing, Cement and
-    # Concrete, Lime and Gypsum, Iron & Steel, Alumina and Aluminum, 
+    # Concrete, Lime and Gypsum, Iron & Steel, Alumina and Aluminum,
     intensive_naics = [3221, 3241, 3251, 3253, 3272, 3273, 3274, 3311, 3313]
 
-    # Select relevant NAICS codes
-    if naics == 'all':
-        pass
+    plot_data['non-mfg'] = \
+        plot_data['all'][~plot_data['all'].n4.between(3000, 4000)]
 
-    elif naics == 'non-mfg':
+    plot_data['intensive'] = \
+        plot_data['all'][plot_data['all'].n4.isin(intensive_naics)]
 
-        plot_data = pd.DataFrame(
-            plot_data[~plot_data.n4.between(3000, 4000)]
-            )
-
-    elif naics == 'intensive':
-
-        plot_data = pd.DataFrame(
-            plot_data[plot_data.n4.isin(intensive_naics)]
-            )
+    plot_data['other-mfg'] = \
+        plot_data['all'][
+            ~plot_data['all'].n4.isin(intensive_naics) & \
+             plot_data['all'].n4.between(3000, 4000)]
     
-    elif naics == 'other-mfg':
-
-        plot_data = pd.DataFrame(
-            plot_data[~plot_data.n4.isin(intensive_naics)]
-            )
-
-    elif type(naics) is list:
-
-        plot_data = pd.DataFrame(
-            plot_data[plot_data.n4.isin(naics)]
-            )
-        
-    else:
-        raise IndexError
+    for k in plot_data.keys():
+        if k == 'all':
+            pass
+        else:
+            plot_data['all'].loc[plot_data[k].index, 'grouping'] = k      
     
+    summ_table = pd.DataFrame(index=['intensive', 'other-mfg', 'non-mfg'])
+
+    plot_data['all'].groupby('grouping')
+

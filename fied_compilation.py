@@ -1032,14 +1032,3 @@ if __name__ == '__main__':
 
     final_data = assemble_final_df(final_energy_data, frs_data, qpc_data,
                                    year=year)
-
-
-
-    logging.info('Pickling final dataframe')
-    final_data.to_pickle('final_data.pkl')
-
-
-
-# frs_json = merge_and_make_json(frs_facs, ghgrp_fac_energy)
-
-
