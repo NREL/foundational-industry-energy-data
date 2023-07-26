@@ -521,14 +521,46 @@ def summary_table_intensive(final_data):
         plot_data['all'][
             ~plot_data['all'].n4.isin(intensive_naics) & \
              plot_data['all'].n4.between(3000, 4000)]
-    
+
     for k in plot_data.keys():
         if k == 'all':
             pass
         else:
             plot_data['all'].loc[plot_data[k].index, 'grouping'] = k      
-    
+
     summ_table = pd.DataFrame(index=['intensive', 'other-mfg', 'non-mfg'])
 
-    plot_data['all'].groupby('grouping')
+    ind_grp = plot_data['all'].groupby('grouping')
 
+    summ_table = pd.concat([
+        ind_grp.apply(lambda x: len(x.registryID.unique())),
+        ind_grp.apply(
+            lambda x: len(x[x.unitTypeStd.notnull()].registryID.unique())
+            ),
+        ind_grp.apply(lambda x: len(x[
+            (x.unitTypeStd.notnull()) &
+            (x.designCapacity.notnull()) &
+            (x.designCapacityUOM == 'MW')
+            ].registryID.unique())
+            ),
+        ind_grp.apply(
+            lambda x: x[x.designCapacityUOM == 'MW'].designCapacity.sum()
+            ),
+        ind_grp.apply(
+            lambda x: x[x.designCapacityUOM == 'MW'].designCapacity.median()
+            )], axis=1, ignore_index=False
+        )
+
+    summ_table.update(
+        summ_table.loc[:, [1, 2]].divide(summ_table.loc[:, 0], axis=0)
+        )
+
+    summ_table.columns = ['Count of Facilities', 'Facilities with Unit Type',
+                          'Facilities with Unit Type & Capacity',
+                          'Total Capacity (MW)', 'Median Capacity (MW)']
+
+    summ_table = summ_table.style.format({
+        'Facilities with Unit Type': '{:.0%}',
+        'Facilities with Unit Type & Capacity': '{:.0%}',
+        'Total Capacity (MW)': '{:.2f}'}
+        )
