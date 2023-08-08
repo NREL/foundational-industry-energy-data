@@ -1032,3 +1032,5 @@ if __name__ == '__main__':
 
     final_data = assemble_final_df(final_energy_data, frs_data, qpc_data,
                                    year=year)
+    
+    final_data.to_pickle('final_data.pkl')

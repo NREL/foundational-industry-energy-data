@@ -1,5 +1,6 @@
 
 import logging
+import os
 import json
 import pandas as pd
 import numpy as np
@@ -8,6 +9,33 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 logging.basicConfig(level=logging.INFO)
+
+
+def make_core_plots(file_path):
+    """
+    
+    """
+
+    final_data = pd.read_pickle(file_path)
+
+    summary_table = summary_unit_table(final_data)
+
+    summary_unit_bar(summary_table)
+
+    stacked_bar_missing(final_data)
+
+    for u in final_data.unitTypeStd.unique():
+        try:
+            u.title()
+        except AttributeError:
+            continue
+        else:
+            for m in ['energy', 'power']:
+                unit_bubble_map(final_data, u, m)
+
+    for v in ['count', 'energy', 'capacity']:
+        for n in [None, 2, 3]:
+            plot_ut_by_naics(final_data, n, v)
 
 
 def summary_unit_table(final_data):
@@ -90,9 +118,16 @@ def summary_unit_table(final_data):
 
 def id_sectors(final_data):
     """
-
     Make a new sector column for NAICS 2-digit
-    
+
+    Parameters
+    ----------
+    final_data : pandas.DataFrame
+
+    Returns
+    -------
+    final_data : pandas.DataFrame
+
     """
 
     df = make_consistent_naics_column(final_data, n=2)
@@ -103,7 +138,7 @@ def id_sectors(final_data):
          ['Manufacturing', 32], ['Manufacturing', 33]],
         columns=['sector', 'n2']
         )
-    
+
     df = pd.merge(df, sectors, on='n2')
 
     return df
@@ -133,6 +168,8 @@ def summary_unit_bar(summary_table):
     len_unit_types = len(plot_data.unitTypeStd.unique())
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    plot_data.sort_values(by=['Count of Units'], ascending=False)
 
     fig_units = px.bar(
         plot_data,
@@ -204,9 +241,9 @@ def unit_bubble_map(final_data, unit_type, measure, max_size=45):
     unit_type : str
         Standard unit type: 'other combustion', 'kiln', 'dryer', 
         'boiler', 'heater', 'turbine', 'oven', 'engine', 'furnace', 
-        'thermal oxidizer', 'incinerator',
-       'other', 'generator', 'flare', 'stove', 'compressor', 'pump',
-       'building heat', 'distillation'
+        'thermal oxidizer', 'incinerator', 'other', 'generator', 
+        'flare', 'stove', 'compressor', 'pump',
+        'building heat', 'distillation'
 
     measure : str
         Either 'energy' (results in MJ) or 'power' (results in MW)
@@ -214,7 +251,7 @@ def unit_bubble_map(final_data, unit_type, measure, max_size=45):
     Returns
     -------
     fig :
- 
+
     """
 
     plot_data = final_data.query("unitTypeStd == @unit_type")
@@ -282,8 +319,9 @@ def stacked_bar_missing(final_data, naics_level=2):
     plot_data.reset_index(inplace=True)
 
     plot_data.columns = ['NAICS Code', 'Without Unit Characterization', 'With Unit Characterization']
+    plot_data.dropna(subset=['NAICS Code'], inplace=True)
 
-    plot_data.update(plot_data['NAICS Code'].astype(str))
+    plot_data.loc[:, 'NAICS Code'] = plot_data['NAICS Code'].astype(str)
     fig = px.bar(plot_data,
                  x='NAICS Code',
                  y=['Without Unit Characterization',
@@ -299,8 +337,8 @@ def stacked_bar_missing(final_data, naics_level=2):
                     })
 
     fig.update_yaxes(automargin=True)
-    fig.update_xaxes(automargin=True)
-    fig.update_figure(template='presentation')
+    fig.update_xaxes(automargin=True, type='category')
+    fig.update_layout(template='presentation')
 
     fig.show()
 
@@ -308,8 +346,7 @@ def stacked_bar_missing(final_data, naics_level=2):
 def plot_ut_by_naics(final_data, naics_level=None, variable='count'):
     """
     Creates a table that summarizes by industrial sector
-    (i.e., 2-digit NAICS) various aspects of the 
-    dataset
+    (i.e., 2-digit NAICS) various aspects of the dataset
 
     Parameters
     ----------
@@ -318,10 +355,13 @@ def plot_ut_by_naics(final_data, naics_level=None, variable='count'):
     naics_level :
         Specified NAICS level (None or 2 - 6)
 
+    variable : str; 'count', 'energy', 'capacity'
+
     Returns
     -------
-    summary_table : pandas.DataFrame
+
     """
+
     formatting = {
         'x': 'unitTypeStd',
         'template': 'presentation',
@@ -564,3 +604,8 @@ def summary_table_intensive(final_data):
         'Facilities with Unit Type & Capacity': '{:.0%}',
         'Total Capacity (MW)': '{:.2f}'}
         )
+    
+if __name__ == '__main__':
+    
+    filepath = os.path.abspath('final_data.pkl')
+    make_core_plots(filepath)
