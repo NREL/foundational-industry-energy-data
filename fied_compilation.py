@@ -1,5 +1,3 @@
-
-# TODO create /bin  for keeping code to run to compile data set
 # TODO create executable?
 
 import logging
@@ -86,22 +84,6 @@ def split_multiple(x, col_names):
     return mult
 
 
-# def main():
-#     year = 2017
-
-#     frs_methods = FRS()
-#     frs_methods.download_unzip_frs_data(combined=True)
-#     frs_data = frs_methods.import_format_frs(combined=True)
-#     frs_data.to_csv('./data/FRS/frs_data_formatted.csv', index=True)
-
-#     # ghgrp_energy_file = GHGRP.main(year, year)
-#     ghgrp_energy_file = "ghgrp_energy_20230508-1606.parquet"
-#     ghgrp_fac_energy = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
-
-#     #nei_data = NEI().main()
-#     nei_data = pd.read_csv('formatted_estimated_nei.csv')
-
-
 def melt_multiple_ids(frs_data, other_data):
     """
     Melt FRS data for facilities, extracting multiple NEI or GHGRP IDs.
@@ -132,21 +114,6 @@ def melt_multiple_ids(frs_data, other_data):
     else:
 
         col_names = ['eisFacilityID', 'eisFacilityIDAdditional']
-
-    # for name in ['ghgrpID', 'eisFacilityID']:
-
-    #     if name in other_data.columns:
-
-    #         col_names = [name, f'{name}Additional']
-
-    #     else:
-    #         continue
-
-    # try:
-    #     col_names[0]
-
-    # except IndexError as e:
-    #     logging.error(f'Check column names in other_data: {e}')
 
     frs_mult = frs_data[frs_data[col_names[1]].notnull()]
 
@@ -241,16 +208,6 @@ def blend_energy_estimates(nei_data_shared, ghgrp_data_shared):
     merged_data : pandas.DataFrame
 
     """
-
-    # nei_ids = melt_multiple_ids(frs_data, nei_data)
-    # ghgrp_ids = melt_multiple_ids(frs_data, ghgrp_unit_data)
-
-    # ghgrp_data_shared = pd.merge(
-    #     ghgrp_ids[['ghgrpID']],
-    #     ghgrp_unit_data,
-    #     on='ghgrpID',
-    #     how='inner'
-    #     )
 
     ghgrp_data_shared_ocs = id_ghgrp_units(ghgrp_data_shared, ocs=True)
 
@@ -582,14 +539,6 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
     ocs_energy.drop(['energyMJPortion'], axis=1, inplace=True)
 
     return ocs_energy
-
-
-def calculate_facility_energy(final_data):
-    """"
-    
-    """
-
-    return
 
 
 def unit_regex(unitType):
@@ -959,8 +908,6 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     final_data.drop(['ghgrpID_x', 'SCC'], inplace=True, axis=1)
     final_data.rename(columns={'ghgrpID_y': 'ghgrpID'}, inplace=True)
 
-    # final_data = fillin_ghgrp(final_data, year)  # method isn't needed
-
     final_data = merge_qpc_data(final_data, qpc_data)
 
     logging.info('Finding Census Blocks. This takes awhile...')
@@ -977,10 +924,7 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
         frs_data.registryID.map(missing_huc)
         )
 
-    missing_units = frs_api.find_unit_data_parallelized(final_data)
-    missing_units.to_pickle('missing_units.pkl')
-
-    final_data.to_pickle('final_data.pkl')
+    # missing_units = frs_api.find_unit_data_parallelized(final_data)
 
     return final_data
 
@@ -1023,14 +967,7 @@ if __name__ == '__main__':
         axis=0, ignore_index=True
         )
 
-    # logging.info('Pickling ocs-related and final energy data')
-    # ocs_energy.to_pickle('ocs_energy.pkl')
-    # nonocs_energy.to_pickle('nonocs_energy.pkl')
-    # final_energy_data.to_pickle('final_energy_data.pkl')
-
     qpc_data = QPC().main(year)
 
     final_data = assemble_final_df(final_energy_data, frs_data, qpc_data,
                                    year=year)
-    
-    final_data.to_pickle('final_data.pkl')

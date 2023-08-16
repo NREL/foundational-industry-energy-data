@@ -1,3 +1,4 @@
-/data/FRS
+/data/*
+!/data/dir_structure.md
 *.pyc
 *.pkl
