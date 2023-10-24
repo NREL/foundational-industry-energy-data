@@ -116,6 +116,7 @@ class GHGRP_unit_char():
 
         r = requests.get(self._ghgrp_unit_url)
 
+
         with zipfile.ZipFile(BytesIO(r.content)) as zf:
             file_path = os.path.join(self._data_dir, zf.namelist()[0])
 
@@ -147,7 +148,10 @@ class GHGRP_unit_char():
 
         """
 
-        unit_data_file_path = self.download_unit_data()
+        #unit_data_file_path = self.download_unit_data()
+        unit_data_file_path = \
+        "/Users/dthierry/Projects/fied/data/GHGRP/emissions_by_unit_and_fuel_type_c_d_aa_10_2022.xlsb"
+
 
         # engine='pyxlsb' not working with python 3.6.5.final.0 and pandas 0.24.2
         # XLRDError: Excel 2007 xlsb file; not supported
@@ -169,7 +173,7 @@ class GHGRP_unit_char():
             overwrite=True
             )
 
-        # Select entries that are industrial facilities and 
+        # Select entries that are industrial facilities and
         # for reporting years that match GHGRP energy data years
         ghgrp_ind = ghgrp_ind.where(
             (ghgrp_ind['Primary NAICS Code'].apply(
@@ -196,7 +200,7 @@ class GHGRP_unit_char():
             )
 
         ghgrp_df.drop(
-            ['Reporting Year', 'Facility Id', 'Unit Name'], axis=1, 
+            ['Reporting Year', 'Facility Id', 'Unit Name'], axis=1,
             inplace=True
             )
 
@@ -226,7 +230,7 @@ class GHGRP_unit_char():
 
         logging.info(f'ghgrp_df.head: {ghgrp_df.head()}')
 
-        # Aggregate. Units may combust multiple types of 
+        # Aggregate. Units may combust multiple types of
         # fuels and have multiple observations (estimates)
         # of energy use.
         ghgrp_df = ghgrp_df.groupby(
@@ -239,7 +243,8 @@ class GHGRP_unit_char():
 
         ghgrp_df.loc[:, 'designCapacity'] = None
 
-        for item in ghgrp_df.MAX_CAP_MMBTU_per_HOUR.iteritems():
+        #for item in ghgrp_df.MAX_CAP_MMBTU_per_HOUR.iteritems():
+        for item in ghgrp_df.MAX_CAP_MMBTU_per_HOUR.items():
 
             try:
                 ghgrp_df.loc[item[0], 'designCapacity'] = item[1]*0.2931  # Convert to MW
@@ -268,7 +273,7 @@ class GHGRP_unit_char():
             'FRS_REGISTRY_ID': 'registryID',
             'UNIT_TYPE': 'unitType'
             }, inplace=True)
-        
+
         ghgrp_df.registryID.update(ghgrp_df.registryID.astype(float))
 
         return ghgrp_df
@@ -313,7 +318,7 @@ class GHGRP_unit_char():
 
         # Assume boilers will be the most typical combustion unit type
         # pd.Series.str.find returns -1 where a string is not found
-        # Not perfect, as approach assigns "boiler" to units that are 
+        # Not perfect, as approach assigns "boiler" to units that are
         # aggregations, e.g., "GP-1 Boilers / Afterburners"
         named_units = pd.concat(
             [pd.Series(ocs_units.str.find(t), name=t) for t in types],

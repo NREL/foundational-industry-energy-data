@@ -17,7 +17,7 @@ class FRS_API:
             Loads user ID and password for
             accessing EPA FRS Query API
             """
-
+            ## ! this does not work
             with open('c:/users/cmcmilla/Documents/API_auth.json') as f:
                 credentials = json.load(f)["epa_frs_API"]
 
@@ -34,12 +34,12 @@ class FRS_API:
 
     def find_huc(self, registryID, huc='HUC_8'):
         """
-        Calls EPA API for finding USGS Watershed Boundary Dataset information 
+        Calls EPA API for finding USGS Watershed Boundary Dataset information
         for a passed FRS ID. See https://www.epa.gov/frs/frs-rest-services#get_facilities_wbd
 
         Parameters
         ----------
-        registryID : int 
+        registryID : int
             Facility Registry Service ID
 
         Returns
@@ -112,7 +112,7 @@ class FRS_API:
 
     def find_huc_parallelized(self, final_data):
         """
-        Parallelized API call to get HUC codes 
+        Parallelized API call to get HUC codes
         based on FRS Registry IDs
 
         Parameters
@@ -122,7 +122,7 @@ class FRS_API:
         Returns
         -------
         results : list
-            List of dictionaries with registryID, HUC as 
+            List of dictionaries with registryID, HUC as
             key, value pairs
         """
 
@@ -130,24 +130,24 @@ class FRS_API:
         ids_missing_huc = final_data.query(
             "hucCode8.isnull()", engine="python"
             ).registryID.unique().astype(np.int64)
-        
+
         results = self.parallelize_api(self.find_huc, ids_missing_huc)
 
         return results
-    
+
     # def fix_missing_huc(self, final_data):
     #     """
-        
+
     #     """
 
 
-        
+
     #     missing_huc = self.parallelize_huc(ids_missing_huc)
-        
+
 
     def find_facility_program_data(self, registryID):
         """"
-        Get basic facility program data from EPA's 
+        Get basic facility program data from EPA's
         Facility Registry Service (FRS) API.
 
         Parameters
@@ -181,7 +181,7 @@ class FRS_API:
 
     def query_program_facility(self, registryID):
         """
-        Use EPA FRS Query API (requires registration 
+        Use EPA FRS Query API (requires registration
         for user ID and password)
 
         Parameters

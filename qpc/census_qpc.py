@@ -99,7 +99,9 @@ class QPC:
             # Delete original data
             df = df[df.NAICS != naics]
 
-            df = df.append(new_rows, ignore_index=True)
+            #df = df.append(new_rows, ignore_index=True)
+            # dav
+            df = pd.concat([df, new_rows], ignore_index=True)
 
         return df
 
@@ -168,7 +170,9 @@ class QPC:
 
             data['Year'] = year
 
-            qpc_data = qpc_data.append(data, ignore_index=True)
+            #qpc_data = qpc_data.append(data, ignore_index=True)
+            # dav
+            qpc_data = pd.concat([qpc_data, data], ignore_index=True)
 
         # Don't use the aggregate manufacturing NAICS
         qpc_data = qpc_data.query("NAICS != '31-33'")
@@ -281,7 +285,7 @@ class QPC:
         -------
         selected_qpc_data : pandas.DataFrame
             Original DataFRame updated with columns for
-        high and low weekly operating hours. 
+        high and low weekly operating hours.
 
         """
 
@@ -420,12 +424,18 @@ class QPC:
             'Weekly_op_hours_high': 'weeklyOpHoursHigh'},
             inplace=True
             )
-
+        qpc_data.to_csv("qpc_data00.csv")
+        print(qpc_data)
         qpc_data = qpc_data.pivot(
             index='NAICS',
             columns='Q',
             values=['weeklyOpHoursLow', 'weeklyOpHours', 'weeklyOpHoursHigh']
             )
+
+        #qpc_data.columns = qpc_data.columns.get_level_values(0)
+        qpc_data.columns = [' '.join(col).strip() for col in qpc_data.columns.values]
+        print(qpc_data)
+        qpc_data.to_csv("qpc_data01.csv")
 
         naics_6d = tools.naics_matcher.naics_matcher(
             qpc_data.reset_index().NAICS

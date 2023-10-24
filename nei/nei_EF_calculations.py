@@ -157,8 +157,8 @@ class NEI:
 
         # Facilities reporting capacities in E6BTU/HR may
         # be incorrectly accounting for units and
-        # mis-reporting. Largest capacity reported by 
-        # GHGRP for years 2015 - 2021 is 10,000 E6BTU/HR 
+        # mis-reporting. Largest capacity reported by
+        # GHGRP for years 2015 - 2021 is 10,000 E6BTU/HR
         # (see https://www.epa.gov/system/files/other-files/2022-10/emissions_by_unit_and_fuel_type_c_d_aa_10_2022.zip)
         # Assume these units are meant to be reported as BTU/HR and not E6BTU/HR.
 
@@ -181,14 +181,14 @@ class NEI:
         f = df.query(
             'designCapacityUOM=="MW" & designCapacity > 10**6'
             )
-        
+
         df.loc[f.index, 'designCapacity'] = f.designCapacity/10**6
 
         return df
 
     def check_unit_description(self, unit_description, energy=True):
         """"
-        Checks a unit description field using regex to determine if a 
+        Checks a unit description field using regex to determine if a
         unit capacity is reported. If a capacity is found, the method
         estimates an annual energy use based on the assumption of
         continuous use (8760 hours/year).
@@ -400,7 +400,7 @@ class NEI:
                             'region': 'epa_region_code'
                             }, inplace=True)
 
-                    # unit types & emissions calc methods in point_678910.csv are truncated; 
+                    # unit types & emissions calc methods in point_678910.csv are truncated;
                     # match to full unit type names in point_12345.csv
                     # Also, match to full calculation method names in point_12345.csv
                     if '12345' in f:
@@ -629,7 +629,7 @@ class NEI:
             nei.fuel_type.update(nei_no_scc_ft.fuel_type)
 
         # remove some non-combustion related unit types
-        nei = self.remove_unit_types(nei) 
+        nei = self.remove_unit_types(nei)
 
         return nei
 
@@ -638,7 +638,7 @@ class NEI:
     #   and WebFire EFs to LB/TON
 
     # for energy input calculation,
-    #   convert NEI emissions to LB; NEI EFs to LB/MJ; 
+    #   convert NEI emissions to LB; NEI EFs to LB/MJ;
     #   and WebFire EFs to LB/MJ
 
     def convert_emissions_units(self, nei):
@@ -741,7 +741,7 @@ class NEI:
             except KeyError:
                 continue
 
-        # if there is no fuel type listed, 
+        # if there is no fuel type listed,
         #   use energy to energy units only OR assume NG for E6FT3
         nei.loc[(nei.fuel_type.isnull()) &
                 (nei.MEASURE == 'E6BTU') |
@@ -797,7 +797,7 @@ class NEI:
                     )
 
             # remove throughput_TON if WebFire ACTION is listed as Burned
-            nei.loc[(~nei[f'throughput_TON_{f}'].isnull()) & 
+            nei.loc[(~nei[f'throughput_TON_{f}'].isnull()) &
                 (nei['ACTION'] == 'Burned'), f'throughput_TON_{f}'] = np.nan
 
 
@@ -809,16 +809,16 @@ class NEI:
         #     nei['total_emissions_LB'] / nei['nei_ef_LB_per_MJ']
 
         # # if there is not an NEI EF, use WebFire EF
-        # nei.loc[(nei['nei_ef_LB_per_TON'].isnull()) & 
+        # nei.loc[(nei['nei_ef_LB_per_TON'].isnull()) &
         #         (nei['web_ef_LB_per_TON'] > 0), 'throughput_TON'] = \
-        #     nei['total_emissions_LB'] / nei['web_ef_LB_per_TON'] 
+        #     nei['total_emissions_LB'] / nei['web_ef_LB_per_TON']
 
-        # nei.loc[(nei['nei_ef_LB_per_MJ'].isnull()) & 
+        # nei.loc[(nei['nei_ef_LB_per_MJ'].isnull()) &
         #         (nei['web_ef_LB_per_MJ'] > 0), 'energy_MJ'] = \
         #     nei['total_emissions_LB'] / nei['web_ef_LB_per_MJ']
 
         # # remove throughput_TON if WebFire ACTION is listed as Burned
-        # nei.loc[(~nei['throughput_TON'].isnull()) & 
+        # nei.loc[(~nei['throughput_TON'].isnull()) &
         #         (nei['ACTION'] == 'Burned'), 'throughput_TON'] = np.nan
 
 
@@ -841,7 +841,7 @@ class NEI:
 
     #     plt.rcParams['figure.dpi'] = 300
     #     plt.rcParams['savefig.dpi'] = 300
-    #     plt.rcParams['font.sans-serif'] = "Arial"                     
+    #     plt.rcParams['font.sans-serif'] = "Arial"
 
     #     sns.histplot(data=duplic, x="perc_diff")
     #     plt.xlabel('Percentage difference')
@@ -853,7 +853,7 @@ class NEI:
     def plot_difference(self, nei, data):
         """
         Plot difference between max and min energy or
-        throughput quanitites for units when there are 
+        throughput quanitites for units when there are
         multiple emissions per unit
 
         Parameters
@@ -893,7 +893,7 @@ class NEI:
 
         plt.rcParams['figure.dpi'] = 300
         plt.rcParams['savefig.dpi'] = 300
-        plt.rcParams['font.sans-serif'] = "Arial" 
+        plt.rcParams['font.sans-serif'] = "Arial"
 
         sns.histplot(data=duplic, x="perc_diff")  # sns.kdeplot
         plt.xlabel('Percentage difference')
@@ -917,7 +917,7 @@ class NEI:
         Returns
         -------
         med_unit : pandas.DataFrame
-            Median value of 
+            Median value of
 
         """
         # This is the primary output of estimating throughput and energy from NEI
@@ -986,11 +986,9 @@ class NEI:
 
         # logging.info(f"Other columns:  {other_cols}")
 
-        other = nei.drop_duplicates(
-            ['eis_facility_id', 'eis_process_id',
-             'eis_unit_id', 'unit_type',
-             'fuel_type']
-            )[other_cols]
+        other = nei.drop_duplicates(subset=['eis_facility_id', 'eis_process_id',
+                                            'eis_unit_id', 'unit_type',
+                                            'fuel_type'])[list(other_cols)]
 
         med_unit = med_unit.join(
             other.set_index(
@@ -1006,7 +1004,7 @@ class NEI:
         #   eis_process_id so if included in groupby, need to remove duplicates
 
         #med_unit.drop(med_unit[
-        #    (med_unit.eis_process_id.duplicated(keep=False)==True) & 
+        #    (med_unit.eis_process_id.duplicated(keep=False)==True) &
         #    (med_unit.MATERIAL.isnull())].index, inplace=True)
 
         # med_unit.to_csv('NEI_unit_throughput_and_energy.csv', index=False)
@@ -1030,7 +1028,7 @@ class NEI:
         Returns
         -------
         missing : pandas.DataFrame
-            All facilities and unit types that are missing 
+            All facilities and unit types that are missing
             throughput and energy estimates, but have identified
             unit types.
 
@@ -1089,11 +1087,11 @@ class NEI:
 
         return fuel_dict
 
-    # #TODO these unit types should be removed before this point. Maybe based on SCC analysis 
-    # and associated methods. 
+    # #TODO these unit types should be removed before this point. Maybe based on SCC analysis
+    # and associated methods.
     def remove_unit_types(self, df):
         """
-        Remove records associated with unit types that are not associated 
+        Remove records associated with unit types that are not associated
         with combustion or electricity use.
 
         Parameters
@@ -1214,7 +1212,7 @@ class NEI:
 
     # def apply_json_format(self, nei_char):
     #     """
-        
+
     #     Returns
 
     #     """
@@ -1326,7 +1324,7 @@ class NEI:
 
         nei_char = nei.find_missing_cap(nei_char)  # Fill in missing capacity data, where possible
         nei_char = nei.convert_capacity(nei_char)  # Convert energy capacities all to MW
-        nei_char = nei.check_estimates(nei_char)  # check estimates 
+        nei_char = nei.check_estimates(nei_char)  # check estimates
 
         return nei_char
 
@@ -1349,11 +1347,11 @@ if __name__ == '__main__':
 
 
     # check the difference between max and min throughput for single unit
-    #nei_emiss[(nei_emiss.throughput_TON>0) & 
+    #nei_emiss[(nei_emiss.throughput_TON>0) &
     #          (nei_emiss.eis_process_id.duplicated(keep=False)==True)].groupby(
     #              ['eis_unit_id','eis_process_id']
     #              )['throughput_TON'].agg(np.ptp).describe()
-    
+
     # compare units that had throughput calculated vs all units
     #(nei_emiss[nei_emiss.throughput_TON>0].groupby(
     #    ['naics_sub'])['eis_process_id'].count()/nei_emiss.groupby(

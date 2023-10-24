@@ -58,7 +58,9 @@ def naics_matcher(naics_column, naics_vintage=2017):
     # Int format
     if naics_column.dtype != 'int32':
 
-        for i, v in naics_column.iteritems():
+        #for i, v in naics_column.iteritems():
+        # dav
+        for i, v in naics_column.items():
 
             try:
                 naics_column.loc[i] = int(v)

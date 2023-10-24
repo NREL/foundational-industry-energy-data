@@ -39,15 +39,14 @@ def split_multiple(x, col_names):
     -------
     mult : pandas.DataFrame
     """
-
     if type(x[col_names[1]]) is str:
-
         try:
             data = [int(x[col_names[1]])]
 
         except ValueError:
 
             data = x[col_names[1]].split(', ')
+            data = [int(k) for k in data]
             # index = np.repeat(
             #     x.registryID, len(data)
             #     )
@@ -68,11 +67,11 @@ def split_multiple(x, col_names):
 
     elif type(x[col_names[1]]) is float:
 
-        data = [x[col_names[1]]]
+        data = [int(x[col_names[1]])]
+        # data = [x[col_names[1]]]
 
     else:
         return
-
     mult = pd.DataFrame(
         data=data, columns=[col_names[1]],
         dtype=int
@@ -106,13 +105,12 @@ def melt_multiple_ids(frs_data, other_data):
     """
 
     col_names = []
-
     if 'ghgrpID' in other_data.columns:
 
         col_names = ['ghgrpID', 'ghgrpIDAdditional']
 
     else:
-
+        # eisFacilityID
         col_names = ['eisFacilityID', 'eisFacilityIDAdditional']
 
     frs_mult = frs_data[frs_data[col_names[1]].notnull()]
@@ -122,9 +120,15 @@ def melt_multiple_ids(frs_data, other_data):
         axis=0, ignore_index=True
         )
 
-    frs_mult = frs_mult.melt(
-        id_vars=['registryID'], value_name=col_names[0]
-        ).drop('variable', axis=1)
+    # dav
+    frs_mult = frs_mult.melt(id_vars=['registryID'])
+    frs_mult.drop('variable', axis=1, inplace=True)
+    frs_mult.rename(columns = {'value': col_names[0]}, inplace=True)
+
+
+    #frs_mult = frs_mult.melt(
+    #    id_vars=['registryID'], value_name=col_names[0]
+    #    ).drop('variable', axis=1)
 
     melted = pd.concat([
         frs_mult, frs_data[frs_data[col_names[1]].isnull()][['registryID', col_names[0]]]
@@ -219,7 +223,7 @@ def blend_energy_estimates(nei_data_shared, ghgrp_data_shared):
     #         )]
     #     )
 
-    # #TODO only return energy estimates for ghgrp_shared_nonocs (disregard nei_shared estimates), 
+    # #TODO only return energy estimates for ghgrp_shared_nonocs (disregard nei_shared estimates),
     # shared_ocs_energy[including ranges], and nei_only [with ranges] and ghgrp_only?
     ghgrp_data_shared_nonocs = id_ghgrp_units(ghgrp_data_shared, ocs=False)
 
@@ -255,7 +259,7 @@ def id_nei_units(nei_data_shared, ghgrp_data_shared_):
     -------
     nei_data_shared_ : pandas.DataFrame
         NEI data for facilities that either have or
-        don't have OCS units under their GHGRP reporting.    
+        don't have OCS units under their GHGRP reporting.
     """
 
     nei_data_shared_ = pd.DataFrame(nei_data_shared)
@@ -370,7 +374,7 @@ def reconcile_nonocs_energy(ghgrp_data_shared_nonocs, nei_data_shared_nonocs):
     #     ignore_index=True
     #     )
 
-    # # Use GHGRP estimates 
+    # # Use GHGRP estimates
     # shared[shared._merge=='both'].where(shared.energyMJq0 < shared.energyMJ).dropna(how='all')
 
     return ghgrp_data_shared_nonocs
@@ -389,8 +393,12 @@ def calc_share_ocs(ghgrp_data_shared_ocs, cutoff=0.5):
         ['registryID', 'fuelType', 'unitTypeStd']
         ).energyMJ.sum()
 
+    #ocs_share = ocs_share.divide(
+    #    ocs_share.sum(level=[0, 1])
+    #    )
+    # dav
     ocs_share = ocs_share.divide(
-        ocs_share.sum(level=[0, 1])
+        ocs_share.groupby(level=[0, 1]).sum()
         )
 
     ocs_share = pd.DataFrame(ocs_share).reset_index()
@@ -437,9 +445,13 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
 
     # Use min of nei energy estimates
     # This can be changed in the future
-    nei_data_shared_portion = nei_data_shared_ocs.energyMJq0.sum(
+    #nei_data_shared_portion = nei_data_shared_ocs.energyMJq0.sum(
+    #    level=[0, 1, 2]
+    #    )
+    # dav:
+    nei_data_shared_portion = nei_data_shared_ocs.energyMJq0.groupby(
         level=[0, 1, 2]
-        )
+        ).sum()
 
     nei_data_shared_portion = nei_data_shared_portion.where(
         nei_data_shared_portion > 0
@@ -726,7 +738,7 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
 #     Returns
 #     -------
 #     final_data : pandas.DataFrame
-#         Original DataFrame with missing information (e.g., 
+#         Original DataFrame with missing information (e.g.,
 #         location, name) filled in with GHGRP data.
 
 #     """
@@ -804,13 +816,13 @@ def merge_qpc_data(final_data, qpc_data):
     """
     Original QPC data were expanded to 6-digit NAICS,
     but FRS data contain <6-digit NAICS codes. Need to
-    match these FRS-provided NAICS to their 6-digit 
+    match these FRS-provided NAICS to their 6-digit
     equivalents before merging with QPC data.
 
     Paramters
     ---------
     final_data : pandas.DataFrame
-        Final foundational data after merging final_energy_data 
+        Final foundational data after merging final_energy_data
         and frs_data.
 
     qpc_data : pandas.DataFrame
@@ -861,7 +873,7 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     frs_data : pandas.DataFrame
         Facility geographic information
 
-    qpc_data : pandas.DataFrame 
+    qpc_data : pandas.DataFrame
         Weekly operating hours by quarter, including CI range
 
     Returns
@@ -875,7 +887,7 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     final_energy_data.drop('eisFacilityID', axis=1, inplace=True)
 
     # There are some discrepancies between registryIDs reported by
-    # FRS and by GHGRP. 
+    # FRS and by GHGRP.
     frs_melted_ghgrp = melt_multiple_ids(frs_data,
                                          final_energy_data[['registryID', 'ghgrpID']])
 
@@ -893,7 +905,7 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
 
     # Fix missing info
     energy_missing_ghgrp = pd.DataFrame(
-        final_data[final_data['ghgrpID_x'].notnull() & 
+        final_data[final_data['ghgrpID_x'].notnull() &
                    final_data['ghgrpID_y'].isnull()]
         )
 

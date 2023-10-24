@@ -100,7 +100,7 @@ def fcc_block_api(lat_lon, census_year=2020):
     """
 
     url = 'https://geo.fcc.gov/api/census/block/find?'
-
+    #     https://geo.fcc.gov/api/census/
     params = {
         'latitude': lat_lon[0],
         'longitude': lat_lon[1],
@@ -108,7 +108,7 @@ def fcc_block_api(lat_lon, census_year=2020):
         'showall': True,
         'format': 'json'
         }
-
+    return None
     r = requests.get(url, params=params)
 
     try:
@@ -122,7 +122,7 @@ def fcc_block_api(lat_lon, census_year=2020):
 
 def get_blocks_parallelized(df):
     """
-    Paraellization for FCC API. 
+    Paraellization for FCC API.
     Final industrial data has ~360,000 unique
     lat, lon coordinates.
 
@@ -178,7 +178,7 @@ def get_blocks_parallelized(df):
 #         Other available benchmarks: https://geocoding.geo.census.gov/geocoder/benchmarks.
 
 #     vintage : str; default is "2020". Dependant on benchmark.
-#         Vintages are based on benchmark; see https://geocoding.geo.census.gov/geocoder/vintages?benchmark=benchmarkId., 
+#         Vintages are based on benchmark; see https://geocoding.geo.census.gov/geocoder/vintages?benchmark=benchmarkId.,
 
 #     Returns
 #     -------
@@ -221,5 +221,5 @@ def get_blocks_parallelized(df):
 
 #         r = requests.post(url, files=files, data=params)
 
-    
+
 
