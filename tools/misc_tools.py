@@ -9,21 +9,25 @@ logging.basicConfig(level=logging.INFO)
 
 
 class FRS_API:
+    def __init__(self, huc_only=True) -> None:
 
-    def __init__(self) -> None:
+        if huc_only:
+            pass
 
-        def load_query_credentials():
-            """
-            Loads user ID and password for
-            accessing EPA FRS Query API
-            """
+        else:
+            def load_query_credentials():
+                """
+                Loads user ID and password for
+                accessing EPA FRS Query API. Not necessary to
+                retrieve missing HUC codes.
+                """
 
-            with open('c:/users/cmcmilla/Documents/API_auth.json') as f:
-                credentials = json.load(f)["epa_frs_API"]
+                with open('c:/users/cmcmilla/Documents/API_auth.json') as f:
+                    credentials = json.load(f)["epa_frs_API"]
 
-            return credentials
+                return credentials
 
-        self._cred = load_query_credentials()
+            self._cred = load_query_credentials()
 
         self._base_urls = {
             'frs_query_prog': 'https://frsqueryprd-api.epa.gov/facilityiptqueryprd/v1/FRS/QueryProgramFacility?',
@@ -112,7 +116,7 @@ class FRS_API:
 
     def find_huc_parallelized(self, final_data):
         """
-        Parallelized API call to get HUC codes 
+        Parallelized API call to get HUC codes
         based on FRS Registry IDs
 
         Parameters
@@ -130,20 +134,11 @@ class FRS_API:
         ids_missing_huc = final_data.query(
             "hucCode8.isnull()", engine="python"
             ).registryID.unique().astype(np.int64)
-        
+
         results = self.parallelize_api(self.find_huc, ids_missing_huc)
 
         return results
-    
-    # def fix_missing_huc(self, final_data):
-    #     """
-        
-    #     """
 
-
-        
-    #     missing_huc = self.parallelize_huc(ids_missing_huc)
-        
 
     def find_facility_program_data(self, registryID):
         """"
