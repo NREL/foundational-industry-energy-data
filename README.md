@@ -18,6 +18,18 @@ python fied_compilation.py
 * `pandas=0.24.2=py36he350917_0`
 * `numpy=1.19.1=py36h12ee977_2`
 
+### Manual Data Downloads
+
+Due to their nature, several data sets must be manually downloaded before `fied_compilation.py` can be run sucessfully. These data sets and their director locations are:
+
+1. Source Classification Codes (SCCs)
+  * Download from https://sor-scc-api.epa.gov/sccwebservices/sccsearch/
+  * Save to `data/SCC/SCCDownload.csv`
+2. 2017 National Emissions Inventory (NEI)
+  * Download from https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip
+  * Save and unzip data to `data/NEI/`.
+  * `nei_EF_calculations.py` will format and combine the unzipped csv files into `nei_ind_data.csv`
+
 ## Directory Navigation
 
 The underlying submodules and data are organized as follows:
