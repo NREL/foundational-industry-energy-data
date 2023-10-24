@@ -35,8 +35,8 @@ Due to their nature, several data sets must be manually downloaded before `fied_
 The underlying submodules and data are organized as follows:
 
 * [analysis](/analysis/): Methods for analyzing and generating figures of the final dataset.
-* data: Created locally for organizing raw data.
-* [energy](/energy/): Not currently used.
+* [data](/data/): Most folders are created locally for organizing raw data. Contains a [directory list](/data/dir_structure.md).
+* [energy](/energy/): Not currently used. For future estimation of facility energy use based on alternative approaches. 
 * [frs](/frs): Methods for downloading and formatting EPA Facility Registry Service data.
 * [geocoder](/geocoder/): Methods for collecting missing geographical information for facilities.
 * [ghgrp](/ghgrp/): Methods for estimating energy use from GHG emissions reported under EPA's Greenhouse Gas Reporting Program. Based on previous projects, such as the [Industry Energy Data Book](https://github.com/NREL/Industry-energy-data-book).
