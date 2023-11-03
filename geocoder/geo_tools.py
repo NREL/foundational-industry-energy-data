@@ -133,7 +133,7 @@ def get_blocks_parallelized(df):
 
     Returns
     -------
-    df : pandas.DataFramefind
+    df : pandas.DataFrame
         Final foundational energy dataframe with
         new colum for censusBlock
 

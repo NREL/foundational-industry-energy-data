@@ -181,7 +181,7 @@ class NEI:
         f = df.query(
             'designCapacityUOM=="MW" & designCapacity > 10**6'
             )
-        
+
         df.loc[f.index, 'designCapacity'] = f.designCapacity/10**6
 
         return df

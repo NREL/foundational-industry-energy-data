@@ -114,18 +114,28 @@ class GHGRP_unit_char():
             File path of unit data spreadsheet.
         """
 
-        r = requests.get(self._ghgrp_unit_url)
+        try:
+            r = requests.get(self._ghgrp_unit_url)
+            r.raise_for_status()
 
-        with zipfile.ZipFile(BytesIO(r.content)) as zf:
-            file_path = os.path.join(self._data_dir, zf.namelist()[0])
+        except requests.exceptions.HTTPError as e:
+            print(e)
+            print(
+                f"Try downloading zipfile from {self._ghgrp_unit_url} and saving to {self._data_dir}"
+                )
 
-            if os.path.exists(file_path):
-                pass
+        else:
 
-            else:
-                zf.extractall(self._data_dir)
+            with zipfile.ZipFile(BytesIO(r.content)) as zf:
+                file_path = os.path.join(self._data_dir, zf.namelist()[0])
 
-        return file_path
+                if os.path.exists(file_path):
+                    pass
+
+                else:
+                    zf.extractall(self._data_dir)
+
+            return file_path
 
     # TODO fix up code for getting capacity data
     def get_unit_capacity(self, ghgrp_df):
@@ -268,7 +278,7 @@ class GHGRP_unit_char():
             'FRS_REGISTRY_ID': 'registryID',
             'UNIT_TYPE': 'unitType'
             }, inplace=True)
-        
+
         ghgrp_df.registryID.update(ghgrp_df.registryID.astype(float))
 
         return ghgrp_df
@@ -332,7 +342,7 @@ class GHGRP_unit_char():
                 'hot water': 'water heater',
                 'rice': 'engine', 'comfort heater': 'space heater'
             }, inplace=True
-        )
+            )
 
         named_units = named_units.where(named_units != -1)
         named_units = named_units.apply(lambda x: x.dropna(), axis=0)
@@ -388,7 +398,6 @@ class GHGRP_unit_char():
         ghgrp_df = self.get_unit_type()
         ghgrp_df = self.get_unit_capacity(ghgrp_df)
         ghgrp_df = self.format_ghgrp_df(ghgrp_df)
-
 
         ghgrp_df.to_csv(
             os.path.join(self._data_dir,

@@ -127,7 +127,9 @@ def melt_multiple_ids(frs_data, other_data):
         ).drop('variable', axis=1)
 
     melted = pd.concat([
-        frs_mult, frs_data[frs_data[col_names[1]].isnull()][['registryID', col_names[0]]]
+        frs_mult, frs_data[frs_data[col_names[1]].isnull()][
+            ['registryID', col_names[0]]
+            ]
         ],
         axis=0, ignore_index=True
         )
@@ -350,28 +352,28 @@ def reconcile_nonocs_energy(ghgrp_data_shared_nonocs, nei_data_shared_nonocs):
     shared_nonocs_energy : pd.DataFrame
     """
 
-    logging.info('------------\nPickling shared ocs datasets...\n-------------')
-    nei_data_shared_nonocs.to_pickle('nei_data_shared_nonocs.pkl')
-    ghgrp_data_shared_nonocs.to_pickle('ghgrp_data_shared_nonocs.pkl')
+    # logging.info('------------\nPickling shared ocs datasets...\n-------------')
+    # nei_data_shared_nonocs.to_pickle('nei_data_shared_nonocs.pkl')
+    # ghgrp_data_shared_nonocs.to_pickle('ghgrp_data_shared_nonocs.pkl')
 
-    # shared = pd.merge(
-    #     nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
-    #     ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
-    #     how='outer',
-    #     on=['registryID', 'unitTypeStd', 'fuelType'],
-    #     indicator=True,
-    #     suffixes=('_nei', '_ghgrp')
-    #     )
+    shared = pd.merge(
+        nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
+        ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
+        how='outer',
+        on=['registryID', 'unitTypeStd', 'fuelType'],
+        indicator=True,
+        suffixes=('_nei', '_ghgrp')
+        )
 
-    # shared_na = pd.concat(
-    #     [nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
-    #      ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType'])],
-    #     axis=0,
-    #     ignore_index=True
-    #     )
+    shared_na = pd.concat(
+        [nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
+         ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType'])],
+        axis=0,
+        ignore_index=True
+        )
 
-    # # Use GHGRP estimates 
-    # shared[shared._merge=='both'].where(shared.energyMJq0 < shared.energyMJ).dropna(how='all')
+    # Use GHGRP estimates 
+    shared[shared._merge == 'both'].where(shared.energyMJq0 < shared.energyMJ).dropna(how='all')
 
     return ghgrp_data_shared_nonocs
 
@@ -508,7 +510,7 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
 
                 # logging.info(f'NEI sum: {nei_sum}')
 
-            except KeyError as e:
+            except KeyError:
                 energy_use = ghgrp_data_shared_ocs.loc[i, :]
 
             else:

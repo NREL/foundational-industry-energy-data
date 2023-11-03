@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import re
 import logging
-import os
 import requests
 from io import BytesIO
 
@@ -34,15 +33,15 @@ class SCC_ID:
 
     def __init__(self):
 
-        self._complete_scc_filepath = './data/SCC/SCCDownload-2023-0201-132131.csv'
+        self._complete_scc_filepath = './data/SCC/SCCDownload.csv'
 
         logging.basicConfig(level=logging.INFO)
 
     def get_complete_scc(self):
         """
-        Download full set of SCC codes from EPA and save to 
-        `self._complete_scc_filepath`. 
-        Note that downloading directly from website assignes filename for csv 
+        Download full set of SCC codes from EPA and save to
+        `self._complete_scc_filepath`.
+        Note that downloading directly from website assignes filename for csv
         based as 'SCCDownload-{y}-{md}-{t}.csv'
 
         """
@@ -50,7 +49,7 @@ class SCC_ID:
         payload = {
             'format': 'CSV',
             'sortFacet': 'scc level one',
-            'filename': 'SCCDownload-2023-0201-132131.csv'
+            'filename': 'SCCDownload.csv'
             }
 
         url = 'https://sor-scc-api.epa.gov/sccwebservices/v1/SCC?'
@@ -170,7 +169,6 @@ class SCC_ID:
         # all_scc = self.ft_clean_up(all_scc)
 
         return all_scc
-
 
     def id_external_combustion(self, all_scc):
         """
@@ -734,6 +732,13 @@ class SCC_ID:
             {'Direct': None, 'Indirect': None},
             inplace=True
             )
+
+        # Remove storage-related units
+        scc_ind = scc[
+            ~scc_ind.unit_type.str.lower().str.contains(r"(storage)")
+            ] 
+
+        scc_ind.reset_index(drop=True, inplace=True)
 
         return scc_ind
 

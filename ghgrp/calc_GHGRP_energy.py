@@ -173,11 +173,35 @@ class GHGRP:
         Assumes 2010 file has the correct NAICS code for each facilitiy;
         subsequent years default to the code of the first year a facility
         reports.
+
+        Paramters
+        ---------
+        oth_facfile : pandas.DataFrame
+
+
+        Returns
+        -------
+        all_fac : pandas.DataFrame
+            Corrected and formatted DataFrame of GHGRP facility information.
+
         """
 
         def fac_read_fix(ffile):
             """
-            Reads and formats facility csv file.
+            Reads and formats facility csv file, fixing NAICS codes in 
+            2010 GHGRP facility file. 
+
+            Paramers
+            --------
+            ffile : pandas.DataFrame or str
+                DataFrame or path string of 2010 faciliy data to format
+            and correct.
+
+
+            Returns
+            -------
+            facdata : pands.DataFrame
+                Corrected facility information.
             """
 
             if type(ffile) == pd.core.frame.DataFrame:
@@ -304,12 +328,41 @@ class GHGRP:
     def import_data(self, subpart):
         """
         Download EPA data via API if emissions data are not saved locally.
+
+        Paramters
+        ---------
+        subpart : str. 'subpartC', 'subpartD', 'subpartV_fac', 'subpartV_emis',
+        'subpartAA_ff', or 'subpartAA_liq'
+
+            Name of GHGRP subpart.
+
+        Returns
+        -------
+        formatted_ghgrp_data : pandas.DataFrame
+            DataFrame of formatted GHGRP subpart data.
+
         """
 
         def download_or_read_ghgrp_file(subpart, filename):
             """
             Method for checking for saved file or calling download method
             for all years in instantiated class.
+
+            Paramters
+            ---------
+            subpart : str. 'subpartC', 'subpartD', 'subpartV_fac', 'subpartV_emis',
+            'subpartAA_ff', or 'subpartAA_liq'
+
+                Name of GHGRP subpart.
+
+            filename: str
+                Name of locally saved GHGRP subpart .csv file. 
+
+            Returns
+            -------
+            ghgrp_data : pandas.DataFrame
+                DataFrame of GHGRP subpart data. 
+
             """
             logging.info(f'Subpart:{subpart}\nFilename: {filename}')
 
@@ -319,7 +372,7 @@ class GHGRP:
             logging.info(f'Table: {table}')
 
             for y in self.years:
-               
+
                 logging.info(f'year: {y}\nTable: {table}')
 
                 filename_y = f'{filename}{y}.csv'
@@ -344,7 +397,7 @@ class GHGRP:
 
                 ghgrp_data = ghgrp_data.append(data_y, ignore_index=True)
 
-                # API has changed. Columns returned are now all in lowercase.
+            # API has changed. Columns returned are now all in lowercase.
             if ghgrp_data.columns[0] == ghgrp_data.columns[0].upper():
                 pass
 
@@ -410,7 +463,6 @@ class GHGRP:
                 except ValueError:
                     continue
 
-                
             # formatted_ghgrp_data['REPORTING_YEAR'] = \
             #     formatted_ghgrp_data.REPORTING_YEAR.astype(int)
             pre2013_emissions = formatted_ghgrp_data[

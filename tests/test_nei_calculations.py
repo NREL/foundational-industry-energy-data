@@ -30,7 +30,7 @@ def test_calc_unit_energy():
         nei_char.web_ef_LB_per_MJ.divide(
             nei_char.nei_ef_LB_per_MJ
             ) - 1
-    
+
     comparison_summary = nei_char[
         nei_char.calc_code_comparison.notnull()
         ].groupby(

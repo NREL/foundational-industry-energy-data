@@ -37,7 +37,7 @@ def main(start_year, end_year):
                              std_efs=ghgrp.std_efs).energy_calc()
 
     energy_ghgrp = ghgrp.energy_merge(energy_subC, energy_subD, energy_subAA,
-                                     ghgrp_data['subpartV_fac'])
+                                      ghgrp_data['subpartV_fac'])
 
     time = dt.datetime.today().strftime("%Y%m%d-%H%M")
 
