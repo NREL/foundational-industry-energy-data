@@ -106,7 +106,7 @@ class GHGRP_unit_char():
 
     def download_unit_data(self):
         """
-        Download and unzip GHGRP unit data.
+        Download and unzip GHGRP unit data. 
 
         Returns
         -------
@@ -114,28 +114,43 @@ class GHGRP_unit_char():
             File path of unit data spreadsheet.
         """
 
-        try:
-            r = requests.get(self._ghgrp_unit_url)
-            r.raise_for_status()
+        zipfile_name = self._ghgrp_unit_url.split('/')[-1]
 
-        except requests.exceptions.HTTPError as e:
-            print(e)
-            print(
-                f"Try downloading zipfile from {self._ghgrp_unit_url} and saving to {self._data_dir}"
-                )
+        file_path = os.path.join(self._data_dir, zipfile_name)
 
-        else:
+        if os.path.isfile(file_path):
 
-            with zipfile.ZipFile(BytesIO(r.content)) as zf:
-                file_path = os.path.join(self._data_dir, zf.namelist()[0])
+            with zipfile.ZipFile(file_path) as zf:
 
-                if os.path.exists(file_path):
+                xlsbpath = os.path.join(self._data_dir, zf.namelist()[0])
+
+                if os.path.isfile(xlsbpath):
+
                     pass
 
                 else:
                     zf.extractall(self._data_dir)
 
-            return file_path
+        else:
+
+            try:
+                r = requests.get(self._ghgrp_unit_url)
+                r.raise_for_status()
+
+            except requests.exceptions.HTTPError as e:
+                print(e)
+
+                print(
+                    f"Try downloading zipfile from {self._ghgrp_unit_url} and saving to {self._data_dir}"
+                    )
+
+            with zipfile.ZipFile(BytesIO(r.content)) as zf:
+
+                zf.extract(zf.namelist()[0], self._data_dir)
+
+                xlsbpath = os.path.join(self._data_dir, zf.namelist()[0])
+
+        return xlsbpath
 
     # TODO fix up code for getting capacity data
     def get_unit_capacity(self, ghgrp_df):
@@ -166,6 +181,7 @@ class GHGRP_unit_char():
         #     engine='pyxlsb', sheet_name='UNIT_DATA'
         #     )
 
+        logging.info(f"Data file path: {unit_data_file_path}")
         df = []
         with open_workbook(unit_data_file_path) as wb:
             with wb.get_sheet('UNIT_DATA') as sheet:
@@ -233,8 +249,6 @@ class GHGRP_unit_char():
 
         # Harmonize fuel types for GHGRP data
         ghgrp_df = self.harmonize_fuel_type(ghgrp_df, 'FUEL_TYPE_FINAL')
-
-        logging.info(f'ghgrp_df.head: {ghgrp_df.head()}')
 
         # Aggregate. Units may combust multiple types of 
         # fuels and have multiple observations (estimates)
@@ -412,3 +426,4 @@ if __name__ == '__main__':
     ghgrp_energy_file = 'ghgrp_energy_20230508-1606.parquet'
     reporting_year = 2017
     ghgrp_df = GHGRP_unit_char(ghgrp_energy_file, reporting_year).main()
+    logging.info(f"df: {ghgrp_df.head()}")
