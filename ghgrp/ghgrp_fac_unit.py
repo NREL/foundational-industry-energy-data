@@ -188,7 +188,13 @@ class GHGRP_unit_char():
                 for row in sheet.rows():
                     df.append([item.v for item in row])
 
-        ghgrp_ind = pd.DataFrame(df[7:], columns=df[6])
+        # Make sure to catch column row (first few rows of spreadsheet has
+        # values only in first column)
+        n = 0
+        while all(df[n]) is False:
+            n+=1
+
+        ghgrp_ind = pd.DataFrame(df[n+1:], columns=df[n])
 
         ghgrp_ind.update(
             ghgrp_ind['Primary NAICS Code'].astype(int),
@@ -197,11 +203,17 @@ class GHGRP_unit_char():
 
         # Select entries that are industrial facilities and 
         # for reporting years that match GHGRP energy data years
+        # ghgrp_ind = ghgrp_ind.where(
+        #     (ghgrp_ind['Primary NAICS Code'].apply(
+        #         lambda x: str(x)[0:2] in ['11', '21', '23', '31', '32', '33']
+        #         )) &
+        #     (ghgrp_ind['Reporting Year'].isin(ghgrp_df.REPORTING_YEAR))
+        #     ).dropna(how='all')
+        
+
+        # Industrial facilities aleady selected in FRS data.
         ghgrp_ind = ghgrp_ind.where(
-            (ghgrp_ind['Primary NAICS Code'].apply(
-                lambda x: str(x)[0:2] in ['11', '21', '23', '31', '32', '33']
-                )) &
-            (ghgrp_ind['Reporting Year'].isin(ghgrp_df.REPORTING_YEAR))
+            ghgrp_ind['Reporting Year'].isin(ghgrp_df.REPORTING_YEAR)
             ).dropna(how='all')
 
         ghgrp_ind.update(
@@ -426,4 +438,5 @@ if __name__ == '__main__':
     ghgrp_energy_file = 'ghgrp_energy_20230508-1606.parquet'
     reporting_year = 2017
     ghgrp_df = GHGRP_unit_char(ghgrp_energy_file, reporting_year).main()
+    ghgrp_df.to_csv('formatted_ghgrp_unit_data.csv')
     logging.info(f"df: {ghgrp_df.head()}")
