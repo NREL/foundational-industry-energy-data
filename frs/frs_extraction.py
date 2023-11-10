@@ -40,7 +40,7 @@ class FRS:
                         'SITE_TYPE_NAME'],
             'FACILITY': [
                 'REGISTRY_ID',
-                'EPA_REGION_CODE', 'LOCATION_DESCRIPTION',
+                'EPA_REGION_CODE',
                 'LATITUDE83', 'LONGITUDE83'
                 ],
             'NAICS': ['REGISTRY_ID', 'NAICS_CODE'],
@@ -50,7 +50,7 @@ class FRS:
                        'STATE_NAME', 'POSTAL_CODE',
                        'TRIBAL_LAND_CODE', 'CONGRESSIONAL_DIST_NUM',
                        'CENSUS_BLOCK_CODE',
-                       'HUC_CODE', 'SITE_TYPE_NAME', 'LOCATION_DESCRIPTION',
+                       'HUC_CODE', 'SITE_TYPE_NAME',
                        'US_MEXICO_BORDER_IND',
                        'LATITUDE83', 'LONGITUDE83']
             # 'PROGRAM': ['REGISTRY_ID', 'SMALL_BUS_IND', 'ENV_JUSTICE_CODE',
@@ -67,7 +67,7 @@ class FRS:
                 'CITY_NAME', 'COUNTY_NAME', 'FIPS_CODE', 'STATE_CODE',
                 'POSTAL_CODE', 'TRIBAL_LAND_CODE',
                 'CONGRESSIONAL_DIST_NUM', 'CENSUS_BLOCK_CODE', 'HUC_CODE',
-                'EPA_REGION_CODE', 'LOCATION_DESCRIPTION'
+                'EPA_REGION_CODE'
                 ],
             'facility': [
                 'PRIMARY_NAME', 'LATITUDE83', 'LONGITUDE83',
@@ -559,7 +559,6 @@ class FRS:
             'PGM_SYS_ID_E-GGRT': 'ghgrpID',
             'PGM_SYS_ID_E-GGRT_additional': 'ghgrpIDAdditional',
             'EPA_REGION_CODE': 'epaRegionCode',
-            'LOCATION_DESCRIPTION': 'locationDescription',
             'LATITUDE83': 'latitude',
             'LONGITUDE83': 'longitude',
             'NAICS_CODE': 'naicsCode',

@@ -1,6 +1,7 @@
 # TODO create executable?
 
 import logging
+import os
 import yaml
 import re
 import pickle
@@ -994,6 +995,8 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         'no_nei_or_ghgrp': no_nei_or_ghgrp
         }
 
+    data_dict['no_nei_or_ghgrp'].to_pickle('no_nei_or_ghgrp.pkl')
+
     return data_dict
 
 # def fillin_ghgrp(final_data, year):
@@ -1180,7 +1183,6 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
         how='outer'
         )
 
-    final_data.to_pickle('final_data.pkl')
     # Fix missing info
     energy_missing_ghgrp = pd.DataFrame(
         final_data[final_data['ghgrpID_x'].notnull() & 
@@ -1202,23 +1204,48 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     final_data.rename(columns={'ghgrpID_y': 'ghgrpID'}, inplace=True)
 
     final_data = merge_qpc_data(final_data, qpc_data)
+    final_data.to_csv(f'foundational_industry_data_{year}.csv')
 
     logging.info('Finding Census Blocks. This takes awhile...')
-    final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
+    # final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
 
-    final_data = geocoder.geo_tools.fix_county_fips(final_data)
-    final_data = geocoder.geo_tools.find_missing_congress(final_data)
+    # final_data = geocoder.geo_tools.fix_county_fips(final_data)
+    # final_data = geocoder.geo_tools.find_missing_congress(final_data)
 
-    logging.info('Finding missig HUC Codes. This takes awhile...')
-    frs_api = FRS_API()
-    missing_huc = frs_api.find_huc_parallelized(final_data)
+    # logging.info('Finding missig HUC Codes. This takes awhile...')
+    # frs_api = FRS_API()
+    # missing_huc = frs_api.find_huc_parallelized(final_data)  # list of dictionaries
 
-    final_data.hucCode8.update(
-        frs_data.registryID.map(missing_huc)
-        )
+    # try:
+    #     print(missing_huc[0])
+
+    # except IndexError:
+    #     logging.ERROR("Something up with missing_huc")
+        
+    # else:
+    #     missing_huc.to_pickle('missing_huc_results.pkl')
+
+
+    # final_data.hucCode8.update(
+    #     frs_data.registryID.map(missing_huc)
+    #     )
+
+    logging.info(f"Info on final_data after HUC: {final_data.info()}")
 
     # This doesn't result in any additional units. 
-    # missing_units = frs_api.find_unit_data_parallelized(finaal_data)
+    # missing_units = frs_api.find_unit_data_parallelized(final_data)
+
+    try:
+        final_data.to_parquet(
+            f'foundational_industry_data_{year}.parquet.gzip',
+            engine='pyarrow',
+            compression='gzip'
+            )
+
+    except ValueError as e:    
+        final_data.to_csv(f'foundational_industry_data_{year}.csv')
+
+        logging.ERROR(f"{e}\n final_data.columns are {final_data.columns}")
 
     return final_data
 
@@ -1258,11 +1285,11 @@ if __name__ == '__main__':
 
 
     # pickle it all
-    shared_ocs_energy.to_pickle('shared_ocs_energy.pkl')
-    shared_nonocs_energy.to_pickle('shared_nonocs_energy.pkl')
-    data_dict['ghgrp_only'].to_pickle('ghgrp_only.pkl')
-    data_dict['nei_only'].to_pickle('nei_data.pkl')
-    # Include data_dict['no_nei_or_ghgrp'], or is this taken care of below? 
+    # shared_ocs_energy.to_pickle('shared_ocs_energy.pkl')
+    # shared_nonocs_energy.to_pickle('shared_nonocs_energy.pkl')
+    # data_dict['ghgrp_only'].to_pickle('ghgrp_only.pkl')
+    # data_dict['nei_only'].to_pickle('nei_data.pkl')
+    # Include data_dict['no_nei_or_ghgrp'], or is this taken care of below?
 
     final_energy_data = pd.concat(
         [shared_ocs_energy, shared_nonocs_energy, data_dict['ghgrp_only'],
@@ -1272,11 +1299,20 @@ if __name__ == '__main__':
 
     qpc_data = QPC().main(year)
 
+    logging.info(f"QPC columns: {qpc_data.columns}")
+
     final_data = assemble_final_df(final_energy_data, frs_data, qpc_data,
                                    year=year)
 
-    final_data.to_parquet(
-        f'foundational_industry_data_{year}.parquet.gzip', 
-        engine='pyarrow',
-        compression='gzip'
-        )
+
+    # final_data.to_parquet(
+    #     f'foundational_industry_data_{year}.parquet.gzip',
+    #     engine='pyarrow',
+    #     compression='gzip'
+    #     )
+
+    # if os.path.isfile(f'foundational_industry_data_{year}.parquet.gzip'):
+    #     pass
+
+    # else:
+    #     final_data.to_csv(f'foundational_industry_data_{year}.csv')

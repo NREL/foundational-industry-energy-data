@@ -443,6 +443,16 @@ class QPC:
 
         qpc_data.reset_index(drop=True, inplace=True)
 
+        col_rename = {}
+
+        for c in qpc_data.columns:
+            if type(c) is tuple:
+                col_rename[c] = '_'.join(c)
+            else:
+                pass
+
+        qpc_data.rename(columns=col_rename, inplace=True)
+
         return qpc_data
 
     def main(self, year):
