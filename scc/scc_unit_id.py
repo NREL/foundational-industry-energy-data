@@ -438,31 +438,6 @@ class SCC_ID:
             else:
                 unit_types_detail.append(r['scc_level_four'])
 
-
-        # if scc_level_two in ['Industrial', 'Commercial/Institutional',
-        #                      'Total Area Source Fuel Combustion']:
-
-        #     if ":" in scc_level_four:
-        #         unit_type = scc_level_four.split(': ')[1]
-
-        #     else:
-        #         unit_type = scc_level_four
-
-        #     fuel_type = scc_level_three
-
-        # elif scc_level_two in ['Residential']:
-        #     fuel_type = scc_level_four
-
-        #     if fuel_type == 'Wood':
-        #         unit_type = scc_level_four.split(':')[0]
-
-        #     else:
-        #         unit_type = scc_level_four
-
-        # else:
-        #     fuel_type = np.nan
-        #     unit_type = np.nan
-
         scc_sta.loc[:, 'unit_type'] = unit_types_detail
         scc_sta.loc[:, 'fuel_type'] = fuel_types
 
@@ -612,7 +587,8 @@ class SCC_ID:
                 if r['scc_level_three'] == 'Fuel Fired Equipment':
                     x, y = r['scc_level_four'].split(': ')
 
-                    if any([z in x for z in ['Distillate', 'Residual', 'Gas', 'Liquid', 'Propane']]):
+                    if any([z in x for z in ['Distillate', 'Residual', 'Gas',
+                                             'Liquid', 'Propane']]):
                         ft = x
                         ut = y
 
@@ -858,14 +834,6 @@ class SCC_ID:
 
 
 if __name__ == '__main__':
-    # methods = [
-    #     'ext_comb', 'int_comb', 'sta_comb',
-    #     'che_evap', 'ind_proc'
-    #     ]
-    # id_scc = SCC_ID()
-    # scc_dfs = [id_scc.apply_id_method(m) for m in methods]
-    # id_scc_df = id_scc.combine_id(scc_dfs)
-    # id_scc_df.to_csv('idd_scc.csv')
 
     id_scc = SCC_ID()
     id_scc_df = id_scc.build_id()

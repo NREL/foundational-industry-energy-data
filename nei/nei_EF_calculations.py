@@ -4,8 +4,6 @@ import os
 import json
 import yaml
 import re
-import matplotlib.pyplot as plt
-import seaborn as sns
 import logging
 import requests
 import zipfile
@@ -55,28 +53,30 @@ class NEI:
                 }
             }
 
-        def import_data_schema(data_source):
-            """
-            Import data schema for relevant data set.
+        # Json schema not implemented. 
+        # #TODO evaluate for removal. 
+        # def import_data_schema(data_source):
+        #     """
+        #     Import data schema for relevant data set.
 
-            Parameters
-            ----------
-            data_source : str; "NEI", "GHGRP", "QPC", "FRS"
-                Source of data
+        #     Parameters
+        #     ----------
+        #     data_source : str; "NEI", "GHGRP", "QPC", "FRS"
+        #         Source of data
 
-            Returns
-            -------
-            self._data_schema : dict
+        #     Returns
+        #     -------
+        #     self._data_schema : dict
 
-            """
+        #     """
 
-            with open('./nei/extracted_data_schema.json') as file:
-                data_schema = json.load(file)
-            data_schema = data_schema[0][data_source]
+        #     with open('./nei/extracted_data_schema.json') as file:
+        #         data_schema = json.load(file)
+        #     data_schema = data_schema[0][data_source]
 
-            return data_schema
+        #     return data_schema
 
-        self._data_schema = import_data_schema(self._data_source)
+        # self._data_schema = import_data_schema(self._data_source)
 
     def find_missing_cap(self, df):
         """
@@ -135,7 +135,7 @@ class NEI:
         -------
         df : pandas.DataFrame
             Original dataframe with capacity UOM and design capacity values
-        updated
+            updated
 
         """
         nei_uom = {
@@ -276,13 +276,16 @@ class NEI:
         -------
         df : pandas.DataFrame
             NEI data with offending energy estimates either
-        updated or removed.
+            updated or removed.
         """
 
         # Max estimated unit energy from GHGRP in 2017 (MJ).
         ghgrp_max = 7.925433e+10
 
-        flagged = df.query("energyMJq0 > @ghgrp_max")
+        flagged = df.query("energyMJq0 > @ghgrp_max | energyMJq2 > @ghgrp_max | energyMJq3 > @ghgrp_max")
+        flagged_min = flagged.query("energyMJq0 < @ghgrp_max")  # Use calculated min instead of design capacity approach below
+
+        # flagged = df.query("energyMJq0 > @ghgrp_max")
 
         df.loc[flagged.index, ['energyMJq0', 'energyMJq2', 'energyMJq3']] = None
 
@@ -297,10 +300,13 @@ class NEI:
                     v['designCapacity']
                 energy_update.loc[i, :] = value
 
+        df.loc[flagged_min.index, 
+               ['energyMJq0', 'energyMJq2',
+                'energyMJq3']] = flagged_min.energyMJq0
+
         df.update(energy_update)
 
         return df
-
 
     @staticmethod
     def match_partial(full_list, partial_list):
@@ -356,12 +362,16 @@ class NEI:
         unzipped manually from https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip
         due to error in zipfile library.
 
+        Returns
+        -------
+        nei_data : pandas.DataFrame
+            Raw NEI data.
         """
 
         if os.path.exists(self._nei_data_path):
 
             logging.info('Reading NEI data from csv')
-            # nei_data_dd = dd.read_csv(nei_data_path, dtype={'tribal name': str})
+
             nei_data = pd.read_csv(self._nei_data_path, low_memory=False,
                                    index_col=0)
 
@@ -474,12 +484,17 @@ class NEI:
         Load all EPA WebFire emissions factors, downloading from
         https://www.epa.gov/electronic-reporting-air-emissions/webfire
         if necessary.
+
+        Returns
+        -------
+        webfr : pandas.DataFrame
+            EPA WebFire emissions factors. 
         """
 
         if os.path.exists(self._webfires_data_path):
 
             logging.info('Reading WebFire data from csv')
-            # nei_data_dd = dd.read_csv(nei_data_path, dtype={'tribal name': str})
+
             webfr = pd.read_csv(self._webfires_data_path)
 
         else:
@@ -579,13 +594,16 @@ class NEI:
         Paramters
         ---------
         nei : pandas.DataFrame
+            Raw NEI data.
 
         iden_scc : pandas.DataFrame
-
+            Processed SCCs that identify industrial units that use energy
+            and process materials (for throughput estimates).
 
         Returns
         -------
         nei : pandas.DataFrame
+            Raw NEI data with corresponding SCC unit information. 
         """
 
         # merge SCC descriptions of unit and fuel types with NEI SCCs
@@ -651,10 +669,13 @@ class NEI:
         Parameters
         ----------
         nei : pandas.DataFrame
-
+            Raw NEI data.
+    
         Returns
         -------
         nei : pandas.DataFrame
+            NEI with mass and throughput coversion factors. 
+    
         """
 
         # map unit of emissions and EFs in NEI/WebFire to unit conversion key
@@ -824,87 +845,11 @@ class NEI:
 
         return nei
 
-    # @staticmethod
-    # def plot_throughput_difference(nei):
-    #     """
-    #     Plot difference between max and min throughput_TON quanitites for unit
-    #     when there are multiple emissions per unit
-    #     """
-
-    #     duplic = \
-    #         nei[(nei.throughput_TON> 0 ) &
-    #             (nei.eis_process_id.duplicated(keep=False) == True)].groupby(
-    #                 ['eis_process_id']).agg(
-    #                     perc_diff=('throughput_TON',
-    #                             lambda x: ((x.max()-x.min())/x.mean())*100)
-    #                     ).reset_index()
-
-    #     plt.rcParams['figure.dpi'] = 300
-    #     plt.rcParams['savefig.dpi'] = 300
-    #     plt.rcParams['font.sans-serif'] = "Arial"                     
-
-    #     sns.histplot(data=duplic, x="perc_diff")
-    #     plt.xlabel('Percentage difference')
-    #     plt.ylabel('Units')
-
-    #     return
-
-    @staticmethod
-    def plot_difference(self, nei, data):
-        """
-        Plot difference between max and min energy or
-        throughput quanitites for units when there are 
-        multiple emissions per unit
-
-        Parameters
-        ----------
-        nei : pandas.DataFrame
-
-        data : str; 'energy' or 'throughput'
-
-
-        Returns
-        -------
-
-
-        """
-
-        selection = {
-            'energy': {
-                'column': 'energy_MJ',
-                'title': 'Energy'
-                },
-            'throughput': {
-                'column': 'throughput_TON',
-                'title': 'Throughput'
-                }
-            }
-
-        duplic = nei[(nei[selection[data]['columns']] > 0) &
-                     (nei.eis_process_id.duplicated(keep=False) == True)]
-
-        duplic = duplic.groupby(
-            ['eis_process_id']).agg(
-                perc_diff=(
-                    selection[data]['column'],
-                    lambda x: ((x.max()-x.min())/x.mean())*100
-                    )
-                ).reset_index()
-
-        plt.rcParams['figure.dpi'] = 300
-        plt.rcParams['savefig.dpi'] = 300
-        plt.rcParams['font.sans-serif'] = "Arial" 
-
-        sns.histplot(data=duplic, x="perc_diff")  # sns.kdeplot
-        plt.xlabel('Percentage difference')
-        plt.ylabel('Units')
-        plt.title(selection[data]['title'])
-
-        return
 
     def get_median_throughput_and_energy(self, nei):
         """
-        Use the median throughput_TON and energy_MJ for individual units.
+        Use the lower, middle, and upper quartiles for estimated throughput_TON 
+        and energy_MJ for individual units.
         This addresses the case where a unit reports multiple emissions
         and those emissions are used to estimate throughput or energy.
 
@@ -917,7 +862,8 @@ class NEI:
         Returns
         -------
         med_unit : pandas.DataFrame
-            Median value of 
+            Lower, middle, and upper quartiles of throughput and
+            energy estimates.
 
         """
         # This is the primary output of estimating throughput and energy from NEI
@@ -940,7 +886,7 @@ class NEI:
                             f'{v}_web'],
                 var_name='EF_source',
                 value_name=f'{v}'
-                ) for v in ['energy_MJ', 'throughput_TON']], axis=0
+                ) for v in ['energy_MJ', 'throughput_TON']], axis=0, sort=True
             )
 
         med_unit = med_unit.query(
@@ -954,7 +900,8 @@ class NEI:
                     )[['throughput_TON', 'energy_MJ']].quantile([0, 0.5, 0.75])
 
         med_unit.reset_index(inplace=True)
-        med_unit.level_5.replace({0: 'q0', 0.5: 'q2', 0.75: 'q3'}, inplace=True)
+        med_unit.level_5.replace({0: 'q0', 0.5: 'q2', 0.75: 'q3'}, 
+                                 inplace=True)
         med_unit = med_unit.pivot_table(
             index=['eis_facility_id',
                    'eis_process_id',
@@ -1030,7 +977,7 @@ class NEI:
         Returns
         -------
         missing : pandas.DataFrame
-            All facilities and unit types that are missing 
+            All facilities and unit types that are missing
             throughput and energy estimates, but have identified
             unit types.
 
@@ -1089,17 +1036,15 @@ class NEI:
 
         return fuel_dict
 
-    # #TODO these unit types should be removed before this point. Maybe based on SCC analysis 
-    # and associated methods. 
     def remove_unit_types(self, df):
         """
-        Remove records associated with unit types that are not associated 
+        Remove records associated with unit types that are not associated
         with combustion or electricity use.
 
         Parameters
         ----------
         df : pandas.DataFrame
-            NEI data
+            NEI data.
 
         Returns
         -------
@@ -1113,6 +1058,7 @@ class NEI:
             'Transfer Point',
             'Open Air Fugitive Source',
             'Other fugitive',
+            'Silo'
             ]
 
         df = df.where(~df.unit_type.isin(remove)).dropna(how='all')
@@ -1129,6 +1075,7 @@ class NEI:
         Parameters
         ----------
         ghgrp_unit_data : pandas.DataFrame
+            GHGRP energy estimates with unit information.
 
         fuel_type_column : str
             Name of column containing fuel types.
@@ -1136,7 +1083,8 @@ class NEI:
         Returns
         -------
         ghgrp_unit_data : pandas.DataFrame
-
+            GHGRP energy estimates with unit information that now
+            have a standardized fuel type.
         """
 
         fuel_dict = self.load_fueltype_dict()
@@ -1154,18 +1102,19 @@ class NEI:
 
     def format_nei_char(self, df):
         """"
-        Format characterization of NEI data for further processing
-        into the foundational JSON schema.
+        Format characterization of NEI data for further processing.
         Removes uncessary columns from NEI data.
 
         Paramters
         ---------
         df : pandas.DataFrame
-
+            NEI data.
 
         Returns
         -------
         nei_char : pandas.DataFrame
+            NEI data with formatted columns and throughput 
+            converted to metric tons. 
 
         """
 
@@ -1189,7 +1138,8 @@ class NEI:
 
         for q in ['q0', 'q2', 'q3']:
 
-            df.loc[:, f'throughputTonneQ{q[1]}'] = df[f'throughput_TON_{q}'] * 0.907  # Convert to metric tonnes
+            df.loc[:, f'throughputTonneQ{q[1]}'] = \
+                df[f'throughput_TON_{q}'] * 0.907  # Convert to metric tonnes
 
         keep_cols = [
             'eis_facility_id', 'eis_unit_id', 'SCC',
@@ -1212,51 +1162,6 @@ class NEI:
 
         return df
 
-    # def apply_json_format(self, nei_char):
-    #     """
-        
-    #     Returns
-
-    #     """
-
-
-    #     f_id = nei_char.eisFacilityID.unique()
-
-    #     nei_json = {}
-
-    #     nei_char_grouped = nei_char.groupby('eisFacilityID')
-
-    #     for id in f_id:
-    #         nei_json[id] = id
-
-    # df = pd.DataFrame({'A': ['foo', 'bar', 'foo', 'bar',
-    #                         'foo', 'bar', 'foo', 'foo'],
-    #                 'B': ['one', 'one', 'two', 'three',
-    #                         'two', 'two', 'one', 'three'],
-    #                 'C': [1, 2, 3, 4, 5, 6, 7, 8],
-    #                 'D': [10, 20, 30, 40, 50, 60, 70, 80]})
-
-    # # group the data by columns A and B, and create a nested dictionary
-    # result = {k: v.set_index('B')[['C', 'D']].T.to_dict() for k, v in df.groupby('A')}
-        nei_char = {k: v.set_index}
-
-    #     levels = [k for k in self._data_schema.keys() if self._data_schema[k]==True]
-
-    #     nei_char.set_index(levels, inplace=True)
-
-    #     # nei_json = {}
-
-    #     # for l0 in nei_char.index.levels[0]:
-    #     #     for l1 in nei_char.index.levels[1]:
-    #     #         nei_json[int(l0)]
-    #     # nei_json = {
-    #     #     int(l0): {
-    #     #         int(l1): None} for l1 in nei_char.index.levels[1]
-    #     #          for l0 in nei_char.index.levels[0]
-    #     #     }
-
-    #     # nei_json = {level: df.xs(level).to_dict('index') for level in df.index.levels[0]}
-
     def merge_med_missing(self, med_unit, missing_unit):
         """
         Merge facility, unit, and process IDs with missing and estimated
@@ -1265,19 +1170,28 @@ class NEI:
         Parameters
         ----------
         med_unit : pandas.DataFrame
+            Quartiles estimates of energy and throughput.
 
         missing_unit : pandas.DataFrame
+            All facilities and unit types that are missing
+            throughput and energy estimates, but have identified
+            unit types.
 
         Returns
         -------
         nei_char : pandas.DataFrame
+            Formatted NEI data with quartile energy and througput estimates. 
         """
 
-        med_unit.set_index(['eis_facility_id', 'eis_process_id', 'eis_unit_id'],
-                           inplace=True)
+        med_unit.set_index(
+            ['eis_facility_id', 'eis_process_id', 'eis_unit_id'],
+            inplace=True
+            )
 
-        missing_unit.set_index(['eis_facility_id', 'eis_process_id', 'eis_unit_id'],
-                               inplace=True)
+        missing_unit.set_index(
+            ['eis_facility_id', 'eis_process_id', 'eis_unit_id'],
+            inplace=True
+            )
 
         missing_unit = missing_unit.loc[missing_unit.index.drop_duplicates()]
 
@@ -1330,31 +1244,9 @@ class NEI:
 
         return nei_char
 
-# #TODO write method to separate relevant facilities and unit types into JSON schema
 # #TODO figure out tests to check calculations and other aspects of code.
 
 if __name__ == '__main__':
 
     nei_char = NEI().main()
     nei_char.to_csv('formatted_estimated_nei_updated.csv')
-
-# nei_emiss = match_webfire_to_nei(nei_emiss, webfr)
-# nei_emiss = get_unit_and_fuel_type(nei_emiss, iden_scc)
-# convert_emissions_units(nei_emiss, unit_conv)
-# calculate_unit_throughput_and_energy(nei_emiss)
-# get_median_throughput_and_energy(nei_emiss)
-
-
-
-
-
-    # check the difference between max and min throughput for single unit
-    #nei_emiss[(nei_emiss.throughput_TON>0) & 
-    #          (nei_emiss.eis_process_id.duplicated(keep=False)==True)].groupby(
-    #              ['eis_unit_id','eis_process_id']
-    #              )['throughput_TON'].agg(np.ptp).describe()
-    
-    # compare units that had throughput calculated vs all units
-    #(nei_emiss[nei_emiss.throughput_TON>0].groupby(
-    #    ['naics_sub'])['eis_process_id'].count()/nei_emiss.groupby(
-    #        ['naics_sub'])['eis_process_id'].count())

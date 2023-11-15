@@ -53,12 +53,12 @@ def assign_data_quality(df, dqi):
 
         1 : energy data derived from an industry and/or regional average.
 
-        2 : energy data derived from criteria air pollutant emissions reported 
-        directly by facility for an identified unit type (i.e., energy estimates 
-        derived from EPA's National Emissions Inventory).
+        2 : energy data derived from criteria air pollutant emissions reported
+        directly by facility for an identified unit type (i.e., energy 
+        estimates derived from EPA's National Emissions Inventory).
 
         3 : energy data derived from greenhouse gas emissions reported directly
-        by facility for an identified unit type (i.e., energy estimates 
+        by facility for an identified unit type (i.e., energy estimates
         derived from EPA's Greenhouse Gas Reporting Program).
 
         4 : energy data reported directly by facility for an identified unit
@@ -241,21 +241,21 @@ def blend_energy_estimates(nei_data_shared, ghgrp_data_shared):
 
     Parameters
     ----------
-    nei_and_ghgrp : pandas.DataFrame
-        Selection of frs_data where facilities report to both
-        GHGRP and NEI
+    nei_data_shared : pandas.DataFrame
+        NEI data where facility and units are shared with GHGRP.
 
-    ghgrp_unit_data : pandas.DataFrame
-        GHGRP unit data for facilities that also report
-        to NEI.
-
-    nei_data : pandas.DataFrame
-        NEI unit data for facilities that also report
-        to GHGRP
+    ghgrp_data_shared : pandas.DataFrame
+        GHGRP data where facility and units are shared with NEI.
 
     Returns
     -------
-    merged_data : pandas.DataFrame
+    shared_ocs_energy : pandas.DataFrame
+        Energy estimates for shared GHGRP units that were labelled
+        as "Other combustion source (OCS)".
+
+    shared_nonocs_energy : pandas.DataFrame
+        Energy estimates for shared GHGRP units that were not labelled
+        as "Other combustion source (OCS)".
 
     """
 
@@ -264,14 +264,6 @@ def blend_energy_estimates(nei_data_shared, ghgrp_data_shared):
     nei_data_shared_ocs = id_nei_units_ocs(nei_data_shared,
                                            ghgrp_data_shared_ocs)
 
-    # nei_data_shared_ocs = pd.DataFrame(
-    #     nei_data_shared[nei_data_shared.registryID.isin(
-    #         ghgrp_data_shared_ocs.registryID.unique()
-    #         )]
-    #     )
-
-    # #TODO only return energy estimates for ghgrp_shared_nonocs (disregard nei_shared estimates), 
-    # shared_ocs_energy[including ranges], and nei_only [with ranges] and ghgrp_only?
     ghgrp_data_shared_nonocs = id_ghgrp_units(ghgrp_data_shared, ocs=False)
 
     nei_data_shared_nonocs = id_nei_units_nonocs(nei_data_shared,
@@ -341,6 +333,31 @@ def id_nei_units_nonocs(nei_data_shared, nei_data_shared_ocs):
     return nei_data_shared_nonocs
 
 
+def assign_estimate_source(df, source):
+    """
+    Create a column entitled 'estimateSource' and assign a value
+    based on the source of energy estimates.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Data to assign estimate source. 
+
+    source : str, {'ghgrp', 'nei'}
+        Source of energy estimate.
+
+    Returns
+    -------
+    df : pandas.DataFrame
+        Original dataframe with new column and values indicating
+        source of energy estimates. 
+    """
+
+    df.loc[:, 'estimateSource'] = source
+
+    return df
+
+
 def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs):
     """
     Reconcile cases where facilities report to both NEI and GHGRP for
@@ -361,34 +378,20 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs):
     Returns
     -------
     final_shared_nonocs : pands.DataFrame
-        A compilation of 
+        A compilation of unit-level estimates.
 
     """
-    nei_data_shared_nonocs.to_pickle('nei_data_shared_nonocs.pkl')
-    ghgrp_data_shared_nonocs.to_pickle('ghgrp_data_shared_nonocs.pkl')
-
-    # Create summaries for reconciling data.
-    # nei_summary = nei_data_shared_nonocs.groupby(
-    #         ['registryID', 'unitTypeStd', 'fuelType']
-    #         ).agg({'designCapacity':'sum', 'eisUnitID': 'count',
-    #                'energyMJq0': 'sum', 'energyMJq2': 'sum',
-    #                'energyMJq2': 'sum'})
-
-    # ghgrp_summary = ghgrp_data_shared_nonocs.groupby(
-    #         ['registryID', 'unitTypeStd', 'fuelType']
-    #         ).agg({'designCapacity':'sum', 'unitName': 'count',
-    #                'energyMJ':'sum'})
 
     compare = pd.merge(
         nei_data_shared_nonocs.groupby(
             ['registryID', 'unitTypeStd', 'fuelType']
-            ).agg({'designCapacity':'sum', 'eisUnitID': 'count',
+            ).agg({'designCapacity': 'sum', 'eisUnitID': 'count',
                    'energyMJq0': 'sum', 'energyMJq2': 'sum',
                    'energyMJq2': 'sum'}),
         ghgrp_data_shared_nonocs.groupby(
             ['registryID', 'unitTypeStd', 'fuelType']
-            ).agg({'designCapacity':'sum', 'unitName': 'count',
-                   'energyMJ':'sum'}),
+            ).agg({'designCapacity': 'sum', 'unitName': 'count',
+                   'energyMJ': 'sum'}),
         left_index=True,
         right_index=True,
         suffixes=('_nei', '_ghgrp'),
@@ -400,7 +403,8 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs):
 
     # Use GHGRP data for facilities where there is no unit information for
     # a given (registryID, unitTypeStd, fuelType)
-    use_ghgrp_data['ghgrp_'] = compare.query("eisUnitID.isnull()", engine='python')
+    use_ghgrp_data['ghgrp_'] = compare.query("eisUnitID.isnull()", 
+                                             engine='python')
     use_ghgrp_data['ghgrp_'].dropna(axis=1, inplace=True)
     use_ghgrp_data['ghgrp_'] = use_ghgrp_data['ghgrp_'].index
 
@@ -410,19 +414,21 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs):
     use_nei_data['nei_'].dropna(axis=1, inplace=True)
     use_nei_data['nei_'] = use_nei_data['nei_'].index
 
-
-    # Use GHGRP data for facilities where there are NEI units, but 
+    # Use GHGRP data for facilities where there are NEI units, but
     # no energy estimates. There are cases where NEI data lack energy
     # estimates, but do have design capacities and GHGRP data have energy 
     # estimates, but lack design capacities
     # #TODO a closer matching of units between NEI and GHGRP data might be 
     # possible using NEI design capacities where there are none in GHGRP data
-    use_ghgrp_data['ghgrp_no_neiE'] = compare.query("energyMJq2==0 & unitName.notnull()",
-                                                    engine='python').index
+    use_ghgrp_data['ghgrp_no_neiE'] = compare.query(
+        "energyMJq2==0 & unitName.notnull()",
+        engine='python'
+        ).index
 
     # Use NEI data for facilities where there are GHGRP units, but
     # no energy estimates.
-    use_nei_data['nei_no_ghgrpE'] = compare.query("energyMJ==0 & energyMJq2>0").index
+    use_nei_data['nei_no_ghgrpE'] = \
+        compare.query("energyMJ==0 & energyMJq2>0").index
 
     # Use NEI data for facilities where there are GHGRP units, but
     # no energy estimates from either data set.
@@ -451,6 +457,11 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs):
         final_shared_nonocs_ghgrp = final_shared_nonocs_ghgrp.append(
             pd.DataFrame(ghgrp_data_shared_nonocs.loc[use_ghgrp_data[i]])
             )
+
+    final_shared_nonocs_ghgrp = \
+        assign_estimate_source(final_shared_nonocs_ghgrp, 'ghgrp')
+    final_shared_nonocs_nei = \
+        assign_estimate_source(final_shared_nonocs_nei, 'nei')
 
     final_shared_nonocs = pd.concat(
         [final_shared_nonocs_ghgrp.reset_index(),
@@ -494,7 +505,6 @@ def id_nei_units_ocs(nei_data_shared, ghgrp_data_shared_ocs):
         )
 
     nei_data_shared_ocs.reset_index(inplace=True)
-    logging.info(f"First reset index of nei_data_shared_ocs: {nei_data_shared_ocs.head()}")
 
     return nei_data_shared_ocs
 
@@ -507,7 +517,6 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
     Identifies OCS units across registryID, ghgrpID, and fuelType with the
     ultimate purpose of allocating a facility's total energy use by fuel
     type across all of its units that use that fuel type. 
-
 
     Parameters
     ----------
@@ -681,11 +690,6 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
         Note that estimates may be provided from both NEI and GHGRP.
     """
 
-    logging.info('pickling shared ocs datasets...')
-    nei_data_shared_ocs.to_pickle('nei_data_shared_ocs.pkl')
-    ghgrp_data_shared_ocs.to_pickle('ghgrp_data_shared_ocs.pkl')
-
-    logging.info(f"nei_data_shared_ocs head: {nei_data_shared_ocs.head()}")
     nei_data_shared_ocs.set_index(
         ['registryID', 'eisFacilityID', 'fuelType', 'eisProcessID',
          'eisUnitID'],
@@ -753,7 +757,7 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
 
     ocs_energy = pd.DataFrame()
 
-    #TODO refactor this for loop. 
+    #TODO refactor this for loop.
     for i in ghgrp_data_shared_ocs.index.drop_duplicates():
 
         if i in ocs_share.index:
@@ -766,10 +770,9 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
                     ['energyMJq0', 'energyMJq2', 'energyMJq3']
                     ].sum()
 
-                # logging.info(f'NEI sum: {nei_sum}')
-
             except KeyError:
                 energy_use = pd.DataFrame(ghgrp_data_shared_ocs.loc[i, :])
+                energy_use = assign_estimate_source(energy_use, 'ghgrp')
 
             else:
 
@@ -782,11 +785,15 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
                         energy_use = \
                             pd.DataFrame(nei_data_shared_ocs.loc[i, :])
 
+                        energy_use = assign_estimate_source(energy_use, 'nei')
+
                     else:
                         energy_use = \
                             pd.DataFrame(nei_data_shared_ocs.loc[i, :])
                         energy_use.loc[:, 'energyMJ'] = \
                             energy_use.loc[:, 'energyMJPortion'] * ghgrp_sum
+
+                        energy_use = assign_estimate_source(energy_use, 'ghgrp')
 
                         # Remove NEI derivations in this case
                         energy_use.loc[:, [
@@ -796,9 +803,11 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
                 else:
 
                     energy_use = pd.DataFrame(ghgrp_data_shared_ocs.loc[i, :])
+                    energy_use = assign_estimate_source(energy_use, 'ghgrp')
 
         else:
             energy_use = pd.DataFrame(ghgrp_data_shared_ocs.loc[i, :])
+            energy_use = assign_estimate_source(energy_use, 'ghgrp')
 
         ocs_energy = pd.concat(
             [ocs_energy, energy_use.reset_index()],
@@ -900,14 +909,23 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
     Parameters
     ----------
     frs_data : pandas.DataFrame
+        Formatted Facility Registry Service (FRS) data returned from 
+        FRS.import_format_frs method.
 
     nei_data : pandas.DataFrame
+        Formatted National Emissions Inventory (NEI) data returned
+        from NEI.main() method.
 
-    ghgrp_unit_id : pandas.DataFrame
+    ghgrp_unit_data : pandas.DataFrame
+        Formatted unit data from the Greenhouse Gas Reporting Program (GHGRP)
+        and associated unit-level energy estimates. 
+        Based on GHGRP_unit_char methods.
 
     Returns
     -------
     data_dict : dictionary of pandas.DataFrames
+        Collection of DataFrames with keys related to whether facilities 
+        report under the NEI and/or GHGRP, or neither. 
     """
 
     # Harmonize/standardize unit types
@@ -939,13 +957,6 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         'eisFacilityID.isnull() & ghgrpID.isnull()', engine='python'
         )
 
-    # For cases where facility is both GHGRP and EIS:
-    # if ghgrp.unitType == OCS & (nei.fuelType == ghgrp.fuelType):  # Need to harmonize fuel types (write method to Tools)
-    #   if -0.2 < (sum(ghgrp.energyMJ/)sum(nei.energyMJ) - 1) < 0.2:
-    #       use nei data
-    #   else:
-    #       method to allocate GHGRP d to NEI unit types (with same fuelType)
-
     # EIS facility IDs that don't report to GHGRP
     nei_ids_noghgrp = melt_multiple_ids(nei_no_ghgrp, nei_data)
 
@@ -954,6 +965,8 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         nei_data, on='eisFacilityID',
         how='inner'
         )
+    
+    nei_only_data = assign_estimate_source(nei_only_data, 'nei')
 
     # GHGRP facility IDs that don't report to NEI
     ghgrp_ids_noeis = melt_multiple_ids(ghgrp_no_eis, ghgrp_unit_data)
@@ -963,6 +976,8 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         ghgrp_unit_data, on='registryID',
         how='inner'
         )
+    
+    ghgrp_only_data = assign_estimate_source(ghgrp_only_data, 'ghgrp')
 
     # NEI and GHGRP facilities
     nei_ids_shared = melt_multiple_ids(nei_and_ghgrp, nei_data)
@@ -989,13 +1004,11 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
 
     data_dict = {
         'nei_shared': nei_data_shared,  # EIS data for facilities without GHGRP reporting
-        'nei_only': nei_only_data,  # #TODO report out for final data set
+        'nei_only': nei_only_data,  
         'ghgrp_shared': ghgrp_data_shared,
-        'ghgrp_only': ghgrp_only_data,  # #TODO Report out for final data set
-        'no_nei_or_ghgrp': no_nei_or_ghgrp
+        'ghgrp_only': ghgrp_only_data, 
+        'no_nei_or_ghgrp': no_nei_or_ghgrp # All relevant facilities from this group are included in final data.
         }
-
-    data_dict['no_nei_or_ghgrp'].to_pickle('no_nei_or_ghgrp.pkl')
 
     return data_dict
 
@@ -1197,57 +1210,100 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     energy_missing_ghgrp.set_index('og_index', inplace=True)
     energy_missing_ghgrp.index.name = None
 
-    energy_missing_ghgrp.to_pickle('energy_missing_ghgrp.pkl')
+    # energy_missing_ghgrp.to_pickle('energy_missing_ghgrp.pkl')
     final_data.update(energy_missing_ghgrp)
 
     final_data.drop(['ghgrpID_x', 'SCC'], inplace=True, axis=1)
     final_data.rename(columns={'ghgrpID_y': 'ghgrpID'}, inplace=True)
 
     final_data = merge_qpc_data(final_data, qpc_data)
-    final_data.to_csv(f'foundational_industry_data_{year}.csv')
 
     logging.info('Finding Census Blocks. This takes awhile...')
-    # final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
+    final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
+    final_data = geocoder.geo_tools.fix_county_fips(final_data)
+    final_data = geocoder.geo_tools.find_missing_congress(final_data)
 
-    # final_data = geocoder.geo_tools.fix_county_fips(final_data)
-    # final_data = geocoder.geo_tools.find_missing_congress(final_data)
-
+    # #TODO something is going wrong with finding these missing HUCs; 
+    # the script silently crashes.
     # logging.info('Finding missig HUC Codes. This takes awhile...')
     # frs_api = FRS_API()
-    # missing_huc = frs_api.find_huc_parallelized(final_data)  # list of dictionaries
+
+    # missing_huc = frs_api.find_huc_parallelized(final_data)  # This method is the source of problems.
 
     # try:
-    #     print(missing_huc[0])
+    #     missing_huc[0]
 
-    # except IndexError:
-    #     logging.ERROR("Something up with missing_huc")
-        
-    # else:
+    # except IndexError as e:
+    #     logging.error(f"{e}")
     #     missing_huc.to_pickle('missing_huc_results.pkl')
 
+    # except NameError as e:
+    #     logging.error(f"{e}\n find_huc_parallelized failed")
 
-    # final_data.hucCode8.update(
-    #     frs_data.registryID.map(missing_huc)
-    #     )
+    # else:
+    #     final_data.hucCode8.update(
+    #         frs_data.registryID.map(missing_huc)
+    #         )
 
-    logging.info(f"Info on final_data after HUC: {final_data.info()}")
-
-    # This doesn't result in any additional units. 
+    # This doesn't result in any additional units.
     # missing_units = frs_api.find_unit_data_parallelized(final_data)
 
-    try:
-        final_data.to_parquet(
-            f'foundational_industry_data_{year}.parquet.gzip',
-            engine='pyarrow',
-            compression='gzip'
-            )
-
-    except ValueError as e:    
-        final_data.to_csv(f'foundational_industry_data_{year}.csv')
-
-        logging.ERROR(f"{e}\n final_data.columns are {final_data.columns}")
-
     return final_data
+
+
+def save_final_data(final_data, year, fpath=None, fformat='csv', comp='gzip'):
+    """
+    Save final_data DataFrame.
+
+    Parameters
+    ----------
+    final_data : pandas.DataFrame
+        Assembled final_data DataFrame.
+
+    year : int
+        Data vintage year.
+
+    fpath : str, default=None
+        Path to save final_data. Defaults to location
+        of `fied_compilation.py`.
+
+    fformat : str, {'csv', 'parquet'}
+        Format to save final_data. Defaults to 'csv'.
+
+    comp : str, {'gzip', None}
+        Compress file with gzip, or, if None, with no compression.
+
+    """
+
+    if comp:
+        fname = f'foundational_industry_data_{year}.{fformat}.gz'
+
+    else:
+        fname = f'foundational_industry_data_{year}.{fformat}'
+
+    if not fpath:
+        save_path = fname
+
+    else:
+        save_path = os.path.join(fpath, fname)
+
+    if fformat == 'csv':
+
+        final_data.to_csv(save_path, compression=comp)
+
+    elif fformat == 'parquet':
+
+        try:
+            final_data.to_parquet(
+                f'foundational_industry_data_{year}.parquet.gzip',
+                engine='pyarrow',
+                compression='gzip'
+                )
+
+        except ValueError as e:
+            logging.ERROR(f"{e}\n final_data.columns are {final_data.columns}")
+
+    return
 
 
 if __name__ == '__main__':
@@ -1283,14 +1339,6 @@ if __name__ == '__main__':
         data_dict['ghgrp_shared']
         )
 
-
-    # pickle it all
-    # shared_ocs_energy.to_pickle('shared_ocs_energy.pkl')
-    # shared_nonocs_energy.to_pickle('shared_nonocs_energy.pkl')
-    # data_dict['ghgrp_only'].to_pickle('ghgrp_only.pkl')
-    # data_dict['nei_only'].to_pickle('nei_data.pkl')
-    # Include data_dict['no_nei_or_ghgrp'], or is this taken care of below?
-
     final_energy_data = pd.concat(
         [shared_ocs_energy, shared_nonocs_energy, data_dict['ghgrp_only'],
          data_dict['nei_only']],
@@ -1299,20 +1347,7 @@ if __name__ == '__main__':
 
     qpc_data = QPC().main(year)
 
-    logging.info(f"QPC columns: {qpc_data.columns}")
-
     final_data = assemble_final_df(final_energy_data, frs_data, qpc_data,
                                    year=year)
 
-
-    # final_data.to_parquet(
-    #     f'foundational_industry_data_{year}.parquet.gzip',
-    #     engine='pyarrow',
-    #     compression='gzip'
-    #     )
-
-    # if os.path.isfile(f'foundational_industry_data_{year}.parquet.gzip'):
-    #     pass
-
-    # else:
-    #     final_data.to_csv(f'foundational_industry_data_{year}.csv')
+    save_final_data(final_data, year)

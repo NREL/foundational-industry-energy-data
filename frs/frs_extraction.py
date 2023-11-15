@@ -57,8 +57,8 @@ class FRS:
             #             'PGM_SYS_ACRNM', 'PGM_SYS_ID', 'SENSITIVE_IND']
             # 'ORGANIZATION': [
             #     'REGISTRY_ID', 'PGM_SYS_ACRNM', 'PGM_SYS_ID', 'EIN',
-            #     'DUNS_NUMBER', 'ORG_NAME'
-            #     ],
+            #     'DUNS_NUMBER', 'ORG_NAME', ORG_TYPE
+            #     ],  #TODO CSV contains useful data, but many ORG_NAME, etc. for a given RegistryID 
             })
 
         # Dictionary of relevant data categories (keys) and variables (values)

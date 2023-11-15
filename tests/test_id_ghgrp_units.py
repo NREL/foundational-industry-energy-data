@@ -48,6 +48,7 @@ def test_id_ghgrp_units():
     ghgrp_data_ocs = id_ghgrp_units(test_data['ghgrp_shared'], ocs=True)
     ghgrp_data_nonocs = id_ghgrp_units(test_data['ghgrp_shared'], ocs=False)
 
+    # Test that all entries are disaggregated as either ocs or nonocs
     assert len(
         test_data['ghgrp_shared']
         ) == (
@@ -55,6 +56,7 @@ def test_id_ghgrp_units():
             len(ghgrp_data_nonocs)
             )
 
+    # Test that all OCS units are accounted for
     assert len(test_data['ghgrp_shared'].query(
         "unitType == 'OCS (Other combustion source)'"
         )) == len(ghgrp_data_ocs)

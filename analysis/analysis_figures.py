@@ -4,6 +4,7 @@ import os
 import json
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -114,6 +115,56 @@ def summary_unit_table(final_data):
     summary_table.to_csv('./analysis/summary_unit_table.csv')
 
     return summary_table
+
+
+def plot_difference_nei(nei, data):
+    """
+    Plot difference between max and min energy or
+    throughput quanitites for units when there are
+    multiple emissions per unit.
+
+    Parameters
+    ----------
+    nei : pandas.DataFrame
+        Unformatted NEI, prior to estimating
+        quartile values for throughput and energy.
+
+    data : str; 'energy' or 'throughput'
+
+    """
+
+    selection = {
+        'energy': {
+            'column': 'energy_MJ',
+            'title': 'Energy'
+            },
+        'throughput': {
+            'column': 'throughput_TON',
+            'title': 'Throughput'
+            }
+        }
+
+    duplic = nei[(nei[selection[data]['columns']] > 0) &
+                    (nei.eis_process_id.duplicated(keep=False) == True)]
+
+    duplic = duplic.groupby(
+        ['eis_process_id']).agg(
+            perc_diff=(
+                selection[data]['column'],
+                lambda x: ((x.max()-x.min())/x.mean())*100
+                )
+            ).reset_index()
+
+    plt.rcParams['figure.dpi'] = 300
+    plt.rcParams['savefig.dpi'] = 300
+    plt.rcParams['font.sans-serif'] = "Arial" 
+
+    sns.histplot(data=duplic, x="perc_diff")  # sns.kdeplot
+    plt.xlabel('Percentage difference')
+    plt.ylabel('Units')
+    plt.title(selection[data]['title'])
+
+    return
 
 
 def id_sectors(final_data):

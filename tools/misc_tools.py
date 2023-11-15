@@ -85,6 +85,11 @@ class FRS_API:
 
             hucCode = None
 
+        except (ConnectionError, ConnectionResetError):
+            logging.error(f"{r.content}")
+
+            hucCode = None
+
         return hucCode
 
     def parallelize_api(self, method, data):
@@ -126,7 +131,7 @@ class FRS_API:
         Returns
         -------
         results : list
-            List of dictionaries with registryID, HUC as 
+            List of dictionaries with registryID, HUC as
             key, value pairs
         """
 
@@ -138,7 +143,6 @@ class FRS_API:
         results = self.parallelize_api(self.find_huc, ids_missing_huc)
 
         return results
-
 
     def find_facility_program_data(self, registryID):
         """"
@@ -212,7 +216,6 @@ class FRS_API:
 
         return program_data
 
-
     def query_emissions_unit(self, acroynm, id):
         """
 
@@ -229,7 +232,8 @@ class FRS_API:
 
         url_base = self._base_urls['frs_query_emm']
 
-        url_unit = f'{url_base}programSystemAcronym={acronym}&programSystemId{id}'
+        url_unit = \
+            f'{url_base}programSystemAcronym={acronym}&programSystemId{id}'
 
         # headers = self.load_query_credentials()
         headers = self._cred
@@ -247,7 +251,6 @@ class FRS_API:
             emissions_data = dict(acronym=raw_data)
 
         return emissions_data
-
 
     def find_unit_data(self, registryID):
         """
