@@ -4,6 +4,7 @@ import logging
 import os
 import yaml
 import re
+import sys
 import pickle
 import pandas as pd
 import numpy as np
@@ -96,27 +97,12 @@ def split_multiple(x, col_names):
         except ValueError:
 
             data = x[col_names[1]].split(', ')
-            # index = np.repeat(
-            #     x.registryID, len(data)
-            #     )
-            # data = [[
-            #     np.repeat(
-            #         x[col_names[0]],
-            #         len(x[col_names[1]].split(', '))),
-            #     x[col_names[1]].split(', ')
-            #     ]],
-            # index = np.repeat(
-            #     x.registryID,
-            #     len(x[col_names[1]].split(', '))
-            #     )
-
-        # else:
-            # data = [x[col_names[0]], x[col_names[1]]]
-            # index = [x.registryID]
+            data = [int(k) for k in data]
 
     elif type(x[col_names[1]]) is float:
 
-        data = [x[col_names[1]]]
+        # data = [x[col_names[1]]]
+        data = [int(x[col_names[1]])]
 
     else:
         return
@@ -132,7 +118,7 @@ def split_multiple(x, col_names):
     return mult
 
 
-def melt_multiple_ids(frs_data, other_data):
+def melt_multiple_ids(frs_data, other_data, pkle=False):
     """
     Melt FRS data for facilities, extracting multiple NEI or GHGRP IDs.
 
@@ -164,6 +150,13 @@ def melt_multiple_ids(frs_data, other_data):
         col_names = ['eisFacilityID', 'eisFacilityIDAdditional']
 
     frs_mult = frs_data[frs_data[col_names[1]].notnull()]
+
+    # Check if 'registryID' in frs_mult
+    if 'registryID' in frs_mult.columns:
+        pass
+    else:
+        logging.error("registryID missing")
+        frs_mult.to_csv('frs_mult.csv')
 
     frs_mult = pd.concat(
         [split_multiple(d, col_names) for i, d in frs_mult.iterrows()],
@@ -723,16 +716,18 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
 
     nei_data_shared_portion.name = 'energyMJPortion'
 
-    nei_data_shared_portion = pd.DataFrame(nei_data_shared_portion)
+    # nei_data_shared_portion = pd.DataFrame(nei_data_shared_portion)
 
     # nei_data_shared_ocs = nei_data_shared_ocs.join(
     #     nei_data_shared_portion
     #     )
 
     # The join (as well as merge) were causing a crash
-    nei_data_shared_ocs.loc[:, 'energyMJPortion'] = np.nan
-    nei_data_shared_ocs.update(nei_data_shared_portion)
+    # Updating the DataFrame was not working (nans weren't updated)
+    # nei_data_shared_ocs.loc[:, 'energyMJPortion'] = np.nan
+    # nei_data_shared_ocs.update(nei_data_shared_portion)
 
+    nei_data_shared_ocs.loc[:, 'energyMJPortion'] = nei_data_shared_portion
     # nei_data_shared_ocs.dropna(subset=['energyMJPortion'], inplace=True)
 
     nei_data_shared_ocs.reset_index(
@@ -958,7 +953,7 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         )
 
     # EIS facility IDs that don't report to GHGRP
-    nei_ids_noghgrp = melt_multiple_ids(nei_no_ghgrp, nei_data)
+    nei_ids_noghgrp = melt_multiple_ids(nei_no_ghgrp, nei_data, pkle=True)
 
     nei_only_data = pd.merge(
         nei_ids_noghgrp,
@@ -1295,7 +1290,7 @@ def save_final_data(final_data, year, fpath=None, fformat='csv', comp='gzip'):
 
         try:
             final_data.to_parquet(
-                f'foundational_industry_data_{year}.parquet.gzip',
+                f'foundational_industry_data_{year}.parquet.gz',
                 engine='pyarrow',
                 compression='gzip'
                 )
@@ -1318,10 +1313,13 @@ if __name__ == '__main__':
 
     except FileNotFoundError:
 
-        frs_methods = FRS()
-        frs_methods.download_unzip_frs_data(combined=True)
-        frs_data = frs_methods.import_format_frs(combined=True)
-        frs_data.to_csv('./data/FRS/frs_data_formatted.csv', index=True)
+        sys.exit("Run frs_extraction.py or check location of frs_data_formatted.csv")
+
+
+        # frs_methods = FRS()
+        # frs_methods.download_unzip_frs_data(combined=True)
+        # frs_data = frs_methods.import_format_frs(combined=True)
+        # frs_data.to_csv('./data/FRS/frs_data_formatted.csv', index=True)
 
     # Exclude all facilities that have neither EIS ID or
     # GHGRP ID

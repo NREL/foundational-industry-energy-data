@@ -172,10 +172,10 @@ class FRS:
             pass
 
         if os.path.exists(zip_path):
-            logging.info(f"{name.capitalize()} zip file exists.")
+            logging.info(f"FRS {name.capitalize()} zip file exists.")
 
         else:
-            logging.info(f"{name.capitalize()} zip file does not exist. Downloading...")
+            logging.info(f"FRS {name.capitalize()} zip file does not exist. Downloading...")
 
             r = requests.get(frs_url)
 
@@ -191,7 +191,7 @@ class FRS:
         # Unzip with zipfile
         with zipfile.ZipFile(zip_path, 'r') as zf:
             zf.extractall(os.path.abspath(self._frs_data_path))
-            logging.info(f"{name.capitalize()} file unzipped.")
+            logging.info(f"FRS {name.capitalize()} file unzipped.")
 
         return
 
@@ -648,17 +648,14 @@ class FRS:
 
 
 if __name__ == '__main__':
-
+    # t_start = time.perf_counter()
     combined = True
-    t_start = time.perf_counter()
+
     frs_methods = FRS()
     frs_methods.download_unzip_frs_data(combined=combined)
 
     frs_data_df = frs_methods.import_format_frs(combined=combined)
-    frs_data_df.to_csv('frs_data.csv')
+    frs_data_df.to_csv('./data/FRS/frs_data_formatted.csv')
 
-    # frs_methods.add_frs_columns_json(frs_data_df)
-
-    # frs_methods.build_frs_json(frs_data_df, save_path='../')
     # t_stop = time.perf_counter()
     # logging.info(f'Program time: {t_stop - t_start:0.2f} seconds')

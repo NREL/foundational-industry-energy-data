@@ -18,17 +18,30 @@ python fied_compilation.py
 * `pandas=0.24.2=py36he350917_0`
 * `numpy=1.19.1=py36h12ee977_2`
 
+## Compiling the Dataset
+
 ### Manual Data Downloads
 
-Due to their nature, several data sets must be manually downloaded before `fied_compilation.py` can be run sucessfully. These data sets and their director locations are:
+Due to their nature, several data sets must be manually downloaded before the code can be run sucessfully. These data sets and their director locations are:
 
 1. Source Classification Codes (SCCs)
   * Download from https://sor-scc-api.epa.gov/sccwebservices/sccsearch/
   * Save to `data/SCC/SCCDownload.csv`
 2. 2017 National Emissions Inventory (NEI)
   * Download from https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip
-  * Save and unzip data to `data/NEI/`.
+  * Save **and unzip** data to `data/NEI/`.
   * `nei_EF_calculations.py` will format and combine the unzipped csv files into `nei_ind_data.csv`
+3. GHGRP Emissions by Unit and Fuel Type
+  * Download from https://www.epa.gov/system/files/other-files/2022-10/emissions_by_unit_and_fuel_type_c_d_aa_10_2022.zip'
+  * Save to `data/GHGRP/`
+  * `ghgrp_fac_unit.py` will unzip and format these data.
+
+### Running Code
+
+In addition to manually downloading the above datasets, executing the calulations and data compilation requires two steps.
+
+1. Run `frs_extraction.py`. This will download, extract, and format EPA FRS data. The resulting csv should be saved in `data/FRS/`.
+2. Run `fied_compilation.py`. This will execute all of the remaining steps for compiling the foundational data set. 
 
 ## Directory Navigation
 
@@ -56,11 +69,12 @@ Many of these data fields were included in original EPA data sources. See the [F
 
 In addition to `registryID`, other identifying fields include
 
-* `eisFacilityID`
-* `ghgrpID`
-* `name`
-* `locationDescription`
-* `naicsCode`
+* `eisFacilityID`: EPA ID assigned to facilities reporting to the Emissions Inventory System (EIS)
+* `ghgrpID`: EPA ID assigned to facilities reporting under the Greenhouse Gas Reporting Program (GHGRP)
+* `name`: Name of facility.
+* `locationDescription`: Description of the facility location.
+* `naicsCode`: The facility's North American Industrial Classification System (NAICS) code.
+* `naicsCodeAdditional`: A facility may have additional NAICS codes assigned (e.g., different reporting systems may have different NAICS assigned).
 
 ### Geography
 
@@ -99,11 +113,11 @@ Depending on the estimation approach, a unit may have a single estimate of energ
 
 ### Other
 
-We've attempted to include additional descriptive fields where possible. These tend to be sparsely populated at this time. 
+We've attempted to include additional descriptive fields where possible. These tend to be sparsely populated at this time.
 
 * `hucCode8`: Hydrolic Unit Code
-* `weeklyOpHours`: average weekly operating hours by quarter, including 95% confidence interval ranges. 
+* `weeklyOpHours`: Average weekly operating hours by quarter, including 95% confidence interval ranges.
 * `sensitiveInd`: Indicates whether or not the associated data is enforcement sensitive.
 * `envJusticeCode`: The code that identifies the type of environmental justice concern affecting the facility or enforcement action.
 * `smallBusInd`: Code indicating whether or not a business is requesting relief under EPA’s Small Business Policy, which applies to businesses having less than 100 employees.
-* `througputTonne`: estimated mass throughput
+* `througputTonne`: Estimated mass throughput

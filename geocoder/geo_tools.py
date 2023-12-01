@@ -109,13 +109,30 @@ def fcc_block_api(lat_lon, census_year=2020):
         'format': 'json'
         }
 
-    r = requests.get(url, params=params)
-
     try:
-        block = r.json()['Block']['FIPS']
+        r = requests.get(url, params=params, timeout=(3, 6))
 
-    except:
+    except requests.exceptions.ConnectionError:
+        logging.error(
+            f'ConnectionError: latitude ({lat_lon[0]}), longitude ({lat_lon[1]})'
+            )
+        
         block = None
+        
+    except requests.exceptions.ReadTimeout:
+        logging.error(
+            f'ReadTimeout exception: latitude ({lat_lon[0]}), longitude ({lat_lon[1]})'
+            )
+        
+        block = None
+
+    else:
+
+        try:
+            block = r.json()['Block']['FIPS']
+
+        except:
+            block = None
 
     return block
 
@@ -145,7 +162,7 @@ def get_blocks_parallelized(df):
 
     results = []
 
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=100)
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=75)
 
     for result in executor.map(fcc_block_api, all_latlon):
         results.append(result)
