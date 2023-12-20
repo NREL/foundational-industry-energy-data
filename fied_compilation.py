@@ -16,7 +16,9 @@ from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
 from nei.nei_EF_calculations import NEI
 from frs.frs_extraction import FRS
 from qpc.census_qpc import QPC
+from geocoder.geopandas_tools import FiedGIS
 import geocoder.geo_tools
+
 # from geocoder.geo_tools import fcc_block_api
 # from geocoder.geo_tools import get_blocks_parallelized
 # from geocoder.get_tools
@@ -162,11 +164,11 @@ def melt_multiple_ids(frs_data, other_data, pkle=False):
         [split_multiple(d, col_names) for i, d in frs_mult.iterrows()],
         axis=0, ignore_index=True
         )
-
+    logging.info(f'frs_mult.columns: {frs_mult.columns}')
     frs_mult = frs_mult.melt(
         id_vars=['registryID'], value_name=col_names[0]
         ).drop('variable', axis=1)
-
+    logging.info(f'frs_mult.colums post melt: {frs_mult.columns}')
     melted = pd.concat([
         frs_mult, frs_data[frs_data[col_names[1]].isnull()][
             ['registryID', col_names[0]]
@@ -765,7 +767,7 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
                     ['energyMJq0', 'energyMJq2', 'energyMJq3']
                     ].sum()
 
-            except KeyError:
+            except (KeyError, TypeError):
                 energy_use = pd.DataFrame(ghgrp_data_shared_ocs.loc[i, :])
                 energy_use = assign_estimate_source(energy_use, 'ghgrp')
 
@@ -1213,10 +1215,10 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
 
     final_data = merge_qpc_data(final_data, qpc_data)
 
-    logging.info('Finding Census Blocks. This takes awhile...')
-    final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
+
+    # final_data = geocoder.geo_tools.get_blocks_parallelized(final_data)
     final_data = geocoder.geo_tools.fix_county_fips(final_data)
-    final_data = geocoder.geo_tools.find_missing_congress(final_data)
+    # final_data = geocoder.geo_tools.find_missing_congress(final_data)
 
     # #TODO something is going wrong with finding these missing HUCs; 
     # the script silently crashes.
@@ -1305,6 +1307,7 @@ if __name__ == '__main__':
     year = 2017
 
     SCC_ID().main()
+    fiedgis = FiedGIS()
 
     try:
         frs_data = pd.read_csv(
@@ -1347,5 +1350,9 @@ if __name__ == '__main__':
 
     final_data = assemble_final_df(final_energy_data, frs_data, qpc_data,
                                    year=year)
+    
+    final_data = fiedgis.merge_geom_fied(
+        fied=final_data, year=year
+        )
 
     save_final_data(final_data, year)

@@ -368,18 +368,102 @@ class NEI:
             Raw NEI data.
         """
 
+
         if os.path.exists(self._nei_data_path):
 
             logging.info('Reading NEI data from csv')
 
-            nei_data = pd.read_csv(self._nei_data_path, low_memory=False,
-                                   index_col=0)
+            try:
+                nei_data = pd.read_csv(self._nei_data_path, low_memory=False,
+                                       index_col=0)
+
+            except (TypeError, ValueError):  # NEI data set has many columns with mixed dtypes
+                logging.error("Mixed types in NEI data")
+            #     dts = {
+            #         'epa_region_code': str,
+            #         'state': str,
+            #         'fips_state_code': str,
+            #         'tribal_name': str,
+            #         'fips_code': str,
+            #         'county': str,
+            #         'eis_facility_id': object,
+            #         'program_system_code': str,
+            #         'agency_facility_id': str,
+            #         'tri_facility_id': str,
+            #         'company_name': str,
+            #         'site_name': str,
+            #         'naics_code': object,
+            #         'naics_description': str,
+            #         'facility_source_type':	str,
+            #         'site_latitude': object,
+            #         'site_longitude': object,
+            #         'address': str,
+            #         'city': str,
+            #         'zip_code':	object,
+            #         'postal_abbreviation': str,
+            #         'eis_unit_id': str,
+            #         'agency_unit_id': str,
+            #         'unit_type': str,
+            #         'unit_description':	str,
+            #         'design_capacity': object,
+            #         'design_capacity_uom': str,
+            #         'eis_process_id': object,
+            #         'agency_process_id': str,
+            #         'scc': object,
+            #         'reg_codes': str,
+            #         'reg_code_description': str,	
+            #         'process_description': str,
+            #         'reporting_period': str,
+            #         'emissions_operating_type': str,
+            #         'calculation_parameter_value': str,
+            #         'calculation_parameter_uom': str,
+            #         'calculation_material': str,
+            #         'calculation_parameter_type': str,
+            #         'calc_data_source': object,
+            #         'calc_data_year': str,
+            #         'pollutant_code': str,
+            #         'pollutant_desc': str, 
+            #         'pollutant_type': str,
+            #         'total_emissions': object,
+            #         'emissions_uom': str,
+            #         'emission_factor': object,
+            #         'ef_numerator_uom':	str,
+            #         'ef_denominator_uom': str,
+            #         'ef_text': str,
+            #         'calc_method_code':	object,
+            #         'calculation_method': str,
+            #         'emission_comment': str,
+            #         'source_data_set': str,
+            #         'data_tagged': str,
+            #         'data_set': str
+            #         }
+            # # nei_data = pd.read_csv(self._nei_data_path,
+            # #                        index_col=0, dtype=dts)
+                
+            # nei_data = pd.DataFrame()
+
+            # for k,v in dts.items():
+
+            #     try:
+            #         d = pd.read_csv(
+            #             self._nei_data_path, index_col=0, 
+            #             usecols=[k], dtype=v
+            #             )
+                    
+            #     except (ValueError, TypeError) as e:
+            #         logging.error(f'{e}: \ncolumn: {k} with dtype: {v}')
+            #         continue
+
+            #     except AttributeError as e:
+            #         logging.error(f'{e}')
+            #         continue
+
+            #     else:
+            #         nei_data = pd.concat([nei_data, d], axis=0)
 
         else:
 
-            logging.info(
-                'Reading NEI data from zipfiles; writing nei_ind_data.csv'
-                )
+            logging.info('Reading NEI data from zipfiles')
 
             nei_data = pd.DataFrame()
 
@@ -475,7 +559,7 @@ class NEI:
                 how='inner'
                 )
 
-            nei_data.to_csv(self._nei_data_path)
+            #  nei_data.to_csv(self._nei_data_path)
 
         return nei_data
 

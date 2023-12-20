@@ -27,7 +27,7 @@ def naics_matcher(naics_column, naics_vintage=2017):
     else:
         naics_url = f'https://www.census.gov/naics/{naics_vintage}NAICS/6-digit_{naics_vintage}_Codes.xlsx'
 
-    all_naics = pd.read_excel(naics_url, usecols=[0, 1])
+    all_naics = pd.read_excel(naics_url, usecols=[0, 1], engine='openpyxl')
     all_naics.dropna(how='all', axis=1, inplace=True)
     all_naics.dropna(how='all', axis=0, inplace=True)
 

@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
-from statsmodels.tsa.stattools import adfuller
-from scipy.signal import detrend
-from statsmodels.formula.api import ols
+# from statsmodels.tsa.stattools import adfuller
+# from scipy.signal import detrend
+# from statsmodels.formula.api import ols
 import os
 import urllib
 import tools.naics_matcher
@@ -149,11 +149,12 @@ class QPC:
             #Will need to revise skiprows and usecols.
             try:
                 data = pd.read_excel(url, sheet_name=1, skiprows=4,
-                                     usecols=range(0, 7), header=0)
+                                     usecols=range(0, 7), header=0,
+                                     engine='openpyxl')
 
             except urllib.error.HTTPError:
-
                 return
+
 
             data.drop(data.columns[2], axis=1, inplace=True)
 

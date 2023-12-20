@@ -11,14 +11,33 @@ logging.basicConfig(level=logging.INFO)
 
 def fix_county_fips(df):
     """
-    County FIPS should be strings
+    County FIPS should be strings. Use geoID or
+    censusBlock to replace existing county FIPS.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame with either geoID or censusBlock in the columns
+
+    Returns
+    -------
+    df : pandas.DataFrame
+        DataFrame with updated countyFIPS
     """
 
+    for c in ['geoID', 'countyFIPS']:
+        if c in df.columns:
+            geo_column = c
+        else:
+            continue
+
     df.countyFIPS.update(
-        df.dropna(subset=['censusBlock']).censusBlock.astype(str).apply(lambda x: x[0:5])
+        df.dropna(
+            subset=[geo_column]
+            )[geo_column].astype(str).apply(lambda x: x[0:5])
         )
 
-    missing = df[df.censusBlock.isnull()]
+    missing = df[df[geo_column].isnull()]
 
     missing_str = missing.countyFIPS.dropna().astype(int).astype(str)
 
@@ -110,7 +129,8 @@ def fcc_block_api(lat_lon, census_year=2020):
         }
 
     try:
-        r = requests.get(url, params=params, timeout=(3, 6))
+        r = requests.get(url, params=params, timeout=(1, 3))
+        logging.info(f'{lat_lon[0]}, {lat_lon[1]}')
 
     except requests.exceptions.ConnectionError:
         logging.error(
@@ -162,7 +182,7 @@ def get_blocks_parallelized(df):
 
     results = []
 
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=75)
+    executor = concurrent.futures.ThreadPoolExecutor()  # max_workers=65
 
     for result in executor.map(fcc_block_api, all_latlon):
         results.append(result)
