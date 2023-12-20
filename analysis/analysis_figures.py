@@ -470,8 +470,6 @@ class FIED_analysis:
         else:
             fig.show()
 
-
-
     def unit_bubble_map(self, unit_type, measure, max_size=45, write_fig=True):
         """
         Plot locations of a single standard unit type by

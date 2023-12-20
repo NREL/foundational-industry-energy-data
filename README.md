@@ -44,9 +44,9 @@ Due to the nature of how they are provided, several data sets must be manually d
 
 ## Compiling the Dataset
 
-In addition to manually downloading the above datasets, executing the calulations and data compilation requires two steps after activating the fied environment. Both of the Python files are located in the root directory.
+In addition to manually downloading the above datasets, executing the calulations and data compilation requires two steps after activating the fied environment.
 
-1. `frs_extraction.py`. This will download, extract, and format EPA FRS data. The resulting csv should be saved in `data/FRS/`.
+1. `./frs/frs_extraction.py`. This will download, extract, and format EPA FRS data. The resulting csv should be saved in `data/FRS/`.
 2. `fied_compilation.py`. This will execute all of the remaining steps for compiling the foundational data set.
 
 So, from the terminal or Anaconda prompt:

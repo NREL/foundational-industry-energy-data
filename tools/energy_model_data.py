@@ -21,7 +21,11 @@ class Models():
             DataFrame of FINITO data
     
         """
-    
+        finito_cols = {
+            
+        }
+
+        finito = pd.read_csv()
 
 
     def injest_model_inputs(self, csv, model):

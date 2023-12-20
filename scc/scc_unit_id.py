@@ -689,34 +689,35 @@ class SCC_ID:
 
         return scc_ind
 
-    def ft_clean_up(self, scc_ind):
-        """
-        A collection of miscellaneous fixes to
-        fuel types.
+    #TODO Method not used. Delete?
+    # def ft_clean_up(self, scc_ind):
+    #     """
+    #     A collection of miscellaneous fixes to
+    #     fuel types.
 
-        Parameters
-        ----------
-        scc_ind : pandas.DataFrame
+    #     Parameters
+    #     ----------
+    #     scc_ind : pandas.DataFrame
 
-        Returns
-        -------
-        scc_ind : pandas.DataFrame
+    #     Returns
+    #     -------
+    #     scc_ind : pandas.DataFrame
 
-        """
+    #     """
 
-        scc_ind.fuel_type.replace(
-            {'Direct': None, 'Indirect': None},
-            inplace=True
-            )
+    #     scc_ind.fuel_type.replace(
+    #         {'Direct': None, 'Indirect': None},
+    #         inplace=True
+    #         )
 
-        # Remove storage-related units
-        scc_ind = scc[
-            ~scc_ind.unit_type.str.lower().str.contains(r"(storage)")
-            ] 
+    #     # Remove storage-related units
+    #     scc_ind = scc_ind[
+    #         ~scc_ind.unit_type.str.lower().str.contains(r"(storage)")
+    #         ] 
 
-        scc_ind.reset_index(drop=True, inplace=True)
+    #     scc_ind.reset_index(drop=True, inplace=True)
 
-        return scc_ind
+    #     return scc_ind
 
     def main(self):
         id_scc = SCC_ID()
