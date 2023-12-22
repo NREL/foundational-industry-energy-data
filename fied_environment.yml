@@ -1,4 +1,4 @@
-name: fied
+name: fied2
 channels:
   - pkgs/main
   - conda-forge
@@ -217,4 +217,6 @@ dependencies:
   - yaml=0.2.5=h8ffe710_2
   - zlib=1.2.13=hcfcfb64_4
   - zstd=1.5.2=h7755175_4
+  - pip:
+    - kaleido==0.2.1
 prefix: C:\Users\cmcmilla\AppData\Local\Continuum\anaconda3\envs\fied2

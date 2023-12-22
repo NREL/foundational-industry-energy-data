@@ -3,6 +3,7 @@ import logging
 import os
 import json
 import zipfile
+import pyarrow
 import pathlib
 import requests
 import textwrap
@@ -21,30 +22,33 @@ logging.basicConfig(level=logging.INFO)
 
 class FIED_analysis:
 
-    def __init__(self, file_path, year):
+    def __init__(self, year, file_path=None, df=None):
 
-        try:
-            self._fied = pd.read_parquet(
-                file_path
-                )
+        if file_path is None:
+            self._fied = df
 
-        except ArrowIOError:
-            self._fied = pd.read_csv(
-                file_path, low_memory=False
-                )
+        else:
+            try:
+                self._fied = pd.read_parquet(
+                    file_path
+                    )
 
-        self._fied = self.make_consistent_naics_column()
+            except (pyarrow.ArrowIOError, pyarrow.ArrowInvalid):
+                self._fied = pd.read_csv(
+                    file_path, low_memory=False
+                    )
+
+        self._fied = self.make_consistent_naics_column(self._fied, n=2)
         
         self._year = year
 
-        self._fig_path = pathlib.Path('./figures')
+        self._fig_path = pathlib.Path('./analysis/figures')
 
         if self._fig_path.exists():
             pass
     
         else:
             pathlib.Path.mkdir(self._fig_path)
-
 
         self._fig_format = 'svg'
 
@@ -84,18 +88,16 @@ class FIED_analysis:
     
         return cbp_data
 
-    def make_core_plots(self):
+    def create_core_analysis(self, **kwargs):
         """
-        
+        Create summary figures and table.
         """
 
-        summary_table = self.summary_unit_table(
-            self._fied
-            )
+        summary_table = self.summary_unit_table()
 
-        self.summary_unit_bar(summary_table)
+        self.summary_unit_bar(summary_table, write_fig=kwargs['write_fig'])
 
-        self.stacked_bar_missing(self._fied)
+        self.stacked_bar_missing(write_fig=kwargs['write_fig'])
 
         for u in self._fied.unitTypeStd.unique():
             try:
@@ -104,11 +106,11 @@ class FIED_analysis:
                 continue
             else:
                 for m in ['energy', 'power']:
-                    self.unit_bubble_map(self._fied, u, m)
+                    self.unit_bubble_map(u, m, write_fig=kwargs['write_fig'])
 
         for v in ['count', 'energy', 'capacity']:
             for n in [None, 2, 3]:
-                self.plot_ut_by_naics(self._fied, n, v)
+                self.plot_ut_by_naics(n, v, write_fig=kwargs['write_fig'])
 
 
     def summary_unit_table(self):
@@ -127,27 +129,13 @@ class FIED_analysis:
 
         """
 
-        # Use unique units from both NEI and GHGRP
-        table_data = pd.concat(
-            [self._fied.query(
-                "eisUnitID.notnull()", engine="python"
-                ).drop_duplicates(
-                    subset=['registryID', 'eisUnitID']
-                    ),
-             self._fied.query(
-                "ghgrpID.notnull() & eisUnitID.isnull()", engine='python'
-                )],
-            axis=0,
-            ignore_index=True
-            )
+        # Multiple units can share the same eisUnitID.
+        # (see evidence in unitDescription field)
+        table_data = self._fied.copy(deep=True)
 
-        sectors = pd.DataFrame(
-            [['ag', 11], ['cons', 21], ['mining', 23], ['mfg', 31], 
-            ['mfg', 32], ['mfg', 33]],
-            columns=['sector', 'n2']
-            )
+        table_data = self.id_sectors(table_data)
 
-        table_data = pd.merge(table_data, sectors, on='n2')
+        desc = ['count', 'sum', 'mean', 'std', 'min', 'median', 'max']
 
         _unit_count = table_data.groupby(
             ['sector', 'unitTypeStd']
@@ -155,9 +143,11 @@ class FIED_analysis:
 
         _unit_count.name = 'Count of Units'
 
-        _capacity_sum = table_data.query('designCapacityUOM == "MW"').groupby(
+        _capacity_summ = table_data.query('designCapacityUOM == "MW"').groupby(
                 ['sector', 'unitTypeStd']
-                ).designCapacity.sum()
+                ).designCapacity.agg(desc)
+        
+        _capacity_summ.columns = ['Capacity_MW_' + c for c in _capacity_summ.columns]
 
         _fac_count = table_data.groupby(
             ['sector']
@@ -165,18 +155,55 @@ class FIED_analysis:
 
         _fac_count.name = 'Count of Facilities'
 
-        _energy_sum = table_data.groupby(
-                ['sector', 'unitTypeStd']
-                )['energyMJ', 'energyMJq0'].sum()
+        # Only use non-zero value
+        _energy_summ_ = pd.concat(
+            [table_data[table_data[c] > 0] for c in ['energyMJ', 'energyMJq0', 'energyMJq2', 'energyMJq3']],
+            axis=0, ignore_index=True
+            )
+        
+        def agg_energy(df, type):
+            e_agg = df.copy(deep=True)
+            e_agg.energyMJ.update(e_agg[f'energyMJ{type[1]}'])
+            e_agg = e_agg.groupby(['sector', 'unitTypeStd']).energyMJ.agg(type[0])
+            e_agg.name = f'EnergyMJ_{type[0]}'
 
-        _throughput_sum = table_data.groupby(
-                ['sector', 'unitTypeStd']
-                ).throughputTonneQ0.sum()
+            return e_agg
+        
+        _energy_summ_agg = pd.concat(
+            [agg_energy(_energy_summ_, t) for t in [
+                ['sum', 'q2'], ['mean', 'q2'], ['std', 'q2'], ['min', 'q0'], 
+                ['median', 'q2'], ['max', 'q3']]],
+            axis=1
+            )
 
-        _throughput_sum.name = 'Throughput in Metric Tons'
+        _throughput_summ = pd.concat(
+            [
+                table_data.groupby(
+                    ['sector', 'unitTypeStd']
+                    ).throughputTonneQ2.sum(),
+                table_data.groupby(
+                    ['sector', 'unitTypeStd']
+                    ).throughputTonneQ2.mean(),
+                table_data.groupby(
+                    ['sector', 'unitTypeStd']
+                    ).throughputTonneQ2.agg('std'),
+                table_data.groupby(
+                    ['sector', 'unitTypeStd']
+                    ).throughputTonneQ0.min(),
+                table_data.groupby(
+                    ['sector', 'unitTypeStd']
+                    ).throughputTonneQ2.median(),
+                table_data.groupby(
+                    ['sector', 'unitTypeStd']
+                    ).throughputTonneQ3.max()
+                ],
+            axis=1
+            )
+        
+        _throughput_summ.columns = [f'ThroughputTonnes_{c}' for c in ['sum', 'mean', 'std', 'min', 'median', 'max']]
 
         summary_table = pd.concat(
-            [_unit_count, _capacity_sum, _energy_sum, _throughput_sum],
+            [_unit_count, _capacity_summ, _energy_summ_agg, _throughput_summ],
             axis=1,
             )
 
@@ -200,12 +227,12 @@ class FIED_analysis:
         
         """
         ind_map = {
-            '11': 'agriculture', 
-            '21': 'mining',
-            '23': 'construction',
-            '31': 'manufacturing',
-            '32': 'manufacturing',
-            '33': 'manufacturing',
+            '11': 'Agriculture', 
+            '21': 'Mining',
+            '23': 'Construction',
+            '31': 'Manufacturing',
+            '32': 'Manufacturing',
+            '33': 'Manufacturing',
             }
 
         cbp_data = self.get_cbp_data()
@@ -291,7 +318,7 @@ class FIED_analysis:
             pio.write_image(
                 fig,
                 bbox_inches='tight',
-                file=self._fig_path / f'counts_{self._year}_{self._fig_format}'
+                file=self._fig_path / f'counts_{self._year}.{self._fig_format}'
                 )
 
         else:
@@ -349,7 +376,7 @@ class FIED_analysis:
         return
 
 
-    def id_sectors(self):
+    def id_sectors(self, df):
         """
         Make a new sector column for NAICS 2-digit
 
@@ -360,9 +387,11 @@ class FIED_analysis:
 
         """
 
-        df = self.make_consistent_naics_column(
-            self._fied, n=2
-            )
+        if 'n2' in df.columns:
+            pass
+
+        else:
+            df = self.make_consistent_naics_column(df, n=2)
 
         sectors = pd.DataFrame(
             [['Agriculture', 11], ['Construction', 21], ['Mining', 23], 
@@ -371,7 +400,7 @@ class FIED_analysis:
             columns=['sector', 'n2']
             )
 
-        df = pd.merge(df, sectors, on='n2')
+        df = pd.merge(df, sectors, on='n2', how='left')
 
         return df
 
@@ -393,12 +422,12 @@ class FIED_analysis:
 
         plot_data = summary_table.reset_index()
 
-        plot_data.replace({
-            'ag': 'Agriculture',
-            'cons': 'Construction',
-            'mfg': 'Manufacturing',
-            'mining': 'Mining'
-            }, inplace=True)
+        # plot_data.replace({
+        #     'ag': 'Agriculture',
+        #     'cons': 'Construction',
+        #     'mfg': 'Manufacturing',
+        #     'mining': 'Mining'
+        #     }, inplace=True)
 
         len_unit_types = len(plot_data.unitTypeStd.unique())
 
@@ -464,7 +493,7 @@ class FIED_analysis:
         if write_fig is True:
             pio.write_image(
                 fig,
-                file=self._fig_path / f'summary_figure_{self._year}_{self._fig_format}'
+                file=self._fig_path / f'summary_figure_{self._year}.{self._fig_format}'
                 )
 
         else:
@@ -532,7 +561,7 @@ class FIED_analysis:
         if write_fig is True:
             pio.write_image(
                 fig,
-                file=self._fig_path / f'bubble_map_{mesasure}_{self._year}_{self._fig_format}'
+                file=self._fig_path / f'bubble_map_{measure}_{self._year}.{self._fig_format}'
                 )
 
         else:
@@ -559,9 +588,7 @@ class FIED_analysis:
 
         """
 
-        plot_data = self.make_consistent_naics_column(
-            self._fied, naics_level
-            )
+        plot_data = self._fied.copy(deep=True)
         
         label = "Facility Count"
         
@@ -627,7 +654,7 @@ class FIED_analysis:
         if write_fig is True:
             pio.write_image(
                 fig,
-                file=self._fig_path / f'stacked_bar_NAICS{naics_level}_{data_subset}_{self._year}_{self._fig_format}'
+                file=self._fig_path / f'stacked_bar_NAICS{naics_level}_{data_subset}_{self._year}.{self._fig_format}'
                 )
 
         else:
@@ -657,20 +684,25 @@ class FIED_analysis:
                 'unitTypeStd': 'Standardized Unit Type'
                 },
             }
+        
+        plot_data = self._fied.copy(deep=True) 
 
         if not naics_level:
 
             grouper = 'unitTypeStd'
 
-            plot_data = self._fied.copy(deep=True)
-
         else:
 
             grouper = ['unitTypeStd', f'n{naics_level}']
 
-            plot_data = self.make_consistent_naics_column(
-                self._fied, naics_level
-                )
+            if naics_level == 2:
+                pass
+
+            else:
+                plot_data = self.make_consistent_naics_column(
+                    self._fied, naics_level
+                    )
+
             plot_data.loc[:, f'n{naics_level}'] = \
                 plot_data[f'n{naics_level}'].astype(str)
 
@@ -736,13 +768,12 @@ class FIED_analysis:
         if write_fig is True:
             pio.write_image(
                 fig,
-                file=self._fig_path / f'unittype_NAICS{naics_level}_{variable}_{self._year}_{self._fig_format}'
+                file=self._fig_path / f'unittype_NAICS{naics_level}_{variable}_{self._year}.{self._fig_format}'
                 )
 
         else:
             fig.show()
 
-    
     def make_consistent_naics_column(self, final_data, n):
         """
         Creates a column of consisently aggregated NAICS codes
@@ -787,7 +818,6 @@ class FIED_analysis:
             )
 
         return analysis_data
-
 
     def unit_capacity_nonintensive(self):
         """
@@ -899,10 +929,11 @@ class FIED_analysis:
             'Total Capacity (MW)': '{:.2f}'}
             )
         
-    if __name__ == '__main__':
+if __name__ == '__main__':
         
-        year = 2017
-        filepath = os.path.abspath('foundational_industry_data_2017.csv.gz')
+    year = 2017
+    filepath = os.path.abspath('foundational_industry_data_2017.csv.gz')
+    fa = FIED_analysis(year=2017, file_path=filepath)
 
-        fa = FIED_analysis(filepath, 2017)
+    fa.create_core_analysis(write_fig=True)
         
