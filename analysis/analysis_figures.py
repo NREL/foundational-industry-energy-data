@@ -99,6 +99,8 @@ class FIED_analysis:
 
         self.stacked_bar_missing(write_fig=kwargs['write_fig'])
 
+        self.plot_facility_count(write_fig=kwargs['write_fig'])
+
         for u in self._fied.unitTypeStd.unique():
             try:
                 u.title()
@@ -112,7 +114,8 @@ class FIED_analysis:
             for n in [None, 2, 3]:
                 self.plot_ut_by_naics(n, v, write_fig=kwargs['write_fig'])
 
-
+        return
+    
     def summary_unit_table(self):
         """
         Creates a table that summarizes by industrial sector
@@ -149,7 +152,8 @@ class FIED_analysis:
         
         _capacity_summ.columns = ['Capacity_MW_' + c for c in _capacity_summ.columns]
 
-        _fac_count = table_data.groupby(
+        # Count of facilities with unit information
+        _fac_count = table_data.query('unitTypeStd.notnull()', engine='python').groupby(
             ['sector']
             ).registryID.unique().apply(lambda x: len(x))
 
@@ -317,7 +321,6 @@ class FIED_analysis:
         if write_fig is True:
             pio.write_image(
                 fig,
-                bbox_inches='tight',
                 file=self._fig_path / f'counts_{self._year}.{self._fig_format}'
                 )
 
@@ -373,7 +376,7 @@ class FIED_analysis:
         plt.ylabel('Units')
         plt.title(selection[data]['title'])
 
-        return
+        return None
 
 
     def id_sectors(self, df):
@@ -422,13 +425,6 @@ class FIED_analysis:
 
         plot_data = summary_table.reset_index()
 
-        # plot_data.replace({
-        #     'ag': 'Agriculture',
-        #     'cons': 'Construction',
-        #     'mfg': 'Manufacturing',
-        #     'mining': 'Mining'
-        #     }, inplace=True)
-
         len_unit_types = len(plot_data.unitTypeStd.unique())
 
         fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -445,9 +441,10 @@ class FIED_analysis:
                 },
             template='simple_white',
             color='unitTypeStd',
-            color_discrete_sequence=px.colors.sample_colorscale(
-                "viridis", [n/(len_unit_types-1) for n in range(len_unit_types)]
-                )
+            color_discrete_sequence=px.colors.qualitative.Alphabet
+            # color_discrete_sequence=px.colors.sample_colorscale(
+            #     "plasma", [n/(len_unit_types-1) for n in range(len_unit_types)]
+            #     )
             )
 
         for d in range(0, len(fig_units.data)):
@@ -455,24 +452,18 @@ class FIED_analysis:
 
         fac_counts = plot_data.drop_duplicates(['sector', 'Count of Facilities'])
 
-        # fig_fac = px.scatter(
-        #     fac_counts,
-        #     x='sector',
-        #     y='Count of Facilities'
-        #     )
-
         fig.update_layout(barmode='stack')
         fig.add_trace(
             go.Scatter(
                 mode='markers',
                 x=fac_counts.sector,
                 y=fac_counts['Count of Facilities'],
-                marker=dict(size=30, color='LightSkyBlue'),
+                marker=dict(size=26, color='LightSkyBlue'),
                 showlegend=True,
                 name='Facilities'
             ), secondary_y=True
             )
-
+        
         fig.update_yaxes(automargin=True, title='Count of Units',
                         secondary_y=False,
                         range=[0, 70000],
@@ -480,14 +471,19 @@ class FIED_analysis:
                         tick0=0,
                         dtick=7000
                         )
+
         fig.update_yaxes(automargin=True, title='Count of Facilities',
                         secondary_y=True, range=[0, 20000],
                         tickmode='linear',
                         tick0=0,
                         dtick=2000)
+
         fig.update_xaxes(automargin=True, title='Sector')
         fig.update_layout(
-            template='presentation'
+            template='presentation',
+            legend=dict(title_text='Unit Type', font=dict(size=16), yanchor='top', y=0.99),
+            width=1200,
+            height=800
             )
 
         if write_fig is True:
@@ -498,6 +494,8 @@ class FIED_analysis:
 
         else:
             fig.show()
+
+        return None
 
     def unit_bubble_map(self, unit_type, measure, max_size=45, write_fig=True):
         """
@@ -523,7 +521,14 @@ class FIED_analysis:
             Write figure to analysis figures directory
         """
 
-        plot_data = self._fied.query("unitTypeStd == @unit_type")
+        if unit_type:
+
+            plot_data = pd.DataFrame(self._fied.query("unitTypeStd == @unit_type"))
+            file_name = f'bubble_map_{measure}-{unit_type}_{self._year}.{self._fig_format}'
+
+        else:
+            plot_data = self._fied.copy(deep=True)
+            file_name = f'bubble_map_{measure}_{self._year}.{self._fig_format}'
 
         plot_args = {
             'lat': 'latitude',
@@ -531,7 +536,8 @@ class FIED_analysis:
             'scope': 'usa',
             'color': 'unitTypeStd',
             'title': f'Location of {unit_type.title()} Units Reporting {measure.title()} Data',
-            'size_max': max_size
+            'size_max': max_size,
+            'color_discrete_sequence': px.colors.qualitative.Safe
             }
 
         if measure == 'energy':
@@ -561,12 +567,13 @@ class FIED_analysis:
         if write_fig is True:
             pio.write_image(
                 fig,
-                file=self._fig_path / f'bubble_map_{measure}_{self._year}.{self._fig_format}'
+                file=self._fig_path / file_name
                 )
 
         else:
             fig.show()
 
+        return None
 
     def stacked_bar_missing(self, naics_level=2, data_subset=None, write_fig=True):
         """"
@@ -659,6 +666,8 @@ class FIED_analysis:
 
         else:
             fig.show()
+
+        return None
 
     def plot_ut_by_naics(self, naics_level=None, variable='count', write_fig=True):
         """
@@ -755,12 +764,16 @@ class FIED_analysis:
 
         fig = px.bar(plot_data, **formatting)
 
-        fig.update_layout(
-            yaxis=dict(
-                showexponent='all',
-                exponentformat='e'
+        if variable == 'count':
+            pass
+
+        else:
+            fig.update_layout(
+                yaxis=dict(
+                    showexponent='all',
+                    exponentformat='power'
+                    )
                 )
-            )
 
         fig.update_yaxes(automargin=True)
         fig.update_xaxes(automargin=True)
@@ -773,6 +786,8 @@ class FIED_analysis:
 
         else:
             fig.show()
+
+        return None
 
     def make_consistent_naics_column(self, final_data, n):
         """

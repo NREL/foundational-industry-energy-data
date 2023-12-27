@@ -1,4 +1,4 @@
-name: fied2
+name: fied
 channels:
   - pkgs/main
   - conda-forge
