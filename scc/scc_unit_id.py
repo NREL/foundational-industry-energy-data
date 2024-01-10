@@ -67,6 +67,8 @@ class SCC_ID:
 
             all_scc.to_csv(self._complete_scc_filepath)
 
+        return all_scc
+
     def load_complete_scc(self):
         """
         Complete list of SCC codes (available from
@@ -85,7 +87,7 @@ class SCC_ID:
 
         except FileNotFoundError:
 
-            self.get_complete_scc()
+            all_scc = self.get_complete_scc()
 
         all_scc.columns = [c.replace(' ', '_') for c in all_scc.columns]
 
@@ -571,6 +573,12 @@ class SCC_ID:
                     ut = r['scc_level_four'].split(': ')[0]
                     ft = r['scc_level_four'].split(': ')[1]
 
+                    if ft == 'Natural Gas Fired':
+                        ft = 'natural gas'
+
+                    else:
+                        pass
+
                 else:
                     ut = r['scc_level_four']
                     ft = None
@@ -630,6 +638,9 @@ class SCC_ID:
                                 elif ft.lower() == "#6 oil":
                                     ft = 'Residual Fuel Oil'
 
+                                elif ft == 'natural gas':
+                                    ft = 'Natural Gas'
+
                         else:
                             if 'fired' in ft.lower():
                                 ft = ft.lower().split(' fired')[0]
@@ -641,7 +652,11 @@ class SCC_ID:
                                 except IndexError:
                                     ft = None
                                 else:
-                                    pass
+                                    if ft == 'ng':
+                                        ft = 'Natural Gas'
+
+                                    else:
+                                        pass
 
                             elif ('and' in ft.lower()) | ('or' in ft.lower()):
                                 ft = ft.split(' ')[1]

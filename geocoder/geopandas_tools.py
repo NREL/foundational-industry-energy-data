@@ -52,6 +52,9 @@ class FiedGIS:
         elif ftype == 'CD':
             _url = f'https://www2.census.gov/geo/tiger/TIGER{year}/CD/tl_{year}_us_cd115.zip'
 
+        elif ftype == 'COUNTY':
+            _url = f'https://www2.census.gov/geo/tiger/TIGER{year}/COUNTY/tl_{year}_us_county.zip'
+
         elif ftype == 'HUC': 
             _url = 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/National/GDB/NHDPlus_H_National_Release_1_GDB.zip'
         
@@ -74,9 +77,9 @@ class FiedGIS:
         gf : geopandas
             Shapefile containing Census tracts
 
-        ftype : str, {'BG', 'CD', 'HUC'}
+        ftype : str, {'BG', 'CD', 'COUNTY', 'HUC'}
             Type of file to return. 'BG' == census block groups; 
-            'CD' == congressional districts; 'HUC' == hydrolic unit code.
+            'CD' == congressional districts; 'COUNTY' == county FIPS; 'HUC' == hydrolic unit code.
 
         Returns
         -------
@@ -96,16 +99,27 @@ class FiedGIS:
                 'geocolumn': 'GEOID',
                 're_column': 'geoID'
                 },
+            'COUNTY': {
+                'geocolumn': 'GEOID',
+                're_column': 'countyFIPS'
+                },
             'CD': {
                 'geocolumn': 'GEOID',
                 're_column': 'legislativeDistrictNumber'
                 }
             }
         
-        geometry = gpd.points_from_xy(
-            fied_state.longitude, fied_state.latitude, 
-            crs=crs
-            )
+        try:
+            geometry = gpd.points_from_xy(
+                fied_state.longitude, fied_state.latitude, 
+                crs=crs
+                )
+            
+        except AttributeError:
+            geometry = gpd.points_from_xy(
+                fied_state.LONGITUDE, fied_state.LATITUDE, 
+                crs=crs
+                )
 
         gdf = gpd.GeoDataFrame(fied_state, crs=crs, geometry=geometry)
 
@@ -119,15 +133,24 @@ class FiedGIS:
             inplace=True
             )
         
-        matched_geo.drop(
-            ['geometry', 'latitude', 'longitude', 'index_right'], 
-            axis=1,
-            inplace=True
-            )
+        try:
+            matched_geo.drop(
+                ['geometry', 'latitude', 'longitude', 'index_right'], 
+                axis=1,
+                inplace=True
+                )
+            
+        except KeyError:
+
+            matched_geo.drop(
+                ['geometry', 'LATITUDE', 'LONGITUDE', 'index_right'], 
+                axis=1,
+                inplace=True
+                )
         
         return matched_geo
 
-    def merge_geom_fied(self, fied, year=None, ftypes=['BG', 'CD']):
+    def merge_geom(self, df, year=None, ftypes=['BG', 'CD'], data_source='fied'):
         """
         Pulls together methods for creating Geopandas DataFrames from 
         geographic information files and merges geographic identifiers
@@ -135,14 +158,18 @@ class FiedGIS:
 
         Parameters
         ----------
-        fied : pandas.DataFrame
-            Foundational industry energy data
+        df: pandas.DataFrame
+            DataFrame with missing geographic data.
 
         year : int
             Year of foundational energy data.
 
         ftype : list; default=['BG', 'CD']
             Type of missing geo data to fill in.
+
+        data_source : str, {'fied', 'ghgrp'}
+            Source of missing geographic data. Used to specify
+            columns in dataframe to use.
 
         Returns
         -------
@@ -152,11 +179,22 @@ class FiedGIS:
 
         """
 
-        geo_fied = pd.DataFrame()
+        geo_data = pd.DataFrame()
 
-        for state in fied.stateCode.unique():
+        if data_source == 'fied':
+            state_col = 'stateCode'
+            data_cols = ['registryID', 'latitude', 'longitude']
+            fac_id = 'registryID'
 
-            geo_fied_state = pd.DataFrame()
+        elif data_source == 'ghgrp':
+            state_col = 'STATE'
+            data_cols = ['FACILITY_ID', 'LATITUDE', 'LONGITUDE']
+            fac_id = 'FACILITY_ID'
+
+
+        for state in df[state_col].unique():
+
+            geo_data_state = pd.DataFrame()
     
             try:
                 state_fips = self._statefips[state]
@@ -164,13 +202,12 @@ class FiedGIS:
             except KeyError:
                 continue
 
-            fied_state = pd.DataFrame(
-                fied.query("stateCode==@state")[
-                    ['registryID', 'latitude', 'longitude']
-                    ]
+            
+            df_state = pd.DataFrame(
+                df.query(f"{state_col}==@state")[data_cols]
                 )
             
-            fied_state.drop_duplicates(inplace=True)
+            df_state.drop_duplicates(inplace=True)
 
             for t in ftypes:
 
@@ -182,40 +219,44 @@ class FiedGIS:
                     )
                 
                 matched = FiedGIS.merge_coordinates_geom(
-                    fied_state=fied_state,
+                    fied_state=df_state,
                     gf=gf,
                     ftype=t
                     )
 
-                geo_fied_state = pd.concat(
-                    [geo_fied_state, matched.set_index('registryID')], axis=1
+                geo_data_state = pd.concat(
+                    [geo_data_state, matched.set_index(fac_id)], axis=1
                     )
             
-            geo_fied = geo_fied.append(geo_fied_state)
+            geo_data = geo_data.append(geo_data_state)
 
         if 'HUC' in ftypes:
             gf = FiedGIS.get_shapefile(year=year, ftype='HUC')
-            hucs = FiedGIS.merge_coordinates_geom(fied, gf, ftype='HUC')
-            geo_fied = pd.merge(
-                geo_fied, hucs,
+            hucs = FiedGIS.merge_coordinates_geom(df, gf, ftype='HUC')
+            geo_data = pd.merge(
+                geo_data, hucs,
                 left_index=True, right_index=True, how='left'
                 )
 
         else:
             pass
 
-        if 'legislativeDistrictNumber' in fied.columns:
-            fied.drop(['legislativeDistrictNumber'], axis=1, inplace=True)
+        if 'legislativeDistrictNumber' in df.columns:
+            df.drop(['legislativeDistrictNumber'], axis=1, inplace=True)
 
         else:
             pass
 
-        fied = pd.merge(
-            fied, geo_fied, left_on='registryID', 
+        df = pd.merge(
+            df, geo_data, left_on=fac_id, 
             right_index=True, how='left'
             )
         
-        return fied
+        return df
 
-
+if __name__ == '__main__':
+    gis = FiedGIS()
+    test = pd.read_csv('c:/users/cmcmilla/Desktop/fac_table_2010.csv', index_col=0, encoding='latin1')
+    test = gis.merge_geom(test, year=2017, ftypes=['COUNTY'], data_source='ghgrp')
+    logging.info(f'{test.head()}')
 

@@ -68,10 +68,15 @@ class GHGRP:
         index_col=['COUNTY_FIPS']
         )
 
-    fac_file_2010 = pd.read_csv(
-        os.path.abspath(os.path.join(file_dir, 'fac_table_2010.csv')),
-        encoding='latin_1'
-        )
+    try:
+        fac_file_2010 = pd.read_csv(
+            os.path.abspath(os.path.join(file_dir, 'fac_table_2010.csv')),
+            encoding='latin_1'
+            )
+
+    except FileNotFoundError:
+        fac_file_2010 = get_GHGRP_data.get_GHGRP_records(reporting_year=2010, table='V_GHG_EMITTER_FACILITIES')
+        fac_file_2010.to_csv(os.path.abspath(os.path.join(file_dir, 'fac_table_2010.csv')), index=False)
 
     mfips_file = 'found_fips.csv'
 
@@ -165,6 +170,82 @@ class GHGRP:
             GHGs[c] = GHGs[c].astype(int)
 
         return GHGs
+    
+    def fac_read_fix(self, ffile):
+        """
+        Reads and formats facility csv file, fixing NAICS codes in 
+        2010 GHGRP facility file. 
+
+        Paramers
+        --------
+        ffile : pandas.DataFrame or str
+            DataFrame or path string of 2010 faciliy data to format
+        and correct.
+
+
+        Returns
+        -------
+        facdata : pands.DataFrame
+            Corrected facility information.
+        """
+
+        if type(ffile) == pd.core.frame.DataFrame:
+            facdata = ffile.copy(deep=True)
+
+        else:
+            facdata = pd.read_csv(ffile)
+
+        # Duplicate entries in facility data query. Remove them to enable a
+        # # 1:1 mapping of facility info with ghg data via FACILITY_ID.
+        # # First ID facilities that have cogen units.
+        fac_cogen = facdata.FACILITY_ID[
+            facdata['COGENERATION_UNIT_EMISS_IND'] == 'Y'
+            ]
+
+        facdata.dropna(subset=['FACILITY_ID'], inplace=True)
+
+        # Reindex dataframe based on facility ID
+        facdata.FACILITY_ID = facdata.FACILITY_ID.astype(int)
+
+        # Correct PRIMARY_NAICS_CODE from 561210 to 324110 for Sunoco
+        # Toldeo Refinery (FACILITY_ID == 1001056); correct
+        # PRIMARY_NAICS_CODE from 331111 to 324199 for Mountain
+        # State Carbon, etc.
+        fix_dict = {1001056: {'PRIMARY_NAICS_CODE': 324110},
+                    1001563: {'PRIMARY_NAICS_CODE': 324119},
+                    1006761: {'PRIMARY_NAICS_CODE': 331221},
+                    1001870: {'PRIMARY_NAICS_CODE': 325110},
+                    1006907: {'PRIMARY_NAICS_CODE': 424710},
+                    1006585: {'PRIMARY_NAICS_CODE': 324199},
+                    1002342: {'PRIMARY_NAICS_CODE': 325222},
+                    1002854: {'PRIMARY_NAICS_CODE': 322121},
+                    1007512: {'SECONDARY_NAICS_CODE': 325199},
+                    1004492: {'PRIMARY_NAICS_CODE': 541712},
+                    1002434: {'PRIMARY_NAICS_CODE': 322121,
+                                'SECONDARY_NAICS_CODE': 322222},
+                    1002440: {'SECONDARY_NAICS_CODE': 221210,
+                                'PRIMARY_NAICS_CODE': 325311},
+                    1003006: {'PRIMARY_NAICS_CODE': 424710},
+                    1004861: {'PRIMARY_NAICS_CODE': 325193},
+                    1005954: {'PRIMARY_NAICS_CODE': 311211},
+                    1004098: {'PRIMARY_NAICS_CODE': 322121},
+                    1005445: {'PRIMARY_NAICS_CODE': 331524}}
+
+        for k, v in fix_dict.items():
+
+            facdata.loc[facdata[facdata.FACILITY_ID == k].index,
+                        list(v)[0]] = list(v.values())[0]
+
+        cogen_index = facdata[facdata.FACILITY_ID.isin(fac_cogen)].index
+
+        # Re-label facilities with cogen units
+        facdata.loc[cogen_index, 'COGENERATION_UNIT_EMISS_IND'] = 'Y'
+
+        facdata['MECS_Region'] = ""
+
+        facdata.set_index(['FACILITY_ID'], inplace=True)
+
+        return facdata
 
     def format_facilities(self, oth_facfile):
         """
@@ -186,85 +267,9 @@ class GHGRP:
 
         """
 
-        def fac_read_fix(ffile):
-            """
-            Reads and formats facility csv file, fixing NAICS codes in 
-            2010 GHGRP facility file. 
+        all_fac = self.fac_read_fix(self.fac_file_2010)
 
-            Paramers
-            --------
-            ffile : pandas.DataFrame or str
-                DataFrame or path string of 2010 faciliy data to format
-            and correct.
-
-
-            Returns
-            -------
-            facdata : pands.DataFrame
-                Corrected facility information.
-            """
-
-            if type(ffile) == pd.core.frame.DataFrame:
-                facdata = ffile.copy(deep=True)
-
-            else:
-                facdata = pd.read_csv(ffile)
-
-            # Duplicate entries in facility data query. Remove them to enable a
-            # # 1:1 mapping of facility info with ghg data via FACILITY_ID.
-            # # First ID facilities that have cogen units.
-            fac_cogen = facdata.FACILITY_ID[
-                facdata['COGENERATION_UNIT_EMISS_IND'] == 'Y'
-                ]
-
-            facdata.dropna(subset=['FACILITY_ID'], inplace=True)
-
-            # Reindex dataframe based on facility ID
-            facdata.FACILITY_ID = facdata.FACILITY_ID.astype(int)
-
-            # Correct PRIMARY_NAICS_CODE from 561210 to 324110 for Sunoco
-            # Toldeo Refinery (FACILITY_ID == 1001056); correct
-            # PRIMARY_NAICS_CODE from 331111 to 324199 for Mountain
-            # State Carbon, etc.
-            fix_dict = {1001056: {'PRIMARY_NAICS_CODE': 324110},
-                        1001563: {'PRIMARY_NAICS_CODE': 324119},
-                        1006761: {'PRIMARY_NAICS_CODE': 331221},
-                        1001870: {'PRIMARY_NAICS_CODE': 325110},
-                        1006907: {'PRIMARY_NAICS_CODE': 424710},
-                        1006585: {'PRIMARY_NAICS_CODE': 324199},
-                        1002342: {'PRIMARY_NAICS_CODE': 325222},
-                        1002854: {'PRIMARY_NAICS_CODE': 322121},
-                        1007512: {'SECONDARY_NAICS_CODE': 325199},
-                        1004492: {'PRIMARY_NAICS_CODE': 541712},
-                        1002434: {'PRIMARY_NAICS_CODE': 322121,
-                                  'SECONDARY_NAICS_CODE': 322222},
-                        1002440: {'SECONDARY_NAICS_CODE': 221210,
-                                  'PRIMARY_NAICS_CODE': 325311},
-                        1003006: {'PRIMARY_NAICS_CODE': 424710},
-                        1004861: {'PRIMARY_NAICS_CODE': 325193},
-                        1005954: {'PRIMARY_NAICS_CODE': 311211},
-                        1004098: {'PRIMARY_NAICS_CODE': 322121},
-                        1005445: {'PRIMARY_NAICS_CODE': 331524}}
-
-            for k, v in fix_dict.items():
-
-                facdata.loc[facdata[facdata.FACILITY_ID == k].index,
-                            list(v)[0]] = list(v.values())[0]
-
-            cogen_index = facdata[facdata.FACILITY_ID.isin(fac_cogen)].index
-
-            # Re-label facilities with cogen units
-            facdata.loc[cogen_index, 'COGENERATION_UNIT_EMISS_IND'] = 'Y'
-
-            facdata['MECS_Region'] = ""
-
-            facdata.set_index(['FACILITY_ID'], inplace=True)
-
-            return facdata
-
-        all_fac = fac_read_fix(self.fac_file_2010)
-
-        all_fac = all_fac.append(fac_read_fix(oth_facfile))
+        all_fac = all_fac.append(self.fac_read_fix(oth_facfile))
 
         # Drop duplicated facility IDs, keeping first instance (i.e., year).
         all_fac = \
@@ -277,8 +282,11 @@ class GHGRP:
 
         all_fac.loc[ff_index, 'COUNTY_FIPS'] = \
             [np.int(x) for x in all_fac.loc[ff_index, 'COUNTY_FIPS']]
+        
+        # TODO delete this after fixing fips_find
+        all_fac.to_csv('all_fac.csv')
 
-    #    Update facility information with new county FIPS data
+        # Update facility information with new county FIPS data
         missingfips = pd.DataFrame(
                 all_fac[all_fac.COUNTY_FIPS.isnull() == True]
                 )
@@ -323,8 +331,63 @@ class GHGRP:
         all_fac.reset_index(drop=False, inplace=True)
 
         return all_fac
+    
+    def download_or_read_ghgrp_file(self, subpart, filename):
+        """
+        Method for checking for saved file or calling download method
+        for all years in instantiated class.
 
-    # Get data from EPA API if not available
+        Paramters
+        ---------
+        subpart : str; {'subpartC', 'subpartD', 'subpartV_fac', 'subpartV_emis',
+                        'subpartAA_ff', or 'subpartAA_liq'}
+            Name of GHGRP subpart.
+
+        filename : str
+            Name of locally saved GHGRP subpart .csv file. 
+
+        Returns
+        -------
+        ghgrp_data : pandas.DataFrame
+            DataFrame of GHGRP subpart data. 
+
+        """
+        logging.info(f'Subpart:{subpart}\nFilename: {filename}')
+
+        ghgrp_data = pd.DataFrame()
+
+        table = self.table_dict[subpart]
+
+        logging.info(f'Table: {table}')
+
+        for y in self.years:
+
+            logging.info(f'year: {y}\nTable: {table}')
+
+            filename_y = f'{filename}{y}.csv'
+
+            if filename_y in os.listdir(os.path.abspath(self.ghgrp_file_dir)):
+
+                data_y = pd.read_csv(
+                    os.path.abspath(
+                        os.path.join(self.ghgrp_file_dir, filename_y)
+                        ),
+                    encoding='latin_1', low_memory=False,
+                    index_col=0
+                    )
+
+            else:
+
+                data_y = get_GHGRP_data.get_GHGRP_records(y, table)
+                data_y.to_csv(
+                    os.path.abspath(
+                        os.path.join(self.ghgrp_file_dir, filename_y))
+                    )
+
+            ghgrp_data = ghgrp_data.append(data_y, ignore_index=True)
+
+        return ghgrp_data
+
     def import_data(self, subpart):
         """
         Download EPA data via API if emissions data are not saved locally.
@@ -343,74 +406,11 @@ class GHGRP:
 
         """
 
-        def download_or_read_ghgrp_file(subpart, filename):
-            """
-            Method for checking for saved file or calling download method
-            for all years in instantiated class.
-
-            Paramters
-            ---------
-            subpart : str. 'subpartC', 'subpartD', 'subpartV_fac', 'subpartV_emis',
-            'subpartAA_ff', or 'subpartAA_liq'
-
-                Name of GHGRP subpart.
-
-            filename: str
-                Name of locally saved GHGRP subpart .csv file. 
-
-            Returns
-            -------
-            ghgrp_data : pandas.DataFrame
-                DataFrame of GHGRP subpart data. 
-
-            """
-            logging.info(f'Subpart:{subpart}\nFilename: {filename}')
-
-            ghgrp_data = pd.DataFrame()
-
-            table = self.table_dict[subpart]
-            logging.info(f'Table: {table}')
-
-            for y in self.years:
-
-                logging.info(f'year: {y}\nTable: {table}')
-
-                filename_y = f'{filename}{y}.csv'
-
-                if filename_y in os.listdir(os.path.abspath(self.ghgrp_file_dir)):
-
-                    data_y = pd.read_csv(
-                        os.path.abspath(
-                            os.path.join(self.ghgrp_file_dir, filename_y)
-                            ),
-                        encoding='latin_1', low_memory=False,
-                        index_col=0
-                        )
-
-                else:
-
-                    data_y = get_GHGRP_data.get_GHGRP_records(y, table)
-                    data_y.to_csv(
-                        os.path.abspath(
-                            os.path.join(self.ghgrp_file_dir, filename_y))
-                        )
-
-                ghgrp_data = ghgrp_data.append(data_y, ignore_index=True)
-
-            # API has changed. Columns returned are now all in lowercase.
-            if ghgrp_data.columns[0] == ghgrp_data.columns[0].upper():
-                pass
-
-            else:
-                ghgrp_data.columns = [x.upper() for x in ghgrp_data.columns]
-
-            return ghgrp_data
-
         if subpart == 'subpartC':
 
             filename = self.table_dict[subpart][0:7].lower()
 
-            ghgrp_data = download_or_read_ghgrp_file(subpart, filename)
+            ghgrp_data = self.download_or_read_ghgrp_file(subpart, filename)
 
             formatted_ghgrp_data = self.format_emissions(ghgrp_data)
 
@@ -420,7 +420,7 @@ class GHGRP:
 
             filename = self.table_dict[subpart][0:7].lower()
 
-            ghgrp_data = download_or_read_ghgrp_file(subpart, filename)
+            ghgrp_data = self.download_or_read_ghgrp_file(subpart, filename)
 
             for c in ['N2O_EMISSIONS_CO2E', 'CH4_EMISSIONS_CO2E']:
 
@@ -446,15 +446,14 @@ class GHGRP:
 
         if subpart == 'subpartV_fac':
             filename = 'fac_table_'
-            ghgrp_data = download_or_read_ghgrp_file(subpart, filename)
+            ghgrp_data = self.download_or_read_ghgrp_file(subpart, filename)
             formatted_ghgrp_data = self.format_facilities(ghgrp_data)
 
             return formatted_ghgrp_data
 
         if subpart == 'subpartAA_liq':
             filename = 'aa_sl_'
-            formatted_ghgrp_data = \
-                download_or_read_ghgrp_file(subpart, filename)
+            formatted_ghgrp_data = self.download_or_read_ghgrp_file(subpart, filename)
 
             for item in formatted_ghgrp_data.REPORTING_YEAR.iteritems():
                 try:
@@ -487,8 +486,7 @@ class GHGRP:
             if subpart == 'subpartAA_ff':
                 filename = 'aa_ffuel_'
 
-            formatted_ghgrp_data = \
-                download_or_read_ghgrp_file(subpart, filename)
+            formatted_ghgrp_data = self.download_or_read_ghgrp_file(subpart, filename)
 
             return formatted_ghgrp_data
 

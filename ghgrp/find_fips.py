@@ -14,6 +14,20 @@ import logging
 def fipfind(data_directory, f, missingfips):
     """
     Match missing FIPS with facility coordinates using FCC API.
+
+    Parameters
+    ----------
+    data_directory : str
+        Directory for 
+
+    f :
+
+    missingfips :
+
+
+    Returns
+    -------
+    fipfound : 
     """
 
     logging.basicConfig(level=logging.INFO)
@@ -41,7 +55,8 @@ def fipfind(data_directory, f, missingfips):
 
             logging.error(f'Error: {error}\n{e}\nLat, lon: {lat}, {lon}')
 
-        else:
+        if r.ok:
+
             if r.json()['County']['FIPS'] == None:
 
                 fipfound = 0
@@ -49,6 +64,11 @@ def fipfind(data_directory, f, missingfips):
             else:
 
                 fipfound = r.json()['County']['FIPS']
+
+        else:
+            logging.error(f'Status code: {r.status_code}\nLatitude: {lat}\nLongitude: {lon}')
+
+            fipfound = 0
 
         return fipfound
 

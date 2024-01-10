@@ -12,25 +12,25 @@ Due to the nature of how they are provided, several data sets must be manually d
 
 1. Source Classification Codes (SCCs)
 
-  * Download from <https://sor-scc-api.epa.gov/sccwebservices/sccsearch/>
+    * Download from <https://sor-scc-api.epa.gov/sccwebservices/sccsearch/>
 
-  * Save to `data/SCC/SCCDownload.csv`
+    * Save to `data/SCC/SCCDownload.csv`
 
 2. 2017 National Emissions Inventory (NEI)
 
-  * Download from <https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip>
+    * Download from <https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip>
 
-  * Save **and unzip** data to `data/NEI/`.
+    * Save **and unzip** data to `data/NEI/`.
 
-  * `nei_EF_calculations.py` will format and combine the unzipped csv files into `nei_ind_data.csv`
+    * `nei_EF_calculations.py` will format and combine the unzipped csv files into `nei_ind_data.csv`
   
 3. GHGRP Emissions by Unit and Fuel Type
 
-  * Download from <https://www.epa.gov/system/files/other-files/2022-10/emissions_by_unit_and_fuel_type_c_d_aa_10_2022.zip'>
+    * Download from <https://www.epa.gov/system/files/other-files/2022-10/emissions_by_unit_and_fuel_type_c_d_aa_10_2022.zip>
 
-  * Save to `data/GHGRP/`
+    * Save to `data/GHGRP/`
 
-  * `ghgrp_fac_unit.py` will unzip and format these data.
+    * `ghgrp_fac_unit.py` will unzip and format these data.
 
 ### Environment
 
@@ -125,7 +125,8 @@ Depending on the estimation approach, a unit may have a single estimate of energ
 * `energyMJ0`: minimum of energy estimate, in MJ
 * `energyMJq2`: median of energy estimate, in MJ
 * `energyMJq3`: upper quartile of energy estimate, in MJ.
-* `fuelType`: combusted fuel type.
+* `fuelType`: combusted fuel type as reported by original data source
+* `fuelTypeStd`: combusted fuel type, standardized
 
 ### Other
 

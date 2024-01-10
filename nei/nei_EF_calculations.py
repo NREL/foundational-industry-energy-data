@@ -40,7 +40,7 @@ class NEI:
 
         self._data_source = 'NEI'
 
-        self.cap_conv = {
+        self._cap_conv = {
             'energy': {  # Convert to MJ
                 'MMBtu/hr': 8760 * 1055.87,
                 'MW': 8760 * 3600,
@@ -50,6 +50,15 @@ class NEI:
                 'MMBtu/hr': 0.293297,
                 'KW': 1/1000,
                 'MW': 1
+                }
+            }
+        
+        # from https://www.epa.gov/system/files/documents/2023-03/ghg_emission_factors_hub.pdf
+        self._gwp = {
+            '100' : {
+                'N2O': 298,
+                'CH4': 25,
+                'CO2': 1
                 }
             }
 
@@ -247,10 +256,10 @@ class NEI:
                         uom = uom_fixes[k]
 
                         if energy:
-                            value = (smf * self.cap_conv['energy'][uom], 'MJ')
+                            value = (smf * self._cap_conv['energy'][uom], 'MJ')
 
                         else:
-                            value = (smf * self.cap_conv['power'][uom], 'MW')
+                            value = (smf * self._cap_conv['power'][uom], 'MW')
 
                 else:
                     continue
@@ -295,8 +304,8 @@ class NEI:
             )
 
         for i, v in flagged.iterrows():
-            if v['designCapacityUOM'] in self.cap_conv['energy'].keys():
-                value = self.cap_conv['energy'][v['designCapacityUOM']] * \
+            if v['designCapacityUOM'] in self._cap_conv['energy'].keys():
+                value = self._cap_conv['energy'][v['designCapacityUOM']] * \
                     v['designCapacity']
                 energy_update.loc[i, :] = value
 
@@ -579,7 +588,7 @@ class NEI:
 
             logging.info('Reading WebFire data from csv')
 
-            webfr = pd.read_csv(self._webfires_data_path)
+            webfr = pd.read_csv(self._webfires_data_path, low_memory=False)
 
         else:
 
@@ -593,7 +602,7 @@ class NEI:
 
             with zipfile.ZipFile(BytesIO(r.content)) as zf:
                 with zf.open(zf.namelist()[0]) as f:
-                    webfr = pd.read_csv(f)
+                    webfr = pd.read_csv(f, low_memory=False)
                     webfr.to_csv(self._webfires_data_path)
 
         return webfr
@@ -630,6 +639,83 @@ class NEI:
             )
 
         return iden_scc
+    
+    def extract_ghg_emissions(self, nei_data):
+        """
+        Capture GHG emissions (i.e., CO2, CH4, and N2O)
+        reported under NEI. Convert to tonnes CO2 equivalent (tonnesCO2e)
+
+        
+        Parameters
+        ----------
+        nei_data : pandas.DataFrame
+            Formatted NEI data.
+
+        Returns
+        -------
+        ghgs : pandas.DataFrame
+            GHG emissions aggregated by eis_facility_id, eis_unit_id,
+            eis_process_id, fuelType, and fuelTypeStd
+        
+        """
+
+        ghgs = pd.DataFrame(
+            nei_data.query("pollutant_code=='CO2'|pollutant_code=='CH4'|pollutant_code=='N2O'")
+            )
+
+        # convert short tons to metric tonnes
+        # Method currently only works if all units of emissions are in short tons
+        if (len(ghgs.emissions_uom.unique())==1) & (ghgs.emissions_uom.unique()[0]=='TON') is True:
+    
+            ghgs.loc[:, 'ghgsTonneCO2e'] = ghgs.apply(lambda x: x.total_emissions * self._gwp['100'][x.pollutant_code] * 0.907,
+                                                   axis=1)
+            
+        else:
+            raise IndexError("Reported emissions have additional units of measurement")
+
+        # aggregated to facility, unit, and process and fuel type
+        ghgs = ghgs.groupby([
+            'eis_facility_id', 'eis_unit_id', 'eis_process_id', 'fuel_type'
+            ], as_index=False).ghgsTonneCO2e.sum()
+        
+        return ghgs
+
+
+    def merge_fill_ghg_emissions(self, ghgs, nei_data):
+        """
+        Not all NEI facilities report GHG emissions from fuel combustion. Calculate these missing values using 
+        EPA default emissions factors.
+
+
+        """
+
+        nei_data = pd.merge(
+            nei_data, ghgs,
+            on=['eis_facility_id', 'eis_unit_id', 'eis_process_id', 'fuel_type'],
+            how='left'
+            )
+
+        efs = pd.concat(
+            [nei_data.fuel_type.dropna(), 
+             nei_data.fuel_type.dropna().apply(lambda x: self._unit_conv['energy_units'][x]['MJ_to_KGCO2e'])],
+            axis=1
+            )
+        
+        efs = dict(efs.drop_duplicates().values)
+
+        nei_data.loc[:, 'ef'] = nei_data.fuel_type.map(efs)
+
+        emissions = \
+            nei_data.dropna(subset=['ghgsTonneCO2e'], axis=0)[['energy_MJ_q0','energy_MJ_q2', 'energy_MJ_q3']].multiply(nei_data.ef, axis=0)/1000
+
+        emissions.columns = ['ghgsTonneCO2eq0', 'ghgsTonneCO2eq2', 'ghgsTonneCO2eq3']
+
+        nei_data = nei_data.join(emissions)
+
+        nei_data.drop('ef', axis=1, inplace=True)
+    
+        return nei_data
+
 
     def match_webfire_to_nei(self, nei_data, webfr):
         """
@@ -714,7 +800,34 @@ class NEI:
 
         nei.loc[:, 'fuel_type'] = nei.loc[:, 'scc_fuel_type']
 
-        nei_no_scc_ft = nei[nei.scc_fuel_type.isnull()]
+        # #TODO too many fuel type standardizations happening SCC -> NEI -> std fuel types
+        # Should streamline this process to avoid errors.
+        fuels = {k:None for k in nei.fuel_type.dropna().unique()}
+
+        for f in fuels.keys():
+
+            if f.find('(') != -1:
+    
+                fre = f.replace('(', '\(').replace(')', '\)')
+
+                n = {k: re.search(fre, k) for k in self._unit_conv['fuel_dict'].keys()}
+
+            else:
+
+                n = {k: re.search(f, k) for k in self._unit_conv['fuel_dict'].keys()}
+
+            if any(n.values()):
+
+                fk = [k for k in n.keys() if n[k] is not None]
+
+                fuels[f] = self._unit_conv['fuel_dict'][fk[0]] 
+
+            else:
+                fuels[f] = f
+
+        nei.loc[:, 'fuel_type'] = nei.fuel_type.map(fuels, na_action='ignore')
+
+        nei_no_scc_ft = pd.DataFrame(nei[nei.scc_fuel_type.isnull()])
 
         for f in self._unit_conv['fuel_dict'].keys():
 
@@ -728,7 +841,7 @@ class NEI:
                               (nei_no_scc_ft['scc_fuel_type'].str.contains(f, na=False)),
                     'fuel_type'] = self._unit_conv['fuel_dict'][f]
 
-            nei.fuel_type.update(nei_no_scc_ft.fuel_type)
+        nei.fuel_type.update(nei_no_scc_ft.fuel_type)    
 
         # remove some non-combustion related unit types
         nei = self.remove_unit_types(nei) 
@@ -1173,9 +1286,8 @@ class NEI:
 
         fuel_dict = self.load_fueltype_dict()
 
-        ghgrp_unit_data[fuel_type_column].update(
-            ghgrp_unit_data[fuel_type_column].map(fuel_dict)
-            )
+        ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
+
 
         # drop any fuelTypes that are null
         ghgrp_unit_data = ghgrp_unit_data.where(
@@ -1231,7 +1343,8 @@ class NEI:
             'design_capacity_uom', 'fuel_type', 'eis_process_id',
             'process_description',
             'energy_MJ_q0', 'energy_MJ_q2', 'energy_MJ_q3',
-            'throughputTonneQ0', 'throughputTonneQ2', 'throughputTonneQ3'
+            'throughputTonneQ0', 'throughputTonneQ2', 'throughputTonneQ3',
+            'ghgsTonneCO2e', 'ghgsTonneCO2eq0', 'ghgsTonnesCO2eq2', 'ghgsTonnesCO2eq3'
             ]
 
         df = df[keep_cols]
@@ -1307,6 +1420,8 @@ class NEI:
         nei_char = nei.convert_emissions_units(nei_char)
         logging.info("Estimating throughput and energy...")
         nei_char = nei.calc_unit_throughput_and_energy(nei_char)
+        logging.info("Extracting and aggregating GHG emissions")
+        ghgs = nei.extract_ghg_emissions(nei_char)
         logging.info("Final NEI data assembly...")
 
         med_unit = nei.get_median_throughput_and_energy(nei_char)
@@ -1314,11 +1429,14 @@ class NEI:
 
         nei_char = nei.merge_med_missing(med_unit, missing_unit)
 
-        nei_char = pd.concat(
-            [nei.get_median_throughput_and_energy(nei_char),
-                nei.separate_missing_units(nei_char)], axis=0,
-            ignore_index=True
-            )
+        # nei_char = pd.concat(
+        #     [nei.get_median_throughput_and_energy(nei_char),
+        #         nei.separate_missing_units(nei_char)], axis=0,
+        #     ignore_index=True
+        #     )
+
+        logging.info("Merging and filling GHG emissions")
+        nei_char = nei.merge_fill_ghg_emissions(ghgs, nei_char)
 
         nei_char = nei.format_nei_char(nei_char)
 

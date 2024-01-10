@@ -119,8 +119,10 @@ def get_boiler_data(boiler_url):
     col_rename = {
         'ENERGY_COM_MMBtu': 'energyMJ',
         'fips': 'countyFIPS',
-        'naics_code': 'naicsCode'   
-    }
+        'naics_code': 'naicsCode',
+        'eis_unit_id': 'eisUnitID',
+        'fuel_type': 'fuelType'
+        }
 
     # use_cols = [0, 1, 2, 3, 4, 7, 9, 10, 13, 15, 16, 17, 18]
 
@@ -183,7 +185,7 @@ def get_fied_boiler(fied_path):
     return fied_boiler
 
 
-def compare_boilers(bdb, fied_boiler, compare_type=None):
+def compare_boilers_aggregate(bdb, fied_boiler, compare_type=None):
     """
     Compare either county or NAICS (3-digit) sums of 
     design capacity and energy estimates.
@@ -205,18 +207,90 @@ def compare_boilers(bdb, fied_boiler, compare_type=None):
 
     grouping_column = {'county': 'countyFIPS', 'naics': 'naics_sub'}
 
+    try:
+        comparison = pd.concat(
+            [bdb.groupby(grouping_column[compare_type]).designCapacity.sum(),
+            fied_boiler.groupby(grouping_column[compare_type]).designCapacity.sum(),
+            bdb.groupby(grouping_column[compare_type]).energyMJ.sum(),
+            fied_boiler.groupby(grouping_column[compare_type])[['energyMJ', 'energyMJq2']].sum().sum(axis=1)],
+            axis=1
+            )
 
-    comparison = pd.concat(
-        [bdb.groupby(grouping_column[compare_type]).designCapacity.sum(),
-         fied_boiler.groupby(grouping_column[compare_type]).designCapacity.sum(),
-         bdb.groupby(grouping_column[compare_type]).energyMJ.sum(),
-         fied_boiler.groupby(grouping_column[compare_type])[['energyMJ', 'energyMJq2']].sum().sum(axis=1)],
-        axis=1
-        )
+    except KeyError:
+        print("Must specify compare_type")
+
+    else:
+        comparison.columns = ['designCapacity_bdb', 'designCapacity_fied', 'energyMJ_bdb', 'energyMJ_fied']
+
+        return comparison
+
+def compare_boilers_units(bdb, fied_boiler):
+    """
+    Compare boiler inventory and FIED boilers on an individual unit level. 
+    Includes only 
     
-    comparison.columns = ['designCapacity_bdb', 'designCapacity_fied', 'energyMJ_bdb', 'energyMJ_fied']
+    Parameters
+    ----------
+    bdb : pandas.DataFrame
 
-    return comparison
+    fied_boiler : pandas.DataFrame
+
+    Returns
+    -------
+    units : pandas.DataFrame
+
+    units_summary : pandas.DataFrame
+
+    """
+
+    fied_edit = fied_boiler.copy(deep=True)
+
+    fied_edit.fuelType.replace({
+        'diesel': 'oil products', 'naturalGas': 'natural gas', 
+        'resFuelOil': 'oil products', 'lpgHGL': 'other fuels',
+        'gasoline': 'oil products', 'other': 'other fuels',
+        'coke': 'other fuels'
+        }, inplace=True)
+
+    units = pd.merge(
+        bdb.dropna(subset=['eisUnitID'])[['eisUnitID', 'energyMJ', 'designCapacity', 'fuelType', 'naics_sub',
+             'state']], 
+        fied_edit.dropna(subset=['eisUnitID'])[['eisUnitID', 'energyMJ', 'energyMJq2', 'designCapacity',
+                     'fuelType', 'stateCode', 'naicsCode']], 
+        on='eisUnitID', how='inner',
+        suffixes=['_bdb', '_fied']
+        )
+
+    units.loc[:, 'capCompare']  = (units.designCapacity_fied.subtract(
+        units.designCapacity_bdb, fill_value=0
+        )).divide(units.designCapacity_bdb, fill_value=0)
+ 
+    units.loc[:, 'energyCompare'] = (units[units.energyMJ_fied>0].energyMJ_fied.subtract(
+        units[units.energyMJ_fied>0].energyMJ_bdb, fill_value=0
+        )).divide(units[units.energyMJ_fied>0].energyMJ_bdb, fill_value=0)
+    
+    units.loc[:, 'energyCompare'] = (units[units.energyMJq2>0].energyMJq2.subtract(
+        units[units.energyMJq2>0].energyMJ_bdb, fill_value=0
+        )).divide(units[units.energyMJq2>0].energyMJ_bdb, fill_value=0)
+
+
+    units.loc[:, 'fuelCompare'] = units.fuelType_fied == units.fuelType_bdb
+
+    # There can be multiple combustion units reported under a single EIS unit ID.
+    # dups = units[units.eisUnitID.duplicated(keep=False)]
+
+    units_summary = pd.DataFrame(units[['capCompare', 'energyCompare']].describe())
+    units_summary.loc['% matching', 'fuelCompare'] = units.fuelCompare.sum() / units.fuelCompare.count()
+    
+    # for s in ['bdb', 'fied']:
+
+    #     for t in ['cap', 'energy']:
+
+    #         units_summary.loc['% /reported_{s}', f'{t}Compare'] = 
+
+
+    return units, units_summary
+
 
 def plot_scatter_comparison(comparison, compare_type=None, write_fig=True):
     """
@@ -335,11 +409,17 @@ if __name__ == '__main__':
     bdb = get_boiler_data(boiler_url)
     fied_boiler = get_fied_boiler(fied_path)
 
+    agg_comparison = {}
+
     # Note that FIED is for 2017; the boiler inventory uses multiple reporting years.
     # This is more of an issue for energy than design capacity, as it's expected that
     # energy use is more likely to change by year than design capacity.
     for t in ['county', 'naics']:
 
-        comparison = compare_boilers(bdb, fied_boiler, compare_type=t)
-        plot_scatter_comparison(comparison, compare_type=t, write_fig=True)
+    #     comparison = compare_boilers_aggregate(bdb, fied_boiler, compare_type=t)
+    #     plot_scatter_comparison(comparison, compare_type=t, write_fig=True)
+
+        agg_comparison[t] = compare_boilers_aggregate(bdb, fied_boiler, compare_type=t)
+
+    units, units_summary = compare_boilers_units(bdb, fied_boiler)
 

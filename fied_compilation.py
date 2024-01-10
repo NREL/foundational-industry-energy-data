@@ -289,7 +289,7 @@ def id_nei_units_nonocs(nei_data_shared, nei_data_shared_ocs):
     nei_data_shared_ocs : pandas.DataFrame
         NEI data for facilities that report to both NEI and GHGRP
         and have an OCS (Other combustion source) unit for a given
-        ('registryID', 'fuelType') in the corresponding GHGRP data.
+        ('registryID', 'fuelTypeStd') in the corresponding GHGRP data.
 
     Returns
     -------
@@ -302,12 +302,12 @@ def id_nei_units_nonocs(nei_data_shared, nei_data_shared_ocs):
 
     # These entries do not have energy estimates
     nei_data_shared_na_fuelType = pd.DataFrame(
-        nei_data_shared.query('fuelType.isnull()',
+        nei_data_shared.query('fuelTypeStd.isnull()',
                               engine='python')
         )
 
-    nei_data_shared.set_index(['registryID', 'fuelType'], inplace=True)
-    nei_data_shared_ocs.set_index(['registryID', 'fuelType'], inplace=True)
+    nei_data_shared.set_index(['registryID', 'fuelTypeStd'], inplace=True)
+    nei_data_shared_ocs.set_index(['registryID', 'fuelTypeStd'], inplace=True)
 
     nei_data_shared_nonocs = pd.DataFrame(
         nei_data_shared.loc[
@@ -357,7 +357,7 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs):
     """
     Reconcile cases where facilities report to both NEI and GHGRP for
     units that are not identified as OCS (other combustion source)
-    for a given (registryID, fuelType).
+    for a given (registryID, fuelTypeStd).
 
     Parameters
     ----------
@@ -368,7 +368,7 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs):
     ghgrp_data_shared_nonocs : pandas.DataFrame
         GHGRP data from facilities that also report to NEI, but do
         not report units as OCS (Other combustion source) for a given
-        (registryID, fuelType).
+        (registryID, fuelTypeStd).
 
     Returns
     -------
@@ -379,12 +379,12 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs):
 
     compare = pd.merge(
         nei_data_shared_nonocs.groupby(
-            ['registryID', 'unitTypeStd', 'fuelType']
+            ['registryID', 'unitTypeStd', 'fuelTypeStd']
             ).agg({'designCapacity': 'sum', 'eisUnitID': 'count',
                    'energyMJq0': 'sum', 'energyMJq2': 'sum',
                    'energyMJq2': 'sum'}),
         ghgrp_data_shared_nonocs.groupby(
-            ['registryID', 'unitTypeStd', 'fuelType']
+            ['registryID', 'unitTypeStd', 'fuelTypeStd']
             ).agg({'designCapacity': 'sum', 'unitName': 'count',
                    'energyMJ': 'sum'}),
         left_index=True,
@@ -397,14 +397,14 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs):
     use_ghgrp_data = {}  # Dictionary for index selections that will use GHGRP data
 
     # Use GHGRP data for facilities where there is no unit information for
-    # a given (registryID, unitTypeStd, fuelType)
+    # a given (registryID, unitTypeStd, fuelTypeStd)
     use_ghgrp_data['ghgrp_'] = compare.query("eisUnitID.isnull()", 
                                              engine='python')
     use_ghgrp_data['ghgrp_'].dropna(axis=1, inplace=True)
     use_ghgrp_data['ghgrp_'] = use_ghgrp_data['ghgrp_'].index
 
     # Use NEI data for facilities where there is no unit information for
-    # a given (registryID, unitTypeStd, fuelType)
+    # a given (registryID, unitTypeStd, fuelTypeStd)
     use_nei_data['nei_'] = compare.query("unitName.isnull()", engine='python')
     use_nei_data['nei_'].dropna(axis=1, inplace=True)
     use_nei_data['nei_'] = use_nei_data['nei_'].index
@@ -434,10 +434,10 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs):
     # are more robust.
     use_ghgrp_data['ghgrp_and_nei'] = compare.query("energyMJ>0 & energyMJq2>0").index
 
-    nei_data_shared_nonocs.set_index(['registryID', 'unitTypeStd', 'fuelType'],
+    nei_data_shared_nonocs.set_index(['registryID', 'unitTypeStd', 'fuelTypeStd'],
                                      inplace=True)
 
-    ghgrp_data_shared_nonocs.set_index(['registryID', 'unitTypeStd', 'fuelType'],
+    ghgrp_data_shared_nonocs.set_index(['registryID', 'unitTypeStd', 'fuelTypeStd'],
                                        inplace=True)
 
     final_shared_nonocs_nei = pd.DataFrame()
@@ -493,9 +493,9 @@ def id_nei_units_ocs(nei_data_shared, ghgrp_data_shared_ocs):
     nei_data_shared_ocs = pd.merge(
         nei_data_shared_ocs,
         ghgrp_data_shared_ocs.drop_duplicates(
-            ['registryID', 'fuelType']
-            )[['registryID', 'fuelType']],
-        on=['registryID', 'fuelType'],
+            ['registryID', 'fuelTypeStd']
+            )[['registryID', 'fuelTypeStd']],
+        on=['registryID', 'fuelTypeStd'],
         how='inner'
         )
 
@@ -509,7 +509,7 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
     Identify ghgrp data for facilities that report to both GHGRP and NEI and 
     that do or don't report a unit type as "OCS (Other combustion source).
 
-    Identifies OCS units across registryID, ghgrpID, and fuelType with the
+    Identifies OCS units across registryID, ghgrpID, and fuelTypeStd with the
     ultimate purpose of allocating a facility's total energy use by fuel
     type across all of its units that use that fuel type. 
 
@@ -531,14 +531,14 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
     """
     ghgrp_data_ = pd.DataFrame()
 
-    gd_grpd = ghgrp_data.groupby(['registryID', 'ghgrpID', 'fuelType'])
+    gd_grpd = ghgrp_data.groupby(['registryID', 'ghgrpID', 'fuelTypeStd'])
 
     for g in gd_grpd.groups:
 
         try:
             gd_grpd.get_group(g)
 
-        except KeyError:  # One row has NaN fuelType
+        except KeyError:  # One row has NaN fuelTypeStd
             continue
 
         else:
@@ -593,25 +593,25 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
 
 #     fac_unit_compare = pd.concat(
 #         [nei_data_shared_nonocs.groupby(
-#             ['registryID', 'unitTypeStd', 'fuelType']
+#             ['registryID', 'unitTypeStd', 'fuelTypeStd']
 #             )['energyMJq0', 'energyMJq2', 'energyMJq3'].sum(),
 #          ghgrp_data_shared_nonocs.groupby(
-#             ['registryID', 'unitTypeStd', 'fuelType']
+#             ['registryID', 'unitTypeStd', 'fuelTypeStd']
 #             ).energyMJ.sum()], axis=1
 #         )
 
 #     shared = pd.merge(
-#         nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
-#         ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
+#         nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelTypeStd']),
+#         ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelTypeStd']),
 #         how='outer',
-#         on=['registryID', 'unitTypeStd', 'fuelType'],
+#         on=['registryID', 'unitTypeStd', 'fuelTypeStd'],
 #         indicator=True,
 #         suffixes=('_nei', '_ghgrp')
 #         )
 
 #     shared_na = pd.concat(
-#         [nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType']),
-#          ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelType'])],
+#         [nei_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelTypeStd']),
+#          ghgrp_data_shared_nonocs.dropna(subset=['registryID', 'unitTypeStd', 'fuelTypeStd'])],
 #         axis=0,
 #         ignore_index=True
 #         )
@@ -624,7 +624,7 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
 
 def calc_share_ocs(ghgrp_data_shared_ocs, cutoff=0.5):
     """
-    Calculate other combustion source (OCS) energy portion by registryID, fuelType,
+    Calculate other combustion source (OCS) energy portion by registryID, fuelTypeStd,
     and unitTypeStd.
     Returns unit based on cutoff value (
     e.g., records where OCS share >=0.5 are returned with
@@ -636,18 +636,18 @@ def calc_share_ocs(ghgrp_data_shared_ocs, cutoff=0.5):
         DataFrame with 
 
     cutoff : float, default=0.5
-        OCS share of energy by registryID, fuelType, and
+        OCS share of energy by registryID, fuelTypeStd, and
         unitTypeStd to identify unit
 
     Returns
     -------
     ocs_share : pandas.DataFrame
-        Share of energy by resgistry, fuelType, and unitTypeStd
+        Share of energy by resgistry, fuelTypeStd, and unitTypeStd
         that is OCS
     """
 
     ocs_share = ghgrp_data_shared_ocs.groupby(
-        ['registryID', 'fuelType', 'unitTypeStd']
+        ['registryID', 'fuelTypeStd', 'unitTypeStd']
         ).energyMJ.sum()
 
     ocs_share = ocs_share.divide(
@@ -686,7 +686,7 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
     """
 
     nei_data_shared_ocs.set_index(
-        ['registryID', 'eisFacilityID', 'fuelType', 'eisProcessID',
+        ['registryID', 'eisFacilityID', 'fuelTypeStd', 'eisProcessID',
          'eisUnitID'],
         inplace=True
         )
@@ -708,7 +708,7 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
             )
 
     # Order of index levels is getting mixed up after the above division
-    if nei_data_shared_portion.index.names == ['registryID', 'eisFacilityID', 'fuelType', 'eisUnitID']:
+    if nei_data_shared_portion.index.names == ['registryID', 'eisFacilityID', 'fuelTypeStd', 'eisUnitID']:
         nei_data_shared_portion = nei_data_shared_portion.swaplevel('eisUnitID', 'eisProcessID')
 
     else:
@@ -744,11 +744,11 @@ def allocate_shared_ocs_energy(ghgrp_data_shared_ocs, nei_data_shared_ocs):
 
     ocs_share = calc_share_ocs(ghgrp_data_shared_ocs)
 
-    ocs_share.set_index(['registryID', 'fuelType'], inplace=True)
+    ocs_share.set_index(['registryID', 'fuelTypeStd'], inplace=True)
 
-    # nei_data_shared_ocs.set_index(['registryID', 'fuelType'], inplace=True)
+    # nei_data_shared_ocs.set_index(['registryID', 'fuelTypeStd'], inplace=True)
     nei_data_shared_ocs.sort_index(inplace=True)
-    ghgrp_data_shared_ocs.set_index(['registryID', 'fuelType'], inplace=True)
+    ghgrp_data_shared_ocs.set_index(['registryID', 'fuelTypeStd'], inplace=True)
 
     ghgrp_data_shared_ocs.sort_index(inplace=True)
 

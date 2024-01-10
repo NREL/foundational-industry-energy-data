@@ -23,12 +23,13 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     TON_to_MJ: 55282    # 52.4 MMBtu/ton *  1055 MJ/MMBtu
     LB_to_MJ: 27.64    # 0.0005 ton/lb * 52.4 MMBtu/ton *  1055 MJ/MMBtu
     THERM_to_MJ: 105.5  # 0.1 MMBtu/therm * 1055 MJ/MMBtu
-    MJ_to_KGCO2:
+    MJ_to_KGCO2e: 0.05034
   coal:
     TON_to_MJ: 23579     # 22.35 MMBTU/TON * 1055 MJ/MMBTU
     E6FT3_to_MJ: 2308    # 0.0979 TON/E6FT3 * 22.35 MMBTU/TON * 1055 MJ/MMBTU
     E6BTU_to_MJ: 1055   # 1055 MJ/MMBtu
     LB_to_MJ: 11.79    # 0.0005 TON/LB * 22.35 MMBTU/TON * 1055 MJ/MMBTU
+    MJ_to_KGCO2e: 0.09044  # Mixed (industrial sector)
   distillate_oil:
     GAL_to_MJ: 145.59  # 0.138 MMBtu/gal * 1055 MJ/MMBtu
     E3GAL_to_MJ: 145590  # 138 MMBtu/E3gal * 1055 MJ/MMBtu
@@ -40,23 +41,26 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     KW-HR_to_MJ: 3.6
     E3BBL_to_MJ: 6.15E+6  # 5825 MMBtu/E3BBL * 1055 MJ/MMBtu
     THERM_to_MJ: 105.5  # 0.1 MMBtu/therm * 1055 MJ/MMBtu
+    MJ_to_KGCO2e: 0.07034  # No. 2 distillate oil
   residual_oil:
     GAL_to_MJ: 153     # 0.145 MMBtu/gal * 1055 MJ/MMBtu
     E3GAL_to_MJ: 153.0E+3     # 145 MMBtu/E3gal * 1055 MJ/MMBtu
     E6GAL_to_MJ: 153.0E+6     # 145000 MMBtu/E6gal * 1055 MJ/MMBtu
     E6BTU_to_MJ: 1055
     E3BBL_to_MJ: 6.425E+6   # 42000 gal/E3BBL * 0.145 MMBtu/gal * 1055 MMBtu/MJ
-    MJ_to_KGCO2: 
+    MJ_to_KGCO2e: 0.07142  # No. 6 residual
   lignite:
     TON_TO_MJ: 14992   # 14.21 MMBtu/ton * 1055 MJ/MMBtu
-    MJ_to_KGCO2:
+    MJ_to_KGCO2e: 0.09333  
   coke:
     TON_to_MJ: 26164   # 24.80 MMBtu/ton * 1055 MJ/MMBtu
     E6BTU_to_MJ: 1055
     LB_to_MJ: 13.08   # 0.0005 ton/lb * 24.80 MMBtu/ton * 1055 MJ/MMBtu
+    MJ_to_KGCO2e: 0.10845  # coal coke
   pet_coke:
     TON_to_MJ: 31650   # 30 MMBtu/ton * 1055 MJ/MMBtu
     E6BTU_to_MJ: 1055
+    MJ_to_KGCO2e: 0.09901
   wood:
     TON_TO_MJ: 16226  # 15.38 MMBtu/ton * 1055 MJ/MMBtu
     E6BTU_to_MJ: 1055
@@ -64,15 +68,16 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     E3LB_to_MJ: 8110
     E3BDFT_to_MJ: 13516 # 0.833 ton/E3BDFT * 15.38 MMBtu/ton * 1055 MJ/MMBtu
     E6BDFT_to_MJ: 1.3516E+7
-    MJ_to_KGCO2:
+    MJ_to_KGCO2e: 0.08964  # N. American softwood
   bagasse:
     TON_TO_MJ: 0.00185  # 0.0005 ton/lb * 3500 Btu/lb * 1E-6 MMBtu/Btu * 1055 MJ/MMBtu
     LB_to_MJ: 3.69 # 3500 Btu/lb * 1E-6 MMBtu/Btu * 1055 MJ/MMBtu
-    MJ_to_KGCO2:
+    MJ_to_KGCO2e: 0.09068
   process_gas:
     FT3_to_MJ: 1.46 # 0.001388 MMBtu/scf * 1055 MJ/MMBtu
     E6FT3_to_MJ: 1.46E+6
     E6BTU_to_MJ: 1055 
+    MJ_to_KGCO2e: 0.05616  # Fuel gas
   LPG:
     FT3_to_MJ: 726 # 7.48 gal/scf * 97.06 MJ/gal
     E6FT3_to_MJ: 726.0E+6
@@ -84,6 +89,7 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     TON_to_MJ: 0.01139 # 0.0005 ton/lb * 22.78 MJ/lb
     HP-HR_to_MJ: 2.685
     E3HP-HR_to_MJ: 2.685E+3
+    MJ_to_KGCO2e: 0.05873
   gasoline:
     GAL_to_MJ: 116   # 0.110 MMBtu/gal * 1055 MJ/MMBtu
     E3GAL_to_MJ: 116.0E+3
@@ -94,58 +100,83 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     FT3_to_MJ: 867 # 7.48 gal/scf * 116 MJ/gal
     E6FT3_to_MJ: 867.0E+6
     KW-HR_to_MJ: 3.6
+    MJ_to_KGCO2e: 0.06680  # motor gasoline
+  kerosene:
+    MJ_to_KGCO2e: 0.07152  # kerosene
+  oil:
+    MJ_to_KGCO2e: 0.07089  # crude oil
   anthracite:
     TON_to_MJ:
-    MJ_to_KGCO2: 
+    MJ_to_KGCO2e: 0.09899 
   bituminous:
     TON_to_MJ: 
-    MJ_to_KGCO2: 
+    MJ_to_KGCO2e: 0.08912
   subbituminous:
     TON_TO_MJ:
-    MJ_to_KGCO2: 
+    MJ_to_KGCO2e: 0.09281
   mixed_coking:
     TON_TO_MJ:
-    MJ_to_KGCO2: 
+    MJ_to_KGCO2e: 0.08971
   mixed_ind:  # Mixed industrial sector
     TON_TO_MJ:
-    MJ_to_KGCO2:
+    MJ_to_KGCO2e: 0.09044
   diesel:
     GAL_to_MJ: 145.59  # 0.138 MMBtu/gal * 1055 MJ/MMBtu
-    MJ_to_KGCO2:  
-  bfg:  # Big Fri... er Blast Furnace Gas
+    MJ_to_KGCO2e:  
+  bfg: 
     FT3_TO_MJ:
-    MJ_to_KGCO2: 
+    MJ_to_KGCO2e: 
   fuel_gas:
     TON_TO_MJ:
     MJ_to_KGCO2: 
+  methanol:
+    MJ_to_KGCO2e: 0.06493  # ethanol
   landfill_gas:
     FT3_to_MJ:
-    MJ_to_KGCO2:
+    MJ_to_KGCO2e: 0.04961
   propane:
     GAL_to_MJ:
     MJ_to_KGCO2:
-  waste_oil:
+  liquid waste:
     GAL_to_MJ:
-    MJ_to_KGCO2:
+    MJ_to_KGCO2e: 0.07038  # used oil
   ag_byprod:
     TON_TO_MJ:
-    MJ_to_KGCO2: 
+    MJ_to_KGCO2:
+  recovered solvents:
+    MJ_to_KGCO2e: 0.06661  # pentanes plus
+  sawdust:
+    MJ_to_KGCO2e: 0.09009  # wood and wood residuals
+  solid waste:
+    MJ_to_KGCO2e: 0.08791  # municipal solid waste
+  tire-derived fuel:
+    MJ_to_KGCO2e: 0.08343 # tires
+  waste oil:
+    MJ_to_KGCO2e: 0.07038
+  wood residuals:
+    MJ_to_KGCO2e: 0.09009  # wood and wood residuals
+  wood/bark waste:
+    MJ_to_KGCO2e: 0.09009  # wood and wood residuals
 # Fuel Dictionary
 fuel_dict:
-  natural gas|natural-gas| ng|-ng: natural_gas
-  coal: coal
-  diesel|distillate: distillate_oil
-  fuel oil|residual oil|crude oil|heavy oil: residual_oil
+  natural gas|natural-gas| ng|-ng|gas|: natural_gas
+  anthracite coal: anthracite
+  bituminous coal: bituminous
+  bituminous/subbituminous coal: coal
+  diesel|distillate|distillate oil|distillate oil (diesel)|distillate oil (no. 2): distillate_oil
+  fuel oil|residual oil|residual fuel oil|heavy oil|residual/crude oil: residual_oil
+  crude oil: oil
+  co boiler: process_gas
   lignite: lignite
-  coke: coke
+  landfill gas: landfill_gas
+  gasified coal: process_gas
+  kerosene/naphtha (jet fuel): kerosene
   petroleum coke|pet coke: pet_coke
-  wood: wood
+  wood|exhaust from sawdust: wood
   bagasse: bagasse
   process gas|waste gas: process_gas
-  lpg|liquified petroleum|propane: LPG
+  lpg|liquified petroleum|propane|liquified petroleum gas|liquified petroleum gas (lpg): LPG
   gasoline: gasoline
-ghg_efs:
-  - 
 # unit conversions for total emissions and EF numerators
 unit_to_lb:
   LB: LB_to_LB

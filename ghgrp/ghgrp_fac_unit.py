@@ -26,29 +26,6 @@ class GHGRP_unit_char():
 
         self._reporting_year = reporting_year
 
-        def import_data_schema(data_source):
-            """
-            Import data schema for relevant data set.
-
-            Parameters
-            ----------
-            data_source : str; "NEI", "GHGRP", "QPC", "FRS"
-                Source of data
-
-            Returns
-            -------
-            self._data_schema : dict
-
-            """
-
-            with open('./nei/extracted_data_schema.json') as file:
-                data_schema = json.load(file)
-            data_schema = data_schema[0][data_source]
-
-            return data_schema
-
-        self._data_schema = import_data_schema(self._data_source)
-
     def load_fueltype_dict(self):
         """
         Opens and loads a yaml that specifies the mapping of
@@ -93,9 +70,7 @@ class GHGRP_unit_char():
 
         fuel_dict = self.load_fueltype_dict()
 
-        ghgrp_unit_data[fuel_type_column].update(
-            ghgrp_unit_data[fuel_type_column].map(fuel_dict)
-            )
+        ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
 
         # drop any fuelTypes that are null
         ghgrp_unit_data = ghgrp_unit_data.where(
@@ -176,40 +151,39 @@ class GHGRP_unit_char():
 
         # engine='pyxlsb' not working with python 3.6.5.final.0 and pandas 0.24.2
         # XLRDError: Excel 2007 xlsb file; not supported
-        # ghgrp_units = pd.read_excel(
-        #     unit_data_file_path,
-        #     engine='pyxlsb', sheet_name='UNIT_DATA'
-        #     )
+        try:
+            ghgrp_ind = pd.read_excel(
+                unit_data_file_path,
+                engine='pyxlsb', sheet_name='UNIT_DATA',
+                skiprows=6
+                )
+            
+        except XLRDError as e:
+            logging.error(f"{e}")
 
-        logging.info(f"Data file path: {unit_data_file_path}")
-        df = []
-        with open_workbook(unit_data_file_path) as wb:
-            with wb.get_sheet('UNIT_DATA') as sheet:
-                for row in sheet.rows():
-                    df.append([item.v for item in row])
+        else:
 
-        # Make sure to catch column row (first few rows of spreadsheet has
-        # values only in first column)
-        n = 0
-        while all(df[n]) is False:
-            n+=1
+            df = []
+            with open_workbook(unit_data_file_path) as wb:
+                with wb.get_sheet('UNIT_DATA') as sheet:
+                    for row in sheet.rows():
+                        df.append([item.v for item in row])
 
-        ghgrp_ind = pd.DataFrame(df[n+1:], columns=df[n])
+            # Make sure to catch column row (first few rows of spreadsheet has
+            # values only in first column)
+            n = 0
+            while all(df[n]) is False:
+                n+=1
+
+            ghgrp_ind = pd.DataFrame(df[n+1:], columns=df[n])
+
+
+        ghgrp_ind.columns = [x.strip() for x in ghgrp_ind.columns]
 
         ghgrp_ind.update(
             ghgrp_ind['Primary NAICS Code'].astype(int),
             overwrite=True
             )
-
-        # Select entries that are industrial facilities and 
-        # for reporting years that match GHGRP energy data years
-        # ghgrp_ind = ghgrp_ind.where(
-        #     (ghgrp_ind['Primary NAICS Code'].apply(
-        #         lambda x: str(x)[0:2] in ['11', '21', '23', '31', '32', '33']
-        #         )) &
-        #     (ghgrp_ind['Reporting Year'].isin(ghgrp_df.REPORTING_YEAR))
-        #     ).dropna(how='all')
-        
 
         # Industrial facilities aleady selected in FRS data.
         ghgrp_ind = ghgrp_ind.where(
@@ -221,13 +195,16 @@ class GHGRP_unit_char():
                 {'': None}
                 )
             )
+        
+        # Sum GHG emissions by gas
+        ghgrp_ind = self.aggregate_ghgs(ghgrp_ind)
 
         ghgrp_df = pd.merge(
             ghgrp_df,
             ghgrp_ind[[
                 'Reporting Year', 'Facility Id',
                 'Unit Maximum Rated Heat Input (mmBTU/hr)', 'Unit Name',
-                'FRS Id']],
+                'FRS Id', 'ghgsTonneCO2e']],
             left_on=['REPORTING_YEAR', 'FACILITY_ID', 'UNIT_NAME'],
             right_on=['Reporting Year', 'Facility Id', 'Unit Name'],
             how='left', indicator=True
@@ -243,8 +220,38 @@ class GHGRP_unit_char():
             'FRS Id': 'FRS_REGISTRY_ID'
             }, inplace=True
             )
-
+        
         return ghgrp_df
+    
+    def aggregate_ghgs(self, ghgrp_ind, biogenic=True):
+        """
+        Sum columns of CO2, CH4, and N20 emissions (all reported in original data as metric tonnes CO2 equivalent)
+
+        Parameters
+        ----------
+        ghgrp_ind : pandas.DataFrame
+            DataFrame of ghgrp unit data
+
+        biogenic : bool; default=True
+            Incidate whether biogenic emissions are included in the sum. 
+
+        Returns
+        -------
+        ghgrp_ind: pandas.DataFrame
+            DataFrame of ghgrp unit data with a new column for ghg emissions (ghgsTonneCO2e)
+
+        """
+    
+        sum_cols = ['Unit CO2 emissions (non-biogenic)', 'Unit Methane (CH4) emissions', 'Unit Nitrous Oxide (N2O) emissions',
+                    'Unit Biogenic CO2 emissions (metric tons)']
+        
+        if not biogenic:
+            sum_cols = sum_cols[0:-1]
+
+
+        ghgrp_ind.loc[:, 'ghgsTonneCO2e'] = ghgrp_ind[sum_cols].sum(axis=1)
+
+        return ghgrp_ind
 
     def format_ghgrp_df(self, ghgrp_df):
         """
@@ -262,14 +269,16 @@ class GHGRP_unit_char():
         # Harmonize fuel types for GHGRP data
         ghgrp_df = self.harmonize_fuel_type(ghgrp_df, 'FUEL_TYPE_FINAL')
 
+        ghgrp_df.to_csv('ghgrp_emissions.csv')
+
         # Aggregate. Units may combust multiple types of 
         # fuels and have multiple observations (estimates)
         # of energy use.
         ghgrp_df = ghgrp_df.groupby(
             ['FACILITY_ID', 'FRS_REGISTRY_ID', 'REPORTING_YEAR',
-             'FUEL_TYPE_FINAL', 'UNIT_NAME',
+             'FUEL_TYPE_FINAL', 'fuelTypeStd', 'UNIT_NAME',
              'UNIT_TYPE', 'MAX_CAP_MMBTU_per_HOUR'], as_index=False
-             ).TJ_TOTAL.sum()
+             )[['TJ_TOTAL', 'ghgsTonneCO2e']].sum()
 
         ghgrp_df.loc[:, "energyMJ"] = ghgrp_df.TJ_TOTAL * 10**6
 
@@ -281,7 +290,6 @@ class GHGRP_unit_char():
                 ghgrp_df.loc[item[0], 'designCapacity'] = item[1]*0.2931  # Convert to MW
 
             except TypeError:
-                logging.error(f"Can't convert this design capacity: {item[1]}")
                 ghgrp_df.loc[item[0], 'designCapacity'] = None
 
             else:
@@ -439,4 +447,3 @@ if __name__ == '__main__':
     reporting_year = 2017
     ghgrp_df = GHGRP_unit_char(ghgrp_energy_file, reporting_year).main()
     ghgrp_df.to_csv('formatted_ghgrp_unit_data.csv')
-    logging.info(f"df: {ghgrp_df.head()}")

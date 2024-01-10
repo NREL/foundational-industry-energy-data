@@ -56,5 +56,5 @@ def main(start_year, end_year):
 if __name__ == '__main__':
 
     reporting_year = 2017
-    ghgrp_file = main(reporting_year, 2018)
-    ghgrp_df = ghgrp_fac_unit.GHGRP_unit_char(ghgrp_file, reporting_year).main()
+    ghgrp_file = main(reporting_year, 2017)
+    # ghgrp_df = ghgrp_fac_unit.GHGRP_unit_char(ghgrp_file, reporting_year).main()

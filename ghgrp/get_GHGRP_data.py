@@ -2,47 +2,88 @@
 
 import pandas as pd
 import requests
-import xml.etree.ElementTree as et
 import sys
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
-def xml_to_df(xml_root, table_name, df_columns):
+
+def get_count(table_url):
     """
-    EPA has changed the Envirofacts API.
-    Converts elements of xml string obtained from EPA envirofacts (GHGRP)
-    to a DataFrame.
+    Get the number of rows for a specified GHGRP table (via url)
+    from EPA Envirofacts.
+
+    Parameters
+    ----------
+    table_url : str
+        URL for Envirofacts API
+
+
+    Returns
+    -------
+    row_count : int
+        Count of table rows. 
+    
     """
 
+    try:  
+        r = requests.get(table_url + '/count/json')
 
-    data = []
+    except requests.exceptions.RequestException as e:
+        logging.error(f'{e}\nTable url: {table_url}')
+        sys.exit(1)
 
-    if table_name in ['V_GHG_EMITTER_SUBPART', 'V_GHG_EMITTER_FACILITIES']:
+    try:
+        row_count = r.json()[0]['TOTALQUERYRESULTS']
 
-        for c in df_columns:
-            data.append(
-                [field.find(c).text for field in xml_root.findall(table_name)]
-                )
+    except (IndexError, requests.exceptions.JSONDecodeError) as e:
+        logging.error(f'Check API respose: {e}\n{r.status_code}')
+        sys.exit(1)
 
-    else:
-        for c in df_columns:
-            data.append([k.text for k in xml_root.iter(c)])
+    return row_count
 
-    rpd = pd.concat(
-        [pd.Series(d).T for d in data], axis=1
-        )
+def get_records(table_url, start_end):
+    """
+    Get specified rows for a specified GHGRP table (via url)
+    from EPA Envirofacts.
 
-    rpd.columns = df_columns
+    Parameters
+    ----------
+    table_url : str
+        URL for Envirofacts API
 
-    for c in rpd.columns:
-        try:
-            rpd.loc[:, c] = rpd[c].astype(float)
+    start_end : list of integers
+        List indicating the starting and ending row to get
+    (e.g., [0, 1000])
 
-        except ValueError as e:
-            logging.error(f'Formatting error for {table_name}: {e}')
+    Returns
+    -------
+    records_df : pandas.DataFrame
+        DataFrame of records from Envirofacts API.
+    
+    """
 
-    return rpd
+    try:
+
+        r_records = requests.get(
+            f'{table_url}/rows/{start_end[0]}:{start_end[1]}/json'
+            )
+
+    except requests.exceptions.RequestException as e:
+
+        logging.error(f'{e}, {table_url}')
+        sys.exit(1)
+
+    try:
+
+        json_data = pd.DataFrame(r_records.json())
+
+    except requests.exceptions.JSONDecodeError:
+
+        logging.error(f'Table URL: {table_url}\n{r_records.content}')
+        sys.exit(1)
+
+    return json_data
 
 
 def get_GHGRP_records(reporting_year, table, rows=None):
@@ -52,63 +93,37 @@ def get_GHGRP_records(reporting_year, table, rows=None):
     D_FUEL_LEVEL_INFORMATION, c_configuration_level_info, and
     V_GHG_EMITTER_FACILITIES.
     Optional argument to specify number of table rows.
+
+    Parameters
+    ----------
+    reporting_year : int
+        Reporting year of GHGRP data
+
+    table : str
+        Name of GHGRP Envirofacts table to retrieve records from
+
+    rows : int; default=None
+        Number of table rows to retrieve, beginning at row 0.
+
+    Returns
+    -------
+    ghgrp : pandas.DataFrame
+        DataFrame of GHGRP Envirofacts data.
     """
-
-    s = ""
-
-#    max_retries = 25
 
     if table[0:14] == 'V_GHG_EMITTER_':
 
-        table_url = ('https://enviro.epa.gov/enviro/efservice/', table,
-                     '/YEAR/', str(reporting_year))
-
-        table_url = "".join(table_url)
+        table_url = f'https://enviro.epa.gov/enviro/efservice/{table}/YEAR/{reporting_year}'
 
     else:
 
-        table_url = ('https://enviro.epa.gov/enviro/efservice/', table,
-                     '/REPORTING_YEAR/', str(reporting_year))
+        table_url = f'https://enviro.epa.gov/enviro/efservice/{table}/REPORTING_YEAR/{reporting_year}'
 
-        table_url = "".join(table_url)
-
-    r_columns = requests.get(table_url + '/rows/0:1')
-    r_columns_root = et.fromstring(r_columns.content)
-
-    ghgrp = pd.DataFrame(columns=[child.tag for child in r_columns_root[0]])
+    ghgrp = pd.DataFrame()
 
     if rows is None:
 
-        try:  
-            r = requests.get(table_url + '/count/json')  # Original used XML formatting
-            # r = requests.get(table_url + '/count')  #
-
-        except requests.exceptions.RequestException as e:
-            print(e, table_url)
-            sys.exit(1)
-
-        logging.info(f'Count of {r.url} is {r.content}\nOriginal URL: {table_url}')
-        # API has changed since original code.
-        # tree = et.fromstring(r.content)
-
-        # counts = \
-        #     [[c for c in tree.iter(n)] for n in ['Count', 'RequestRecordCount']]
-
-        try:
-
-            counts = r.json()[0]['TOTALQUERYRESULTS']
-            logging.info(f'JSON tree counts: {counts}')
-
-        except IndexError as e:
-            logging.error(f'Check API respose: {e}')
-
-
-        # logging.info(f'XML tree counts: {counts}')
-
-        # if counts[0] == []:
-        #     nrecords = int(counts[1][0].text)
-
-        nrecords = counts
+        nrecords = get_count(table_url)
 
         if nrecords > 10000:
 
@@ -116,60 +131,48 @@ def get_GHGRP_records(reporting_year, table, rows=None):
 
             for n in range(len(rrange) - 1):
 
-                try:
-                    r_records = requests.get(
-                        f'{table_url}/rows/{rrange[n]}:{rrange[n + 1]}'
-                        )
+                json_data = get_records(table_url, [rrange[n], rrange[n + 1]])
 
-                except requests.exceptions.RequestException as e:
+                ghgrp = ghgrp.append(json_data)
 
-                    logging.error(f'{e}, {table_url}')
-                    sys.exit(1)
+            records_last = get_records(table_url, [rrange[-1], nrecords])
 
-                else:
-
-                    records_root = et.fromstring(r_records.content)
-                    r_df = xml_to_df(records_root, table, ghgrp.columns)
-                    ghgrp = ghgrp.append(r_df)
-
-            records_last = requests.get(
-                f'{table_url}/rows/{rrange[-1]}:{nrecords}'
-                )
-
-            records_lroot = et.fromstring(records_last.content)
-            rl_df = xml_to_df(records_lroot, table, ghgrp.columns)
-            ghgrp = ghgrp.append(rl_df)
+            ghgrp = ghgrp.append(records_last)
 
         else:
 
+            json_data = get_records(table_url, [0, nrecords])
+
+            ghgrp = ghgrp.append(json_data)
+
             try:
                 r_records = \
-                    requests.get(f'{table_url}/rows/0:{nrecords}')
+                    requests.get(f'{table_url}/rows/0:{nrecords}/json')
 
             except requests.exceptions.RequestException as e:
                 logging.error(f'{e}, {table_url}')
                 sys.exit(1)
 
+            try:
+
+                json_data = pd.DataFrame(r_records.json())
+
+            except requests.exceptions.JSONDecodeError:
+
+                logging.error(f'{r_records.content}')
+            
             else:
 
-                records_root = et.fromstring(r_records.content)
-                r_df = xml_to_df(records_root, table, ghgrp.columns)
-                ghgrp = ghgrp.append(r_df)
+                ghgrp = ghgrp.append(json_data)
 
     else:
 
-        try:
-            r_records = requests.get(f'{table_url}/rows/0:{rows}')
+        json_data = get_records(table_url, [0, rows])
 
-        except requests.exceptions.RequestException as e:
-            logging.error(f'{e}, {table_url}')
-            sys.exit(1)
-
-        else:
-            records_root = et.fromstring(r_records.content)
-            r_df = xml_to_df(records_root, table, ghgrp.columns)
-            ghgrp = ghgrp.append(r_df)
+        ghgrp = ghgrp.append(json_data)
 
     ghgrp.drop_duplicates(inplace=True)
+
+    ghgrp.columns = [c.upper() for c in ghgrp.columns]
 
     return ghgrp
