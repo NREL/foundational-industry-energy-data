@@ -6,12 +6,9 @@ Created on Wed Mar  6 21:12:25 2019
 """
 
 import os
-import pdb
 import logging
 import pandas as pd
 import numpy as np
-# import find_fips
-# import ghg_tiers
 import get_GHGRP_data
 import sys
 sys.path.append(f"{os.path.expanduser('~')}/foundational-industry-energy-data")
@@ -82,8 +79,6 @@ class GHGRP(FiedGIS, TierEnergy):
     except FileNotFoundError:
         fac_file_2010 = get_GHGRP_data.get_GHGRP_records(reporting_year=2010, table='V_GHG_EMITTER_FACILITIES')
         fac_file_2010.to_csv(os.path.abspath(os.path.join(file_dir, 'fac_table_2010.csv')), index=False)
-
-    mfips_file = 'found_fips.csv'
 
     gis = FiedGIS()
 
@@ -380,8 +375,8 @@ class GHGRP(FiedGIS, TierEnergy):
 
         Paramters
         ---------
-        subpart : str. 'subpartC', 'subpartD', 'subpartV_fac', 'subpartV_emis',
-        'subpartAA_ff', or 'subpartAA_liq'
+        subpart : str; {'subpartC', 'subpartD', 'subpartV_fac', 'subpartV_emis',
+                        'subpartAA_ff', or 'subpartAA_liq'}
 
             Name of GHGRP subpart.
 

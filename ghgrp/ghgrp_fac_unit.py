@@ -195,16 +195,13 @@ class GHGRP_unit_char():
                 {'': None}
                 )
             )
-        
-        # Sum GHG emissions by gas
-        ghgrp_ind = self.aggregate_ghgs(ghgrp_ind)
 
         ghgrp_df = pd.merge(
             ghgrp_df,
             ghgrp_ind[[
                 'Reporting Year', 'Facility Id',
                 'Unit Maximum Rated Heat Input (mmBTU/hr)', 'Unit Name',
-                'FRS Id', 'ghgsTonneCO2e']],
+                'FRS Id']],
             left_on=['REPORTING_YEAR', 'FACILITY_ID', 'UNIT_NAME'],
             right_on=['Reporting Year', 'Facility Id', 'Unit Name'],
             how='left', indicator=True
@@ -223,35 +220,8 @@ class GHGRP_unit_char():
         
         return ghgrp_df
     
-    def aggregate_ghgs(self, ghgrp_ind, biogenic=True):
-        """
-        Sum columns of CO2, CH4, and N20 emissions (all reported in original data as metric tonnes CO2 equivalent)
-
-        Parameters
-        ----------
-        ghgrp_ind : pandas.DataFrame
-            DataFrame of ghgrp unit data
-
-        biogenic : bool; default=True
-            Incidate whether biogenic emissions are included in the sum. 
-
-        Returns
-        -------
-        ghgrp_ind: pandas.DataFrame
-            DataFrame of ghgrp unit data with a new column for ghg emissions (ghgsTonneCO2e)
-
-        """
-    
-        sum_cols = ['Unit CO2 emissions (non-biogenic)', 'Unit Methane (CH4) emissions', 'Unit Nitrous Oxide (N2O) emissions',
-                    'Unit Biogenic CO2 emissions (metric tons)']
-        
-        if not biogenic:
-            sum_cols = sum_cols[0:-1]
-
-
-        ghgrp_ind.loc[:, 'ghgsTonneCO2e'] = ghgrp_ind[sum_cols].sum(axis=1)
-
-        return ghgrp_ind
+    # GHG emissions in the GHGRP unit file are aggregated to unit and not fuel type and unit. which is what is
+    # needed.
 
     def format_ghgrp_df(self, ghgrp_df):
         """
@@ -274,11 +244,14 @@ class GHGRP_unit_char():
         # Aggregate. Units may combust multiple types of 
         # fuels and have multiple observations (estimates)
         # of energy use.
+        # NOTE that the GHG emissions total here when summed to
+        # unit type may not match the GHG emissions by unit type 
+        # found in the GHGRP unit data xlsb file.
         ghgrp_df = ghgrp_df.groupby(
             ['FACILITY_ID', 'FRS_REGISTRY_ID', 'REPORTING_YEAR',
              'FUEL_TYPE_FINAL', 'fuelTypeStd', 'UNIT_NAME',
              'UNIT_TYPE', 'MAX_CAP_MMBTU_per_HOUR'], as_index=False
-             )[['TJ_TOTAL', 'ghgsTonneCO2e']].sum()
+             )[['TJ_TOTAL', 'MTCO2e_TOTAL']].sum()
 
         ghgrp_df.loc[:, "energyMJ"] = ghgrp_df.TJ_TOTAL * 10**6
 
@@ -310,7 +283,8 @@ class GHGRP_unit_char():
             'FUEL_TYPE_FINAL': 'fuelType',
             'UNIT_NAME': 'unitName',
             'FRS_REGISTRY_ID': 'registryID',
-            'UNIT_TYPE': 'unitType'
+            'UNIT_TYPE': 'unitType',
+            'MTCO2e_TOTAL': 'ghgsTonneCO2e'
             }, inplace=True)
 
         ghgrp_df.registryID.update(ghgrp_df.registryID.astype(float))
@@ -443,7 +417,7 @@ class GHGRP_unit_char():
 
 
 if __name__ == '__main__':
-    ghgrp_energy_file = 'ghgrp_energy_20230508-1606.parquet'
+    ghgrp_energy_file = 'ghgrp_energy_20240110-1837.parquet'
     reporting_year = 2017
     ghgrp_df = GHGRP_unit_char(ghgrp_energy_file, reporting_year).main()
-    ghgrp_df.to_csv('formatted_ghgrp_unit_data.csv')
+    # ghgrp_df.to_csv('formatted_ghgrp_unit_data.csv')

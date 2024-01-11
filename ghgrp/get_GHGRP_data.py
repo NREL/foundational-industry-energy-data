@@ -175,6 +175,7 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
 
     if table[0:14] == 'V_GHG_EMITTER_':
 
+        # EPA changed their table names
         if table == 'V_GHG_EMITTER_FACILITIES':
 
             table = 'RLPS_GHG_EMITTER_FACILITIES'
