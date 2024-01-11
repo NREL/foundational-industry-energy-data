@@ -3,9 +3,54 @@
 import pandas as pd
 import requests
 import sys
+import time
 import logging
+from requests.adapters import HTTPAdapter, Retry
 
 logging.basicConfig(level=logging.INFO)
+
+
+def requests_retry_session(retries=3, backoff_factor=0.7, status_forcelist=[500, 502, 504], session=None):
+    """
+
+
+    Parameters
+    ----------
+    retries : int
+        Number of retries to allow.
+
+    backoff_factor : float
+        Backoff factor to apply between attempts.
+
+    status_forcelist : list
+        List of HTTP status codes to force a retry on.
+
+    session : None
+
+
+    Returns
+    -------
+    session : 
+    
+    """
+
+    session = session or requests.Session()
+
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+        )
+
+    adapter = HTTPAdapter(max_retries=retry)
+
+    session.mount('http://', adapter)
+
+    session.mount('https://', adapter)
+
+    return session
 
 
 def get_count(table_url):
@@ -26,8 +71,13 @@ def get_count(table_url):
     
     """
 
+    table_url = f'{table_url}/count/json'
+
+    t0 = time.time()
     try:  
-        r = requests.get(table_url + '/count/json')
+        r = requests_retry_session().get(table_url)
+        logging.info(f'{r.status_code}')
+        # r = requests.get(table_url)
 
     except requests.exceptions.RequestException as e:
         logging.error(f'{e}\nTable url: {table_url}')
@@ -40,7 +90,11 @@ def get_count(table_url):
         logging.error(f'Check API respose: {e}\n{r.status_code}')
         sys.exit(1)
 
+    t1 = time.time()
+    logging.info(f"That took {t1 - t0} seconds")
+
     return row_count
+
 
 def get_records(table_url, start_end):
     """
@@ -63,30 +117,35 @@ def get_records(table_url, start_end):
     
     """
 
-    try:
+    table_url = f'{table_url}/rows/{start_end[0]}:{start_end[1]}/json'
 
-        r_records = requests.get(
-            f'{table_url}/rows/{start_end[0]}:{start_end[1]}/json'
-            )
+    t0 = time.time()
+    try:
+        r_records = requests_retry_session().get(table_url)
+        logging.info(f'{r_records.status_code}')
+        # r_records = requests.get(table_url)
 
     except requests.exceptions.RequestException as e:
 
-        logging.error(f'{e}, {table_url}')
+        logging.error(f'{e}\n{table_url}')
         sys.exit(1)
 
     try:
 
         json_data = pd.DataFrame(r_records.json())
 
-    except requests.exceptions.JSONDecodeError:
+    except requests.exceptions.JSONDecodeError as e:
 
-        logging.error(f'Table URL: {table_url}\n{r_records.content}')
+        logging.error(f'{e}\nTable URL: {table_url}\n{r_records.content}')
         sys.exit(1)
+
+    t1 = time.time()
+    logging.info(f"That took {t1 - t0} seconds")
 
     return json_data
 
 
-def get_GHGRP_records(reporting_year, table, rows=None):
+def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
     """
     Return GHGRP data using EPA RESTful API based on specified reporting year
     and table. Tables of interest are C_FUEL_LEVEL_INFORMATION,
@@ -105,6 +164,9 @@ def get_GHGRP_records(reporting_year, table, rows=None):
     rows : int; default=None
         Number of table rows to retrieve, beginning at row 0.
 
+    api_row_max : int; default={1000}
+        Maximum number of table rows to return at a time. 
+        Envirofacts API for the GHGRP seems to be overwhelmed by > 1000 rows.
     Returns
     -------
     ghgrp : pandas.DataFrame
@@ -112,6 +174,14 @@ def get_GHGRP_records(reporting_year, table, rows=None):
     """
 
     if table[0:14] == 'V_GHG_EMITTER_':
+
+        if table == 'V_GHG_EMITTER_FACILITIES':
+
+            table = 'RLPS_GHG_EMITTER_FACILITIES'
+
+        elif table == 'V_GHG_EMITTER_SUBPART':
+
+            table = 'RLPS_GHG_EMITTER_SUBPART'
 
         table_url = f'https://enviro.epa.gov/enviro/efservice/{table}/YEAR/{reporting_year}'
 
@@ -125,9 +195,11 @@ def get_GHGRP_records(reporting_year, table, rows=None):
 
         nrecords = get_count(table_url)
 
-        if nrecords > 10000:
+        # API doesn't seem to be able to handle calls for more than 1000 rows at a time. 
 
-            rrange = range(0, nrecords, 10000)
+        if nrecords > api_row_max:
+
+            rrange = range(0, nrecords, api_row_max)
 
             for n in range(len(rrange) - 1):
 
@@ -167,9 +239,23 @@ def get_GHGRP_records(reporting_year, table, rows=None):
 
     else:
 
-        json_data = get_records(table_url, [0, rows])
+        if rows > api_row_max:
 
-        ghgrp = ghgrp.append(json_data)
+            rrange = range(0, rows, api_row_max)
+
+            for n in range(len(rrange) - 1):
+
+                json_data = get_records(table_url, [rrange[n], rrange[n + 1]])
+
+                ghgrp = ghgrp.append(json_data)
+
+            records_last = get_records(table_url, [rrange[-1], nrecords])
+
+            ghgrp = ghgrp.append(records_last)
+
+        # json_data = get_records(table_url, [0, rows])
+
+        # ghgrp = ghgrp.append(json_data)
 
     ghgrp.drop_duplicates(inplace=True)
 

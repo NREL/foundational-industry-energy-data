@@ -63,7 +63,7 @@ class FiedGIS:
         return gf
     
     @staticmethod
-    def merge_coordinates_geom(fied_state, gf, ftype=None):
+    def merge_coordinates_geom(fied_state, gf, ftype=None, data_source='fied'):
         """"
         First creates POINT geometry from facility coordinates. Then 
         locates the points within specific geographic identifier type. Finally,
@@ -80,6 +80,9 @@ class FiedGIS:
         ftype : str, {'BG', 'CD', 'COUNTY', 'HUC'}
             Type of file to return. 'BG' == census block groups; 
             'CD' == congressional districts; 'COUNTY' == county FIPS; 'HUC' == hydrolic unit code.
+
+        data_source : str, {'fied', 'ghgrp'}
+            Source of data with missing geographic identifiers.
 
         Returns
         -------
@@ -101,7 +104,7 @@ class FiedGIS:
                 },
             'COUNTY': {
                 'geocolumn': 'GEOID',
-                're_column': 'countyFIPS'
+                're_column': 'COUNTY_FIPS'
                 },
             'CD': {
                 'geocolumn': 'GEOID',
@@ -133,20 +136,14 @@ class FiedGIS:
             inplace=True
             )
         
-        try:
-            matched_geo.drop(
-                ['geometry', 'latitude', 'longitude', 'index_right'], 
-                axis=1,
-                inplace=True
-                )
-            
-        except KeyError:
+        if data_source == 'fied':
+            drop_cols =  ['geometry', 'latitude', 'longitude', 'index_right']
 
-            matched_geo.drop(
-                ['geometry', 'LATITUDE', 'LONGITUDE', 'index_right'], 
-                axis=1,
-                inplace=True
-                )
+        elif data_source == 'ghgrp':
+            drop_cols =  ['geometry', 'LATITUDE', 'LONGITUDE', 'index_right']
+
+        matched_geo.drop(drop_cols, axis=1, inplace=True)
+
         
         return matched_geo
 
@@ -202,7 +199,6 @@ class FiedGIS:
             except KeyError:
                 continue
 
-            
             df_state = pd.DataFrame(
                 df.query(f"{state_col}==@state")[data_cols]
                 )
@@ -221,7 +217,8 @@ class FiedGIS:
                 matched = FiedGIS.merge_coordinates_geom(
                     fied_state=df_state,
                     gf=gf,
-                    ftype=t
+                    ftype=t,
+                    data_source=data_source
                     )
 
                 geo_data_state = pd.concat(
@@ -253,10 +250,3 @@ class FiedGIS:
             )
         
         return df
-
-if __name__ == '__main__':
-    gis = FiedGIS()
-    test = pd.read_csv('c:/users/cmcmilla/Desktop/fac_table_2010.csv', index_col=0, encoding='latin1')
-    test = gis.merge_geom(test, year=2017, ftypes=['COUNTY'], data_source='ghgrp')
-    logging.info(f'{test.head()}')
-

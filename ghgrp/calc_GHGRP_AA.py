@@ -6,6 +6,7 @@ Created on Wed Aug 30 09:52:53 2017
 """
 import pandas as pd
 import itertools
+import pdb
 
 
 class subpartAA:

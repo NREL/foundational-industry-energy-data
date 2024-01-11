@@ -11,7 +11,7 @@ import logging
 import numpy as np
 
 
-class tier_energy:
+class TierEnergy:
     """
     Class for methods that estimate combustion energy use from emissions data
     reported to the EPA's GHGRP.
@@ -54,7 +54,7 @@ class tier_energy:
             Tables are 't2_hhv' and 't3'
             """
 
-            filedir = os.path.abspath('../data/GHGRP/')
+            filedir = os.path.abspath('./data/GHGRP/')
 
             #Check first if data have been downloaded already
             dl_tables = {'t2_hhv': ['t2_hhv'],

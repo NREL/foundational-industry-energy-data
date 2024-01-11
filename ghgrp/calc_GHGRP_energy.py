@@ -6,17 +6,22 @@ Created on Wed Mar  6 21:12:25 2019
 """
 
 import os
+import pdb
 import logging
 import pandas as pd
 import numpy as np
-import find_fips
-import ghg_tiers
+# import find_fips
+# import ghg_tiers
 import get_GHGRP_data
+import sys
+sys.path.append(f"{os.path.expanduser('~')}/foundational-industry-energy-data")
+from geocoder.geopandas_tools import FiedGIS
+from ghg_tiers import TierEnergy
 
 logging.basicConfig(level=logging.INFO)
 
 
-class GHGRP:
+class GHGRP(FiedGIS, TierEnergy):
     """
     Estimates industrial (i.e., manufacturing, ag, construction, mining)
     facility energy use based on either reported energy use or
@@ -80,6 +85,8 @@ class GHGRP:
 
     mfips_file = 'found_fips.csv'
 
+    gis = FiedGIS()
+
     def __init__(self, years, calc_uncertainty):
 
         if type(years) == tuple:
@@ -89,6 +96,9 @@ class GHGRP:
             self.years = [years]
 
         self.calc_uncertainty = calc_uncertainty
+
+        self.tier_calcs = TierEnergy(years=self.years, std_efs=self.std_efs)
+
 
     def format_emissions(self, GHGs):
         """
@@ -196,16 +206,23 @@ class GHGRP:
             facdata = pd.read_csv(ffile)
 
         # Duplicate entries in facility data query. Remove them to enable a
-        # # 1:1 mapping of facility info with ghg data via FACILITY_ID.
-        # # First ID facilities that have cogen units.
+        # 1:1 mapping of facility info with ghg data via FACILITY_ID.
+        # First ID facilities that have cogen units.
+        # EPA has changed their table column names
         fac_cogen = facdata.FACILITY_ID[
-            facdata['COGENERATION_UNIT_EMISS_IND'] == 'Y'
+            facdata['COGEN_UNIT_EMM_IND'] == 'Y'
             ]
 
         facdata.dropna(subset=['FACILITY_ID'], inplace=True)
 
         # Reindex dataframe based on facility ID
         facdata.FACILITY_ID = facdata.FACILITY_ID.astype(int)
+
+        # EPA changed table column names:
+        facdata.rename(columns={
+            'PRIMARY_NAICS': 'PRIMARY_NAICS_CODE',
+            'SECONDARY_NAICS': 'SECONDARY_NAICS_CODE'},
+            inplace=True)
 
         # Correct PRIMARY_NAICS_CODE from 561210 to 324110 for Sunoco
         # Toldeo Refinery (FACILITY_ID == 1001056); correct
@@ -239,7 +256,7 @@ class GHGRP:
         cogen_index = facdata[facdata.FACILITY_ID.isin(fac_cogen)].index
 
         # Re-label facilities with cogen units
-        facdata.loc[cogen_index, 'COGENERATION_UNIT_EMISS_IND'] = 'Y'
+        facdata.loc[cogen_index, 'COGEN_UNIT_EMM_IND'] = 'Y'
 
         facdata['MECS_Region'] = ""
 
@@ -272,44 +289,17 @@ class GHGRP:
         all_fac = all_fac.append(self.fac_read_fix(oth_facfile))
 
         # Drop duplicated facility IDs, keeping first instance (i.e., year).
-        all_fac = \
-            pd.DataFrame(all_fac[~all_fac.index.duplicated(keep='first')])
+        all_fac = pd.DataFrame(all_fac[~all_fac.index.duplicated(keep='first')])
 
-        # Identify facilities with missing County FIPS data and fill missing
-        # data. Most of these facilities are mines or natural gas/crude oil
-        # processing plants.
-        ff_index = all_fac[all_fac.COUNTY_FIPS.isnull() == False].index
+        # Fill in missing county FIPS codes        
+        all_fac = self.gis.merge_geom(
+            all_fac.reset_index(), year=2017, ftypes=['COUNTY'],
+            data_source='ghgrp'
+            )
 
-        all_fac.loc[ff_index, 'COUNTY_FIPS'] = \
-            [np.int(x) for x in all_fac.loc[ff_index, 'COUNTY_FIPS']]
-        
-        # TODO delete this after fixing fips_find
-        all_fac.to_csv('all_fac.csv')
+        all_fac.drop('COUNTY_FIPS_x', axis=1, inplace=True)
 
-        # Update facility information with new county FIPS data
-        missingfips = pd.DataFrame(
-                all_fac[all_fac.COUNTY_FIPS.isnull() == True]
-                )
-
-        # Check if missing fips in file
-        if self.mfips_file in os.listdir(self.file_dir):
-
-            found_fips = pd.read_csv(
-                os.path.join(self.file_dir, self.mfips_file)
-                )
-
-            missingfips = pd.merge(missingfips, found_fips,
-                                   on=['FACILITY_ID']
-                                   )
-
-        else:
-
-            missingfips.loc[:, 'COUNTY_FIPS'] = \
-                [find_fips.fipfind(
-                        self.file_dir, i, missingfips
-                        ) for i in missingfips.index]
-
-        all_fac.loc[missingfips.index, 'COUNTY_FIPS'] = missingfips.COUNTY_FIPS
+        all_fac.rename(columns={'COUNTY_FIPS_y': 'COUNTY_FIPS'}, inplace=True)
 
         all_fac['COUNTY_FIPS'].fillna(0, inplace=True)
 
@@ -318,13 +308,9 @@ class GHGRP:
     #    EPA data for some facilities are missing county fips info
         all_fac.COUNTY_FIPS = all_fac.COUNTY_FIPS.apply(np.int)
 
-        concat_mecs_region = \
-            pd.concat(
-                [all_fac.MECS_Region, self.MECS_regions.MECS_Region], axis=1,
-                join_axes=[all_fac.COUNTY_FIPS]
-                )
+        all_fac.set_index('COUNTY_FIPS', inplace=True)
 
-        all_fac.loc[:, 'MECS_Region'] = concat_mecs_region.iloc[:, 1].values
+        all_fac.MECS_Region.update(self.MECS_regions.MECS_Region)
 
         all_fac.rename(columns={'YEAR': 'FIRST_YEAR_REPORTED'}, inplace=True)
 
@@ -542,11 +528,11 @@ class GHGRP:
                     (energy_subC.FUEL_TYPE == 'Wood and Wood Residuals (dry basis)'),
                         'T4CH4COMBUSTIONEMISSIONS'].multiply(1.9 / 7.2)
 
-        tier_calcs = ghg_tiers.tier_energy(years=self.years,
-                                          std_efs=self.std_efs)
+        # tier_calcs = ghg_tiers.tier_energy(years=self.years,
+        #                                   std_efs=self.std_efs)
 
         # New method for calculating energy based on tier methodology
-        energy_subC = tier_calcs.calc_all_tiers(energy_subC)
+        energy_subC = self.tier_calcs.calc_all_tiers(energy_subC)
 
         part75_subC_columns = list(
                 energy_subC.columns.intersection(part75_mmbtu.columns)
@@ -565,7 +551,6 @@ class GHGRP:
             )
 
         return energy_subC
-
 
     def calc_energy_subD(self, formatted_subD, all_fac):
         """
