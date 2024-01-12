@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import os
-import json
 import yaml
 import re
 import logging
@@ -674,9 +673,17 @@ class NEI:
             raise IndexError("Reported emissions have additional units of measurement")
 
         # aggregated to facility, unit, and process and fuel type
-        ghgs = ghgs.groupby([
-            'eis_facility_id', 'eis_unit_id', 'eis_process_id', 'fuel_type'
-            ], as_index=False).ghgsTonneCO2e.sum()
+        ghgs = ghgs.groupby(
+            ['eis_facility_id', 'eis_unit_id', 'eis_process_id', 'fuel_type'],
+            as_index=False
+            ).ghgsTonneCO2e.sum()
+        
+        # Make ghg columns consistent with energy columns. Because there is only one
+        # reported value, these are all equal.
+        ghgs.loc[:,  ['ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']] = \
+            np.tile(ghgs.ghgsTonneCO2e.values, (3, 1)).T
+        
+        ghgs.drop(['ghgsTonneCO2e'], axis=1, inplace=True)
         
         return ghgs
 
@@ -686,6 +693,18 @@ class NEI:
         Not all NEI facilities report GHG emissions from fuel combustion. Calculate these missing values using 
         EPA default emissions factors.
 
+        Parameters
+        ----------
+        ghgs : pandas.DataFrame
+            Emissions reported directly by NEI
+
+        nei_data : pandas.DataFrame
+            Formatted NEI data with energy calculations.
+
+        Returns
+        -------
+        nei_data : pandas.DataFrame
+            Formatted NEI data with energy and GHG emissions calculations.
 
         """
 
@@ -706,11 +725,11 @@ class NEI:
         nei_data.loc[:, 'ef'] = nei_data.fuel_type.map(efs)
 
         emissions = \
-            nei_data.dropna(subset=['ghgsTonneCO2e'], axis=0)[['energy_MJ_q0','energy_MJ_q2', 'energy_MJ_q3']].multiply(nei_data.ef, axis=0)/1000
+            nei_data[nei_data.ghgsTonneCO2eQ2.isnull()][['energy_MJ_q0','energy_MJ_q2', 'energy_MJ_q3']].multiply(nei_data.ef, axis=0)/1000
 
-        emissions.columns = ['ghgsTonneCO2eq0', 'ghgsTonneCO2eq2', 'ghgsTonneCO2eq3']
+        emissions.columns = ['ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']
 
-        nei_data = nei_data.join(emissions)
+        nei_data.update(emissions)
 
         nei_data.drop('ef', axis=1, inplace=True)
     
@@ -1344,7 +1363,7 @@ class NEI:
             'process_description',
             'energy_MJ_q0', 'energy_MJ_q2', 'energy_MJ_q3',
             'throughputTonneQ0', 'throughputTonneQ2', 'throughputTonneQ3',
-            'ghgsTonneCO2e', 'ghgsTonneCO2eq0', 'ghgsTonnesCO2eq2', 'ghgsTonnesCO2eq3'
+            'ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3', 
             ]
 
         df = df[keep_cols]

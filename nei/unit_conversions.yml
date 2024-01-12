@@ -157,6 +157,8 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     MJ_to_KGCO2e: 0.09009  # wood and wood residuals
   wood/bark waste:
     MJ_to_KGCO2e: 0.09009  # wood and wood residuals
+  biomass:
+    MJ_to_KGCO2e:  0.11395   # agricultural byproducts
 # Fuel Dictionary
 fuel_dict:
   natural gas|natural-gas| ng|-ng|gas|: natural_gas
@@ -168,7 +170,7 @@ fuel_dict:
   crude oil: oil
   co boiler: process_gas
   lignite: lignite
-  landfill gas: landfill_gas
+  landfill gas|digester gas: landfill_gas
   gasified coal: process_gas
   kerosene/naphtha (jet fuel): kerosene
   petroleum coke|pet coke: pet_coke
