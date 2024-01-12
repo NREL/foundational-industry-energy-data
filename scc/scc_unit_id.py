@@ -251,53 +251,6 @@ class SCC_ID:
 
         return scc_exc
 
-        # if ':' in scc_level_four:
-        #     unit_type = scc_level_four.split(': ')[-1]
-
-        #     if unit_type in other_fuels:
-        #         unit_type = 'Boiler'
-
-        #     else:
-        #         pass
-
-        # else:
-        #     unit_type = scc_level_four
-
-        # if scc_level_four in other_fuels:
-        #     unit_type = 'Boiler'
-
-        # else:
-        #     pass
-
-        # fuel_type = scc_level_three
-
-        # if fuel_type == 'CO Boiler':
-        #     fuel_type = scc_level_four
-
-        # else:
-        #     pass
-
-        # if fuel_type in ['Industrial', 'Commercial/Institutional']:
-        #     unit_type = scc_level_two
-        #     fuel_type = scc_level_four.split(':')[0]
-
-        # else:
-        #     pass
-
-        # if unit_type in ['All', 'Butane', 'Propane']:
-        #     unit_type = 'Boiler'
-
-        # else:
-        #     pass
-
-        # if 'Wood-fired' in unit_type:
-        #     unit_type = 'Boiler'
-
-        # else:
-        #     pass
-
-        # return unit_type, fuel_type
-
     def id_ice(self, all_scc):
         """
         Method for identifying relevant unit and fuel types under 
@@ -357,44 +310,6 @@ class SCC_ID:
         scc_ice.loc[:, 'fuel_type'] = fuel_types
 
         return scc_ice
-
-
-        # if scc_level_two in ['Electric Generation', 'Industrial',
-        #                      'Commercial/Institutional',
-        #                      'Marine Vessels, Commercial', 'Railroad Equipment'
-        #                     ]:
-
-        #     if ":" in scc_level_four:
-        #         unit_type = scc_level_four.split(':')[0]
-
-        #     else:
-        #         unit_type = scc_level_four
-
-        #     fuel_type = scc_level_three
-
-        # elif scc_level_two in ['Engine Testing']:
-        #     unit_type = scc_level_three
-        #     fuel_type = scc_level_four
-
-        # elif scc_level_two in ['Off-highway 2-stroke Gasoline Engines',
-        #                        'Off-highway 4-stroke Gasoline Engines',
-        #                        'Off-highway Diesel Engines',
-        #                        'Off-highway LPG-fueled Engines',
-        #                        'Fixed Wing Aircraft L & TO Exhaust'
-        #                        ]:
-        #     try:
-        #         unit_type, fuel_type = scc_level_three.split(': ')
-
-        #     except ValueError:
-        #         print(f'This does not work: {scc_level_three}')
-        #         unit_type = np.nan
-        #         fuel_type = np.nan
-
-        # else:
-        #     unit_type = np.nan
-        #     fuel_type = np.nan
-
-        # return unit_type, fuel_type
 
     def id_stationary_fuel_combustion(self, all_scc):
         """
@@ -672,6 +587,17 @@ class SCC_ID:
                         if 'diesel' in ut.lower():
                             ft = 'Diesel'
 
+                        elif ':' in ut: 
+                            x, y = ut.split(': ')
+
+                            if any([z in x for z in ['Distillate', 'Residual', 'Gas',
+                                                    'Liquid', 'Propane']]):
+                                ft = x
+                                ut = y
+
+                            else:
+                                ft = y
+                                ut = x
                         else:
                             ft = None
 
@@ -695,6 +621,10 @@ class SCC_ID:
 
             # elif r['tier_1_description'] == 'Fuel Comb. Industrial':
             #     ft = f'{r["tier_3_description"]} {"tier_2_description"}'
+            
+            # Cludge for catching technologies that use electricity
+            if re.search(r'(elec)', ut.lower()):
+                ft = 'electricity'
 
             fuel_types.append(ft)
             unit_types_detail.append(ut)
@@ -704,149 +634,11 @@ class SCC_ID:
 
         return scc_ind
 
-    #TODO Method not used. Delete?
-    # def ft_clean_up(self, scc_ind):
-    #     """
-    #     A collection of miscellaneous fixes to
-    #     fuel types.
-
-    #     Parameters
-    #     ----------
-    #     scc_ind : pandas.DataFrame
-
-    #     Returns
-    #     -------
-    #     scc_ind : pandas.DataFrame
-
-    #     """
-
-    #     scc_ind.fuel_type.replace(
-    #         {'Direct': None, 'Indirect': None},
-    #         inplace=True
-    #         )
-
-    #     # Remove storage-related units
-    #     scc_ind = scc_ind[
-    #         ~scc_ind.unit_type.str.lower().str.contains(r"(storage)")
-    #         ] 
-
-    #     scc_ind.reset_index(drop=True, inplace=True)
-
-    #     return scc_ind
 
     def main(self):
         id_scc = SCC_ID()
         id_scc_df = id_scc.build_id()
         id_scc_df.to_csv('./scc/iden_scc.csv')
-
-    # def apply_id_method(self, method):
-    #     """
-
-    #     Parameters
-    #     ----------
-    #     method : str
-    #         Indentification method based on SCC level one fields.
-    #         Current methods and their SCC Level One values are
-    #             ext_comb : External Combustion
-    #             int_comb : Internal Combustion Engines
-    #             sta_comb : Stationary Source Fuel Combustion
-    #             che_evap : Chemical Evaporation
-    #             ind_proc : Industrial Processes
-
-    #     scc_df : pandas.DataFrame
-    #         Dataframe of EPA SCC codes
-
-    #     Returns
-    #     -------
-    #     id_df : pandas.DataFrame
-    #         DataFrame of relevant fields, including
-    #         unit_type : type of combustion unit or process unit
-    #         fuel_type : type of fuel combusted
-
-    #     """
-
-    #     id_methods = {
-    #         'ext_comb': {
-    #             'level_one': 'External Combustion',
-    #             'leve_one_code':1,
-    #             'func': self.id_external_combustion,
-    #             'columns': ['scc_level_two', 'scc_level_three',
-    #                         'scc_level_four']
-    #             },
-    #         'sta_comb': {
-    #             'level_one': 'Stationary Source Fuel Combustion',
-    #             'level_one_code': 21,
-    #             'func': self.id_stationary_fuel_combustion,
-    #             'columns': ['scc_level_two', 'scc_level_three',
-    #                         'scc_level_four']
-    #             },
-    #         'int_comb': {
-    #             'level_one': 'Internal Combustion Engines',
-    #             'level_one_code': 2,
-    #             'func': self.id_ice,
-    #             'columns': ['scc_level_two', 'scc_level_three',
-    #                         'scc_level_four']
-    #             },
-    #         'che_evap': {
-    #             'level_one': 'Chemical Evaporation',
-    #             'level_one_code': 4,
-    #             'func': self.id_chemical_evaporation,
-    #             'columns': ['scc_level_two', 'scc_level_three',
-    #                         'scc_level_four']
-    #             },
-    #         'ind_proc': {
-    #             'level_one': 'Industrial Processes',
-    #             'level_one_code': 3,
-    #             'func': self.id_industrial_processes,
-    #             'columns': ['scc_level_two', 'scc_level_three',
-    #                         'scc_level_four']
-    #             }
-    #         }
-
-    #     scc_id = self._scc_data[
-    #         self._scc_data.scc_level_one == f'{id_methods[method]["level_one"]}'
-    #         ]
-
-    #     scc_id = scc_id.apply(
-    #         lambda x: id_methods[method]['func'](
-    #             x[id_methods[method]['columns'][0]],
-    #             x[id_methods[method]['columns'][1]],
-    #             x[id_methods[method]['columns'][2]],
-    #             ), axis=1, result_type='expand'
-    #         )
-
-    #     if len(scc_id.columns) == 2:
-    #         scc_id.columns = ['unit_type', 'fuel_type']
-
-    #     elif len(scc_id.columns) == 3:
-    #         scc_id.columns = ['unit_type', 'fuel_type', 'unit_cap']
-
-    #     return scc_id
-
-    # def combine_id(self, scc_dfs):
-    #     """"
-    #     Combines unit and fuel types identified from SCC codes with
-    #     DataFrame of original SCC information.
-
-    #     Parameters
-    #     ----------
-    #     scc_dfs : list of pandas.DataFrames
-
-    #     Returns
-    #     -------
-    #     idd_scc : pandas.DataFrame
-
-    #     """
-
-    #     idd_scc = pd.concat(
-    #         [x for x in scc_dfs], axis=0, ignore_index=False
-    #         )
-
-    #     idd_scc = pd.concat(
-    #         [self._scc_data, idd_scc], axis=1
-    #         )
-
-    #     return idd_scc
 
 
 if __name__ == '__main__':

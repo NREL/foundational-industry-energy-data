@@ -275,18 +275,6 @@ def blend_estimates(nei_data_shared, ghgrp_data_shared):
         shared[f'shared_nonocs_{dt}'] = reconcile_shared_nonocs(
             nei_data_shared_nonocs, ghgrp_data_shared_nonocs, dt=dt
             )
-
-    # shared_ocs_ = shared['shared_ocs_energy'].join(
-    #     shared['shared_ocs_ghgs'][
-    #         ['ghgsTonneCO2e', 'ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']
-    #         ]
-    #     )
-
-    # shared_nonocs_ = shared['shared_nonocs_energy'].join(
-    #     shared['shared_nonocs_ghgs'][
-    #         ['ghgsTonneCO2e', 'ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']
-    #         ]
-    #     )
         
     shared_ocs_ = shared['shared_ocs_energy'].copy(deep=True)
         
@@ -360,7 +348,7 @@ def id_nei_units_nonocs(nei_data_shared, nei_data_shared_ocs):
     return nei_data_shared_nonocs
 
 
-def assign_estimate_source(df, source):
+def assign_estimate_source(df, source, dt):
     """
     Create a column entitled 'estimateSource' and assign a value
     based on the source of energy estimates.
@@ -373,6 +361,9 @@ def assign_estimate_source(df, source):
     source : str, {'ghgrp', 'nei'}
         Source of energy estimate.
 
+    dt : str, {'energy', 'ghgs'}
+        Type of estimated data.
+
     Returns
     -------
     df : pandas.DataFrame
@@ -380,7 +371,7 @@ def assign_estimate_source(df, source):
         source of energy estimates. 
     """
 
-    df.loc[:, 'estimateSource'] = source
+    df.loc[:, f'{dt}EstimateSource'] = source
 
     return df
 

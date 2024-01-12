@@ -6,6 +6,7 @@ import re
 import logging
 import requests
 import zipfile
+import pdb
 from io import BytesIO
 
 logging.basicConfig(level=logging.INFO)
@@ -60,31 +61,6 @@ class NEI:
                 'CO2': 1
                 }
             }
-
-        # Json schema not implemented. 
-        # #TODO evaluate for removal. 
-        # def import_data_schema(data_source):
-        #     """
-        #     Import data schema for relevant data set.
-
-        #     Parameters
-        #     ----------
-        #     data_source : str; "NEI", "GHGRP", "QPC", "FRS"
-        #         Source of data
-
-        #     Returns
-        #     -------
-        #     self._data_schema : dict
-
-        #     """
-
-        #     with open('./nei/extracted_data_schema.json') as file:
-        #         data_schema = json.load(file)
-        #     data_schema = data_schema[0][data_source]
-
-        #     return data_schema
-
-        # self._data_schema = import_data_schema(self._data_source)
 
     def find_missing_cap(self, df):
         """
@@ -657,7 +633,7 @@ class NEI:
             eis_process_id, fuelType, and fuelTypeStd
         
         """
-
+    
         ghgs = pd.DataFrame(
             nei_data.query("pollutant_code=='CO2'|pollutant_code=='CH4'|pollutant_code=='N2O'")
             )
@@ -666,8 +642,10 @@ class NEI:
         # Method currently only works if all units of emissions are in short tons
         if (len(ghgs.emissions_uom.unique())==1) & (ghgs.emissions_uom.unique()[0]=='TON') is True:
     
-            ghgs.loc[:, 'ghgsTonneCO2e'] = ghgs.apply(lambda x: x.total_emissions * self._gwp['100'][x.pollutant_code] * 0.907,
-                                                   axis=1)
+            ghgs.loc[:, 'ghgsTonneCO2e'] = ghgs.apply(
+                lambda x: x.total_emissions * self._gwp['100'][x.pollutant_code] * 0.907,
+                axis=1
+                )
             
         else:
             raise IndexError("Reported emissions have additional units of measurement")
@@ -677,7 +655,7 @@ class NEI:
             ['eis_facility_id', 'eis_unit_id', 'eis_process_id', 'fuel_type'],
             as_index=False
             ).ghgsTonneCO2e.sum()
-        
+
         # Make ghg columns consistent with energy columns. Because there is only one
         # reported value, these are all equal.
         ghgs.loc[:,  ['ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']] = \
@@ -723,7 +701,7 @@ class NEI:
         efs = dict(efs.drop_duplicates().values)
 
         nei_data.loc[:, 'ef'] = nei_data.fuel_type.map(efs)
-
+        pdb.set_trace()
         emissions = \
             nei_data[nei_data.ghgsTonneCO2eQ2.isnull()][['energy_MJ_q0','energy_MJ_q2', 'energy_MJ_q3']].multiply(nei_data.ef, axis=0)/1000
 
@@ -863,7 +841,17 @@ class NEI:
         nei.fuel_type.update(nei_no_scc_ft.fuel_type)    
 
         # remove some non-combustion related unit types
-        nei = self.remove_unit_types(nei) 
+        nei = self.remove_unit_types(nei)
+
+        #TODO use MATERIAL AS fuel type ('fuel_type')
+
+        materials = {x:x for x in ['Natural Gas', 'Solvent in Coating', 'Heat', 'Process Gas',
+                     'Diesel/Kerosene', 'Sawdust', 'Methane','Gas', 'Gasoline',
+                     'Refuse', 'Solid Waste']}
+
+        nei_materials = nei.query("MATERIAL.notnull()", engine='python')
+        nei_materials.loc[:, 'fuel_type'] = nei_materials.MATERIAL.map(materials)
+        nei.fuel_type.update(nei_materials.fuel_type)
 
         return nei
 
@@ -929,7 +917,8 @@ class NEI:
 
             except KeyError:
                 continue
-
+        #TODO this assumption seems to be pulling in units/processes that may 
+        # not be combustion-related, or are in fact different fuels.
         # if there is no fuel type listed,
         #   use energy to energy units only OR assume NG for E6FT3
         nei.loc[(nei.fuel_type.isnull()) &
@@ -948,9 +937,9 @@ class NEI:
             nei['emission_factor']*nei['nei_ef_num_fac']/nei['nei_denom_fuel_fac']
 
         # WebFire----------------------------------------------
-        nei['UNIT'] = nei['UNIT'].str.upper()
+        nei.loc[:, 'UNIT'] = nei['UNIT'].str.upper()
 
-        nei['FACTOR'] = pd.to_numeric(nei['FACTOR'], errors='coerce')
+        nei.loc[:, 'FACTOR'] = pd.to_numeric(nei['FACTOR'], errors='coerce')
 
         nei.replace({'MEASURE': self._unit_conv['measure_dict']}, inplace=True)
 
@@ -1036,6 +1025,8 @@ class NEI:
             # remove throughput_TON if WebFire ACTION is listed as Burned
             nei.loc[(~nei[f'throughput_TON_{f}'].isnull()) & 
                 (nei['ACTION'] == 'Burned'), f'throughput_TON_{f}'] = np.nan
+            
+            # remove energy_MJ if 
 
 
         # # if there is an NEI EF, use NEI EF
@@ -1202,6 +1193,7 @@ class NEI:
         missing_zero = nei.query(
             "throughput_TON_nei==0 & energy_MJ_nei==0 & throughput_TON_web==0 & energy_MJ_web==0"
             )
+
         missing_zero = missing_zero.where(
             missing_zero.unit_type.notnull()
             ).dropna(how='all')
@@ -1439,6 +1431,7 @@ class NEI:
         nei_char = nei.convert_emissions_units(nei_char)
         logging.info("Estimating throughput and energy...")
         nei_char = nei.calc_unit_throughput_and_energy(nei_char)
+        nei_char.to_csv('nei_char_pre_median.csv', index=False)
         logging.info("Extracting and aggregating GHG emissions")
         ghgs = nei.extract_ghg_emissions(nei_char)
         logging.info("Final NEI data assembly...")
