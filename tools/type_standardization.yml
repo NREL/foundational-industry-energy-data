@@ -61,6 +61,10 @@ Process Gas: other
 Refinery Fuel Gas: other
 Refinery Fuel Gas 1: other 
 Refinery Fuel Gas 2: other 
+gas furnace process: naturalGas
+rotary drum dryer / mixer, natural gas, counterflow: naturalGas
+rotary drum dryer / mixer, natural gas, parallel flow: naturalGas
+heated with waste heat and supplemental gas burners: naturalGas
 Carbon Monoxide: other
 Combined Purge and Cold Box Fuel: other 
 Hydrogen: other 
@@ -91,6 +95,8 @@ Lignite: coal
 Process Gas: other
 Petroleum Coke: other
 Wood/Bark Waste: biomass
+wood/bark waste: biomass
+heat: other
 Bagasse: biomass
 Solid Waste: other
 Liquid Waste: other
@@ -111,6 +117,7 @@ Wood Residuals: biomass
 Landfill Gas: other
 Biomass: biomass
 Coal: coal
+coal: coal
 Waste Oil: other
 Wood: biomass
 Natural Gas Fired: naturalGas
@@ -170,12 +177,14 @@ bituminous coal: coal
 liquified petroleum gas: lpgHGL
 liquid waste: other
 solid waste: other 
+Solid waste: other
 distillate oil (no. 2): diesel
 methanol: other
 gas: other
 waste oil: other
 natural gas fired: naturalGas
 and coke: other
+Refuse: other
 direct wood: biomass
 direct natural gas: naturalGas
 co boiler: other

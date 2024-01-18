@@ -161,7 +161,7 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     MJ_to_KGCO2e:  0.11395   # agricultural byproducts
 # Fuel Dictionary
 fuel_dict:
-  natural gas|natural-gas| ng|-ng|gas|: natural_gas
+  natural gas|natural-gas| ng|-ng|gas: natural_gas
   anthracite coal: anthracite
   bituminous coal: bituminous
   bituminous/subbituminous coal: coal
@@ -172,9 +172,10 @@ fuel_dict:
   lignite: lignite
   landfill gas|digester gas: landfill_gas
   gasified coal: process_gas
+  diesel/kerosene: distillate_oil
   kerosene/naphtha (jet fuel): kerosene
   petroleum coke|pet coke: pet_coke
-  wood|exhaust from sawdust: wood
+  (wood)|exhaust from sawdust: wood
   bagasse: bagasse
   process gas|waste gas: process_gas
   lpg|liquified petroleum|propane|liquified petroleum gas|liquified petroleum gas (lpg): LPG

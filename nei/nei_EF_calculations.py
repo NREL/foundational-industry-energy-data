@@ -543,8 +543,6 @@ class NEI:
                 how='inner'
                 )
 
-            #  nei_data.to_csv(self._nei_data_path)
-
         return nei_data
 
     def load_webfires(self):
@@ -638,6 +636,17 @@ class NEI:
             nei_data.query("pollutant_code=='CO2'|pollutant_code=='CH4'|pollutant_code=='N2O'")
             )
 
+        
+        # Appears that facilities that report to GHGRP may include a unique
+        # EIS unit ID for their **total facility** GHG emissions reported to the 
+        # GHGRP.
+        # NOTE There are likely issues with CO2 emissions reported by facilities for the
+        # NEI (e.g., several units reporting >1e6 short tons of CO2). Many more units
+        # report CO2 emissions above the 25,000 tonne CO2 GHGRP reporting threshold, but
+        # aren't listed as GHGRP reporters. It doesn't appear that there is a way
+        # to systematically correct these emissions. 
+        ghgs = ghgs.query("process_description!='epaghg facility reported emissions'")
+
         # convert short tons to metric tonnes
         # Method currently only works if all units of emissions are in short tons
         if (len(ghgs.emissions_uom.unique())==1) & (ghgs.emissions_uom.unique()[0]=='TON') is True:
@@ -655,6 +664,10 @@ class NEI:
             ['eis_facility_id', 'eis_unit_id', 'eis_process_id', 'fuel_type'],
             as_index=False
             ).ghgsTonneCO2e.sum()
+        
+        # Drop values that are >25,000 metric tons. If these values are not
+        # errors, then they will be picked up by the inclusion of GHGRP unit emissions
+        ghgs = ghgs.query("ghgsTonneCO2e < 25000")
 
         # Make ghg columns consistent with energy columns. Because there is only one
         # reported value, these are all equal.
@@ -694,18 +707,24 @@ class NEI:
 
         efs = pd.concat(
             [nei_data.fuel_type.dropna(), 
-             nei_data.fuel_type.dropna().apply(lambda x: self._unit_conv['energy_units'][x]['MJ_to_KGCO2e'])],
-            axis=1
+             nei_data.fuel_type.dropna().map(self._unit_conv['energy_units'])],
+            axis=1, ignore_index=True
             )
+        
+        efs.iloc[:, 1].update(efs.iloc[:, 1].dropna().apply(lambda x: x['MJ_to_KGCO2e']))
         
         efs = dict(efs.drop_duplicates().values)
 
         nei_data.loc[:, 'ef'] = nei_data.fuel_type.map(efs)
-        pdb.set_trace()
+
         emissions = \
             nei_data[nei_data.ghgsTonneCO2eQ2.isnull()][['energy_MJ_q0','energy_MJ_q2', 'energy_MJ_q3']].multiply(nei_data.ef, axis=0)/1000
 
         emissions.columns = ['ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']
+
+        # Drop values that are >25,000 metric tons. If these values are not
+        # errors, then they will be picked up by the inclusion of GHGRP unit emissions
+        emissions = emissions.query("ghgsTonneCO2eQ2 < 25000")
 
         nei_data.update(emissions)
 
@@ -736,9 +755,9 @@ class NEI:
             subset=['SCC', 'NEI_POLLUTANT_CODE'], keep='last'
             )
 
-        # use only NEI emissions of PM, CO, NOX, SOX, VOC
+        # use only NEI emissions of PM, CO, NOX, SOX, VOC, or CH4
         nei_emiss = nei_data[
-            nei_data.pollutant_code.str.contains('PM|CO|NOX|NO3|SO2|VOC')
+            nei_data.pollutant_code.str.contains('PM|CO2|CO|NOX|NO3|SO2|VOC|CH4')
             ].copy()
 
         nei_emiss = pd.merge(
@@ -797,6 +816,17 @@ class NEI:
 
         nei.loc[:, 'fuel_type'] = nei.loc[:, 'scc_fuel_type']
 
+        # Use MATERIAL field as fuel type
+        materials = {
+            x:x.lower() for x in ['Natural Gas', 'Heat', 
+                          'Process Gas', 'Diesel/Kerosene', 'Sawdust', 'Methane',
+                          'Gas', 'Gasoline', 'Refuse', 'Solid Waste']
+            }
+
+        nei_materials = nei.query("MATERIAL.notnull()", engine='python')
+        nei_materials.loc[:, 'fuel_type'] = nei_materials.MATERIAL.map(materials)
+        nei.fuel_type.update(nei_materials.fuel_type)
+
         # #TODO too many fuel type standardizations happening SCC -> NEI -> std fuel types
         # Should streamline this process to avoid errors.
         fuels = {k:None for k in nei.fuel_type.dropna().unique()}
@@ -807,11 +837,11 @@ class NEI:
     
                 fre = f.replace('(', '\(').replace(')', '\)')
 
-                n = {k: re.search(fre, k) for k in self._unit_conv['fuel_dict'].keys()}
+                n = {k: re.search(k, fre) for k in self._unit_conv['fuel_dict'].keys()}
 
             else:
 
-                n = {k: re.search(f, k) for k in self._unit_conv['fuel_dict'].keys()}
+                n = {k: re.search(k, f) for k in self._unit_conv['fuel_dict'].keys()}
 
             if any(n.values()):
 
@@ -843,25 +873,7 @@ class NEI:
         # remove some non-combustion related unit types
         nei = self.remove_unit_types(nei)
 
-        #TODO use MATERIAL AS fuel type ('fuel_type')
-
-        materials = {x:x for x in ['Natural Gas', 'Solvent in Coating', 'Heat', 'Process Gas',
-                     'Diesel/Kerosene', 'Sawdust', 'Methane','Gas', 'Gasoline',
-                     'Refuse', 'Solid Waste']}
-
-        nei_materials = nei.query("MATERIAL.notnull()", engine='python')
-        nei_materials.loc[:, 'fuel_type'] = nei_materials.MATERIAL.map(materials)
-        nei.fuel_type.update(nei_materials.fuel_type)
-
         return nei
-
-    # for throughput calculation,
-    #   convert NEI emissions to LB; NEI EFs to LB/TON;
-    #   and WebFire EFs to LB/TON
-
-    # for energy input calculation,
-    #   convert NEI emissions to LB; NEI EFs to LB/MJ; 
-    #   and WebFire EFs to LB/MJ
 
     def convert_emissions_units(self, nei):
         """
@@ -881,6 +893,8 @@ class NEI:
             NEI with mass and throughput coversion factors. 
     
         """
+        #TODO refactor to condense code (many common elements between NEI and
+        #WebFire)
 
         # map unit of emissions and EFs in NEI/WebFire to unit conversion key
         # convert NEI total emissions value to LB
@@ -917,11 +931,10 @@ class NEI:
 
             except KeyError:
                 continue
-        #TODO this assumption seems to be pulling in units/processes that may 
-        # not be combustion-related, or are in fact different fuels.
+
         # if there is no fuel type listed,
         #   use energy to energy units only OR assume NG for E6FT3
-        nei.loc[(nei.fuel_type.isnull()) &
+        nei.loc[(nei.fuel_type.isnull()) & (nei.pollutant_desc=='Carbon Dioxide') &
                 ((nei.ef_denominator_uom == 'E6BTU') |
                 (nei.ef_denominator_uom == 'HP-HR') |
                 (nei.ef_denominator_uom == 'THERM') |
@@ -969,11 +982,11 @@ class NEI:
 
         # if there is no fuel type listed, 
         #   use energy to energy units only OR assume NG for E6FT3
-        nei.loc[(nei.fuel_type.isnull()) &
-                (nei.MEASURE == 'E6BTU') |
+        nei.loc[(nei.fuel_type.isnull()) & (nei.pollutant_desc=='Carbon Dioxide') &
+                ((nei.MEASURE == 'E6BTU') |
                 (nei.MEASURE == 'HP-HR') |
                 (nei.MEASURE == 'THERM') |
-                (nei.MEASURE == 'E6FT3'), 'web_denom_fuel_fac'] = \
+                (nei.MEASURE == 'E6FT3')), 'web_denom_fuel_fac'] = \
             nei['MEASURE'].map(
                 self._unit_conv['unit_to_mj']).map(
                 self._unit_conv['energy_units']['natural_gas']
@@ -994,10 +1007,12 @@ class NEI:
         Parameters
         ----------
         nei : pandas.DataFrame
+            NEI data with converted emissions units of measurement.
 
         Returns
         -------
         nei : pandas.DataFrame
+            NEI data with estimates of throughput and energy.
 
         """
 
@@ -1025,30 +1040,6 @@ class NEI:
             # remove throughput_TON if WebFire ACTION is listed as Burned
             nei.loc[(~nei[f'throughput_TON_{f}'].isnull()) & 
                 (nei['ACTION'] == 'Burned'), f'throughput_TON_{f}'] = np.nan
-            
-            # remove energy_MJ if 
-
-
-        # # if there is an NEI EF, use NEI EF
-        # nei.loc[(nei['nei_ef_LB_per_TON'] > 0), 'throughput_TON'] = \
-        #     nei['total_emissions_LB'] / nei['nei_ef_LB_per_TON']
-
-        # nei.loc[(nei['nei_ef_LB_per_MJ'] > 0), 'energy_MJ'] = \
-        #     nei['total_emissions_LB'] / nei['nei_ef_LB_per_MJ']
-
-        # # if there is not an NEI EF, use WebFire EF
-        # nei.loc[(nei['nei_ef_LB_per_TON'].isnull()) & 
-        #         (nei['web_ef_LB_per_TON'] > 0), 'throughput_TON'] = \
-        #     nei['total_emissions_LB'] / nei['web_ef_LB_per_TON'] 
-
-        # nei.loc[(nei['nei_ef_LB_per_MJ'].isnull()) & 
-        #         (nei['web_ef_LB_per_MJ'] > 0), 'energy_MJ'] = \
-        #     nei['total_emissions_LB'] / nei['web_ef_LB_per_MJ']
-
-        # # remove throughput_TON if WebFire ACTION is listed as Burned
-        # nei.loc[(~nei['throughput_TON'].isnull()) & 
-        #         (nei['ACTION'] == 'Burned'), 'throughput_TON'] = np.nan
-
 
         return nei
 
@@ -1120,25 +1111,8 @@ class NEI:
         m = med_unit.columns.map('_'.join)
         med_unit = med_unit.groupby(m, axis=1).mean()
 
-        # med_unit = nei.query(
-        #     "throughput_TON > 0 | energy_MJ > 0"
-        #     ).groupby(
-        #         ['eis_facility_id',
-        #          'eis_process_id',
-        #          'eis_unit_id',
-        #          'unit_type',
-        #          'fuel_type']
-        #         )[['throughput_TON', 'energy_MJ']].median()
-
-        # other_info = med_unit.drop_duplicates([
-        #     'eis_facility_id',
-        #     'eis_process_id',
-        #     'eis_unit_id'])
-
         other_cols = nei.columns
         other_cols = set(other_cols).difference(set(med_unit.columns))
-
-        # logging.info(f"Other columns:  {other_cols}")
 
         other = nei.drop_duplicates(
             ['eis_facility_id', 'eis_process_id',
@@ -1155,16 +1129,6 @@ class NEI:
             )
 
         med_unit.reset_index(inplace=True)
-
-        # MATERIAL and ACTION columns can have multiple values for same
-        #   eis_process_id so if included in groupby, need to remove duplicates
-
-        #med_unit.drop(med_unit[
-        #    (med_unit.eis_process_id.duplicated(keep=False)==True) & 
-        #    (med_unit.MATERIAL.isnull())].index, inplace=True)
-
-        # med_unit.to_csv('NEI_unit_throughput_and_energy.csv', index=False)
-        # med_unit = self.format_nei_char(med_unit)
 
         return med_unit
 

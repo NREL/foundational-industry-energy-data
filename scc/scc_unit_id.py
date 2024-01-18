@@ -588,16 +588,28 @@ class SCC_ID:
                             ft = 'Diesel'
 
                         elif ':' in ut: 
-                            x, y = ut.split(': ')
 
-                            if any([z in x for z in ['Distillate', 'Residual', 'Gas',
-                                                    'Liquid', 'Propane']]):
-                                ft = x
-                                ut = y
+                            try:
+                                x, y = ut.split(': ')
+
+                            except ValueError:
+                                ft = None
 
                             else:
-                                ft = y
-                                ut = x
+
+                                if any([z in x for z in ['Distillate', 'Residual', 'Gas',
+                                                        'Liquid', 'Propane']]):
+                                    ft = x
+                                    ut = y
+
+                                elif any([z in y for z in ['Distillate', 'Residual', 'Gas',
+                                                        'Liquid', 'Propane']]):
+                                    ft = y
+                                    ut = x
+
+                                else:
+                                    ft = None
+
                         else:
                             ft = None
 
@@ -623,8 +635,18 @@ class SCC_ID:
             #     ft = f'{r["tier_3_description"]} {"tier_2_description"}'
             
             # Cludge for catching technologies that use electricity
-            if re.search(r'(elec)', ut.lower()):
-                ft = 'electricity'
+            try:
+                fte = re.search(r'(elec)', ut.lower())
+
+            except AttributeError:
+                pass
+
+            else:
+                if fte:
+                    ft = 'electricity'
+
+                else:
+                    pass
 
             fuel_types.append(ft)
             unit_types_detail.append(ut)
