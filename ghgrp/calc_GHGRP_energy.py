@@ -115,6 +115,7 @@ class GHGRP(FiedGIS, TierEnergy):
         # Fix errors in reported data.
         if 2014 in self.years:
             # This facility CH4 combustion emissions off by factor of 1000
+            GHGs.loc[:, 'T4CH4COMBUSTIONEMISSIONS'] = GHGs['T4CH4COMBUSTIONEMISSIONS'].astype(float)
             i1 = GHGs[(GHGs.FACILITY_ID == 1001143) &
                       (GHGs.REPORTING_YEAR == 2014)].dropna(
                         subset=['T4CH4COMBUSTIONEMISSIONS']

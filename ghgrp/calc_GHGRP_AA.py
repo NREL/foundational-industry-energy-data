@@ -80,6 +80,10 @@ class subpartAA:
                 value=self.std_ch4, inplace=True
                 )
 
+        # Some tables as strings (from API changes?)
+        for c in ['SPENT_LIQUOR_CH4_EMISSIONS', 'BIOMASS_CH4_EMISSIONS_FACTOR']:
+            energy_aa_sl.loc[:, c] = energy_aa_sl[c].astype(float)
+
         energy_aa_sl['MMBtu_TOTAL'] = \
             energy_aa_sl.SPENT_LIQUOR_CH4_EMISSIONS.multiply(1000).divide(
                 energy_aa_sl.BIOMASS_CH4_EMISSIONS_FACTOR, fill_value=0

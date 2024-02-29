@@ -10,7 +10,6 @@ import ghgrp_fac_unit
 import datetime as dt
 from calc_GHGRP_energy import GHGRP
 from calc_GHGRP_AA import subpartAA
-import pdb
 
 
 def main(start_year, end_year):
@@ -48,7 +47,6 @@ def main(start_year, end_year):
         os.path.abspath(f'./data/GHGRP/{ghgrp_file}'),
         engine='pyarrow', compression='gzip'
         )
-
 
     return ghgrp_file
 
