@@ -837,7 +837,7 @@ class NEI:
     
                 fre = f.replace('(', '\(').replace(')', '\)')
 
-                n = {k: re.search(k, fre) for k in self._unit_conv['fuel_dict'].keys()}
+                n = {k: re.search(fre, k) for k in self._unit_conv['fuel_dict'].keys()}
 
             else:
 
@@ -877,10 +877,7 @@ class NEI:
                               (nei_no_scc_ft['scc_fuel_type'].str.contains(f, na=False)),
                     'fuel_type'] = self._unit_conv['fuel_dict'][f]
 
-        nei.fuel_type.update(nei_no_scc_ft.fuel_type)    
-
-        # remove some non-combustion related unit types
-        nei = self.remove_unit_types(nei)
+        nei.fuel_type.update(nei_no_scc_ft.fuel_type)
 
         return nei
 
@@ -1400,6 +1397,7 @@ class NEI:
         nei_char = nei.match_webfire_to_nei(nei_data, webfr)
         logging.info("Merging SCC data...")
         nei_char = nei.assign_types_nei(nei_char, iden_scc)
+        nei_char = nei.remove_unit_types(nei_char)  # remove some non-combustion related unit types
         logging.info("Converting emissions units...")
         nei_char = nei.convert_emissions_units(nei_char)
         logging.info("Estimating throughput and energy...")
