@@ -615,7 +615,7 @@ class NEI:
     
     def extract_ghg_emissions(self, nei_data):
         """
-        Capture GHG emissions (i.e., CO2, CH4, and N2O)
+        Capture GHG emissions (i.e., CO2, CH4, N2O)
         reported under NEI. Convert to tonnes CO2 equivalent (tonnesCO2e)
 
         
@@ -724,14 +724,13 @@ class NEI:
 
         # Drop values that are >25,000 metric tons. If these values are not
         # errors, then they will be picked up by the inclusion of GHGRP unit emissions
-        emissions = emissions.query("ghgsTonneCO2eQ2 < 25000")
+        emissions = emissions.query("ghgsTonneCO2eQ3 < 25000 ")
 
         nei_data.update(emissions)
 
         nei_data.drop('ef', axis=1, inplace=True)
     
         return nei_data
-
 
     def match_webfire_to_nei(self, nei_data, webfr):
         """
@@ -823,12 +822,13 @@ class NEI:
                           'Gas', 'Gasoline', 'Refuse', 'Solid Waste']
             }
 
-        nei_materials = nei.query("MATERIAL.notnull()", engine='python')
+        nei_materials = pd.DataFrame(nei.query("MATERIAL.notnull()", engine='python'))
         nei_materials.loc[:, 'fuel_type'] = nei_materials.MATERIAL.map(materials)
         nei.fuel_type.update(nei_materials.fuel_type)
 
         # #TODO too many fuel type standardizations happening SCC -> NEI -> std fuel types
         # Should streamline this process to avoid errors.
+        # clean up identified fuel types
         fuels = {k:None for k in nei.fuel_type.dropna().unique()}
 
         for f in fuels.keys():
@@ -847,7 +847,16 @@ class NEI:
 
                 fk = [k for k in n.keys() if n[k] is not None]
 
-                fuels[f] = self._unit_conv['fuel_dict'][fk[0]] 
+                # There may be multiple matches
+                if len(fk) > 1:
+
+                    mask = [f in x for x in fk]
+
+                    fuels[f] = self._unit_conv['fuel_dict'][np.array(fk)[mask][0]]
+
+                else:
+
+                    fuels[f] = self._unit_conv['fuel_dict'][fk[0]] 
 
             else:
                 fuels[f] = f
