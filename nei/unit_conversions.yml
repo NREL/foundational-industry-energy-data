@@ -102,7 +102,11 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     KW-HR_to_MJ: 3.6
     MJ_to_KGCO2e: 0.06680  # motor gasoline
   kerosene:
+    E3GAL_to_MJ: 143.5E+3
     MJ_to_KGCO2e: 0.07152  # kerosene
+  jet_a:
+    E3GAL_to_MJ: 133.61E+3
+    MJ_to_KGCO2e: 0.07152
   oil:
     MJ_to_KGCO2e: 0.07089  # crude oil
   anthracite:
@@ -174,6 +178,7 @@ fuel_dict:
   gasified coal: process_gas
   diesel/kerosene: distillate_oil
   kerosene/naphtha (jet fuel): kerosene
+  jet a fuel : jet_a
   petroleum coke|pet coke: pet_coke
   (wood)|exhaust from sawdust: wood
   bagasse: bagasse

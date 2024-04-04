@@ -5,6 +5,8 @@ import numpy as np
 # from statsmodels.formula.api import ols
 import os
 import urllib
+import sys
+sys.path.append(r'c:/users/cmcmilla/foundational-industry-energy-data')
 import tools.naics_matcher
 
 class QPC:
@@ -112,11 +114,11 @@ class QPC:
 
         if year < 2017:
 
-            excel_ex = '.xls?#'
+            excel_ex = '.xls'
 
         else:
 
-            excel_ex = '.xlsx?#'
+            excel_ex = '.xlsx'
 
         qpc_data = pd.DataFrame()
 
@@ -124,7 +126,7 @@ class QPC:
 
         for q in ['q'+str(n) for n in range(1, 5)]:
 
-            if year >= 2017:
+            if (year >= 2017) & (year<2020):
 
                 y_url = '{!s}/{!s}_qtr_table_final_'
 
@@ -133,6 +135,14 @@ class QPC:
             #     y_url = \
             #         '{!s}/qpc-quarterly-tables/{!s}_qtr_combined_tables_final_'
 
+            elif (year == 2020) & (q=='q4'):
+
+                y_url = '{!s}/{!s}_qtr_table_final_'
+
+            elif year > 2019:
+
+                y_url = '{!s}/{!s}-qtr-table-final-'
+            
             else:
 
                 y_url = '{!s}/qpc-quarterly-tables/{!s}_qtr_table_final_'
@@ -149,12 +159,10 @@ class QPC:
             #Will need to revise skiprows and usecols.
             try:
                 data = pd.read_excel(url, sheet_name=1, skiprows=4,
-                                     usecols=range(0, 7), header=0,
-                                     engine='openpyxl')
+                                     usecols=range(0, 7), header=0)
 
             except urllib.error.HTTPError:
-                return
-
+                print(f"Problem with {url}")
 
             data.drop(data.columns[2], axis=1, inplace=True)
 

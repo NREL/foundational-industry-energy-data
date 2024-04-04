@@ -85,8 +85,8 @@ Many of these data fields were included in original EPA data sources. See the [F
 
 In addition to `registryID`, other identifying fields include
 
-* `eisFacilityID`: EPA ID assigned to facilities reporting to the Emissions Inventory System (EIS)
-* `ghgrpID`: EPA ID assigned to facilities reporting under the Greenhouse Gas Reporting Program (GHGRP)
+* `eisFacilityID`: EPA ID assigned to facilities reporting to the Emissions Inventory System (EIS).
+* `ghgrpID`: EPA ID assigned to facilities reporting under the Greenhouse Gas Reporting Program (GHGRP).
 * `name`: Name of facility.
 * `locationDescription`: Description of the facility location.
 * `naicsCode`: The facility's North American Industrial Classification System (NAICS) code.
@@ -97,36 +97,45 @@ In addition to `registryID`, other identifying fields include
 Various levels of geographic identifiers are included, such as
 
 * `geoID`: see [Census description of geographic identifiers (GEOIDs)](https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html)
-* `latitude`
-* `longitude`
-* `postalCode`
-* `countyNAME`
-* `countyFIPS`
-* `stateName`
-* `legislativeDisctrictNumber`
+* `latitude`: facility latitude.
+* `longitude`: facility longitude.
+* `postalCode`: facility U.S. ZIP code.
+* `countyNAME`: name of facility county.
+* `countyFIPS`: facility Federal Information Processing Series (FIPS) code.
+* `stateName`: name of facility state.
+* `legislativeDisctrictNumber`: facility [congressional district number](https://www.census.gov/programs-surveys/geography/guidance/geo-areas/congressional-dist.html).
 
 ### Units and Processes
 
 Individual units are characterized (e.g., unit type, capacity, energy, throughput) where possible. Individual units may be associated with multiple processes.
 
-* `designCapacity`
-* `eisUnitID`
-* `unitName`
-* `unitType`
-* `unitTypeStd`
-* `processDescription`
-* `eisProcessID`
+* `designCapacity`: design capacity of unit.
+* `eisUnitID`: U.S. EPA Emissions Inventory System (EIS) unit ID.
+* `unitName`: unit name.
+* `unitType`: reported or inferred unit type.
+* `unitTypeStd`: standardized unitType.
+* `processDescription`: description of process. Processes may have more than one unit associated with them.
+* `eisProcessID`: U.S. EPA Emissions Inventory System (EIS) process ID. Processes may have more than one unit associated with them.
 
 ### Energy
 
 Depending on the estimation approach, a unit may have a single estimate of energy use, or a range of energy estimates (i.e., minimum, median, upper quartile). Energy estimates based on the NEI are presented as a range.
 
 * `energyMJ`: energy estimate in MJ
-* `energyMJ0`: minimum of energy estimate, in MJ
-* `energyMJq2`: median of energy estimate, in MJ
+* `energyMJ0`: minimum of energy estimate, in MJ.
+* `energyMJq2`: median of energy estimate, in MJ.
 * `energyMJq3`: upper quartile of energy estimate, in MJ.
-* `fuelType`: combusted fuel type as reported by original data source
-* `fuelTypeStd`: combusted fuel type, standardized
+* `fuelType`: combusted fuel type as reported by original data source.
+* `fuelTypeStd`: combusted fuel type, standardized.
+* `energyEstimateSource`: source of underlying data used to make energy estimate. Some energy values are provided directly by GHGRP data.
+
+### Greenhouse Gas (GHG) Emissions
+
+* `ghgsTonneCO2e`: GHG emissions estimate (or reported data) in metric tonnes CO2 equivalents.
+* `ghgsTonneCO2eQ0`: minimum of GHG emissions estimate in metric tonnes CO2 equivalents.
+* `ghgsTonneCO2eQ2`: median  GHG emissions estimate in metric tonnes CO2 equivalents.
+* `ghgsTonneCO2eQ2`: upper quartile of GHG emissions estimate in metric tonnes CO2 equivalents.
+* `ghgsEstimateSource`: source of underlying data used to make energy estimate. GHGRP emissions data are used directly, as are some NEI data.
 
 ### Other
 
@@ -137,4 +146,4 @@ We've attempted to include additional descriptive fields where possible. These t
 * `sensitiveInd`: Indicates whether or not the associated data is enforcement sensitive.
 * `envJusticeCode`: The code that identifies the type of environmental justice concern affecting the facility or enforcement action.
 * `smallBusInd`: Code indicating whether or not a business is requesting relief under EPA’s Small Business Policy, which applies to businesses having less than 100 employees.
-* `througputTonne`: Estimated mass throughput
+* `througputTonne`: Estimated mass throughput.

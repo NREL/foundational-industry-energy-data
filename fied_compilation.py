@@ -108,6 +108,9 @@ def split_multiple(x, col_names):
     else:
         return
 
+    # Remove any duplicates
+    data = list(set(data))
+
     mult = pd.DataFrame(
         data=data, columns=[col_names[1]],
         dtype=int
@@ -117,6 +120,62 @@ def split_multiple(x, col_names):
         mult.loc[:, c] = int(x[c])
 
     return mult
+
+def check_registry_id(ghgrp_unit_data, frs_data):
+    """
+    There's a least one error in the FRS IDs provided
+    in the EPA unit data spreadsheet. Therefore,
+    there's a need to verify the GHGRP facility ID and 
+    FRS ID with the FRS data.
+
+    There are also FRS IDs from the GHGRP spreadsheet that
+    do not appear in the FRS Query tool (e.g., 110043972083).
+
+    Parameters
+    ---------
+    ghgrp_unit_data : pandas.DataFrame
+        Formatted GHGRP-derived energy estimates with unit-level information.
+
+    frs_data : pandas.DataFrame
+        Formatted Facility Registry Service (FRS) facility data.
+
+    Returns
+    -------
+    ghgrp_unit_data : pandas.DataFrame
+        Original DataFrame with corrected registryIDs.
+
+    """
+
+    ghgrp_ids = ghgrp_unit_data[['registryID', 'ghgrpID']].drop_duplicates()
+
+    frs_ids = frs_data.dropna(subset=['ghgrpID'])[['registryID', 'ghgrpID']].drop_duplicates()
+    frs_id_dict = frs_ids.set_index('ghgrpID').to_dict()
+    
+    # ghgrpIDs with null values for frs_registryID in this DataFrame have no corresponding
+    # Registry ID from the underlying FRS data. 
+    ghgrp_ids.loc[:, 'frs_registryID'] = ghgrp_ids.ghgrpID.map(frs_id_dict['registryID'])
+
+    ghgrp_ids.loc[:, 'match'] = ghgrp_ids.registryID == ghgrp_ids.frs_registryID
+
+    # These are all the Registry Ids from the GHGRP data that don't match the underlying FRS 
+    # data
+    wrong_id = ghgrp_ids.where(ghgrp_ids.match==False).dropna()
+
+    ghgrp_ids.registryID.update(wrong_id.frs_registryID)
+
+    ghgrp_ids.loc[:, 'rematch'] =  ghgrp_ids.registryID == ghgrp_ids.frs_registryID
+
+    assert all(ghgrp_ids.loc[wrong_id.index, 'rematch']) is True
+
+    ghgrp_unit_data.loc[:, 'corrected_registryID'] = ghgrp_unit_data.ghgrpID.map(
+        ghgrp_ids.set_index('ghgrpID').registryID.to_dict()
+        )
+
+    ghgrp_unit_data.registryID.update(ghgrp_unit_data.corrected_registryID)
+
+    ghgrp_unit_data.drop(['corrected_registryID'], axis=1, inplace=True)
+
+    return ghgrp_unit_data
 
 
 def melt_multiple_ids(frs_data, other_data, pkle=False):
@@ -263,6 +322,11 @@ def blend_estimates(nei_data_shared, ghgrp_data_shared):
     nei_data_shared_nonocs = id_nei_units_nonocs(nei_data_shared,
                                                  nei_data_shared_ocs)
 
+    ghgrp_data_shared_ocs.to_pickle('ghgrp_data_shared_ocs.pkl')
+    nei_data_shared_ocs.to_pickle('nei_data_shared_ocs.pkl')
+    ghgrp_data_shared_nonocs.to_pickle('ghgrp_data_shared_nonocs.pkl')
+    nei_data_shared_nonocs.to_pickle('nei_data_shared_nonocs.pkl')
+
     shared = {}
 
     for dt in ['energy', 'ghgs']:
@@ -272,9 +336,12 @@ def blend_estimates(nei_data_shared, ghgrp_data_shared):
             ghgrp_data_shared_ocs, nei_data_shared_ocs, dt=dt)
 
         logging.info(f"Reonciling shared non-ocs {dt}...")
-        shared[f'shared_nonocs_{dt}'] = reconcile_shared_nonocs(
-            nei_data_shared_nonocs, ghgrp_data_shared_nonocs, dt=dt
-            )
+        # shared[f'shared_nonocs_{dt}'] = reconcile_shared_nonocs(
+        #     nei_data_shared_nonocs, ghgrp_data_shared_nonocs, dt=dt
+        #     )
+
+        # Just use GHGRP data at this point.
+        shared[f'shared_nonocs_{dt}'] = ghgrp_data_shared_nonocs 
         
     shared_ocs_ = shared['shared_ocs_energy'].copy(deep=True)
         
@@ -286,11 +353,11 @@ def blend_estimates(nei_data_shared, ghgrp_data_shared):
     
     shared_nonocs_ = shared['shared_nonocs_energy'].copy(deep=True)
 
-    shared_nonocs_.update(
-        shared['shared_nonocs_ghgs'][
-            ['ghgsTonneCO2e', 'ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']
-            ]
-        )
+    # shared_nonocs_.update(
+    #     shared['shared_nonocs_ghgs'][
+    #         ['ghgsTonneCO2e', 'ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']
+    #         ]
+    #     )
 
     return shared_ocs_, shared_nonocs_
 
@@ -457,6 +524,8 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs, dt
         how='outer'
         )
 
+    compare.to_pickle(f'{dt}_compare.pkl')
+
     use_nei_data = {}  # Dictionary for index selections that will use NEI data
     use_ghgrp_data = {}  # Dictionary for index selections that will use GHGRP data
 
@@ -518,9 +587,9 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs, dt
             )
 
     final_shared_nonocs_ghgrp = \
-        assign_estimate_source(final_shared_nonocs_ghgrp, 'ghgrp')
+        assign_estimate_source(final_shared_nonocs_ghgrp, 'ghgrp', dt=dt)
     final_shared_nonocs_nei = \
-        assign_estimate_source(final_shared_nonocs_nei, 'nei')
+        assign_estimate_source(final_shared_nonocs_nei, 'nei', dt=dt)
 
     final_shared_nonocs = pd.concat(
         [final_shared_nonocs_ghgrp.reset_index(),
@@ -571,9 +640,12 @@ def id_nei_units_ocs(nei_data_shared, ghgrp_data_shared_ocs):
 def id_ghgrp_units(ghgrp_data, ocs=True):
     """
     Identify ghgrp data for facilities that report to both GHGRP and NEI and 
-    that do or don't report a unit type as "OCS (Other combustion source).
+    that do or don't report ALL unit types as "OCS (Other combustion source).
 
-    Identifies OCS units across registryID, ghgrpID, and fuelTypeStd with the
+    At this point, there is no attempt to address OCS units for facilities that
+    also report data on non-OCS units.
+
+    Identifies registryIDs that have ONLY OCS units with the
     ultimate purpose of allocating a facility's total energy use by fuel
     type across all of its units that use that fuel type. 
 
@@ -593,86 +665,123 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
         OCS for a unit for a given fuel type.
 
     """
-    ghgrp_data_ = pd.DataFrame()
 
-    gd_grpd = ghgrp_data.groupby(['registryID', 'ghgrpID', 'fuelTypeStd'])
+    ghgrp_data_ = ghgrp_data[['registryID', 'unitType']].drop_duplicates()
+ 
+    ghgrp_data_ocs = pd.DataFrame(ghgrp_data_.groupby(['registryID']).unitType.count())
+    ghgrp_data_ocs.columns = ['ut_count']
 
-    for g in gd_grpd.groups:
-
-        try:
-            gd_grpd.get_group(g)
-
-        except KeyError:  # One row has NaN fuelTypeStd
-            continue
-
-        else:
-            if ocs:
-                if 'OCS (Other combustion source)' in gd_grpd.get_group(g).unitType.values:
-                    ghgrp_data_ = pd.concat(
-                        [ghgrp_data_, gd_grpd.get_group(g)], axis=0
-                        )
-
-                else:
-                    continue
-
-            else:
-                if 'OCS (Other combustion source)' not in gd_grpd.get_group(g).unitType.values:
-                    ghgrp_data_ = pd.concat(
-                        [ghgrp_data_, gd_grpd.get_group(g)], axis=0
-                        )
-
-                else:
-                    continue
-
-    return ghgrp_data_
-
-
-def calc_share_ocs(ghgrp_data_shared_ocs, cutoff=0.5, dt='energy'):
-    """
-    Calculate other combustion source (OCS) energy or emissions portion
-    for GHGRP reporters by registryID, fuelTypeStd, and unitTypeStd.
-    Returns unit based on cutoff value (
-    e.g., records where OCS share >=0.5 are returned with
-    cutoff=0.5)
-
-    Parameters
-    ----------
-    ghgrp_data_shared_ocs : pandas.DataFrame
-        DataFrame with 
-
-    cutoff : float, default=0.5
-        OCS share of energy by registryID, fuelTypeStd, and
-        unitTypeStd to identify unit
-
-    dt : str, default='energy'; {'energy', 'ghgs'}
-        Indicate whether shares are calculated for energy or 
-        greenhouse gas emissions (ghgs).
-
-    Returns
-    -------
-    ocs_share : pandas.DataFrame
-        Share of energy or ghgs by resgistry, fuelTypeStd, and unitTypeStd
-        that is OCS
-    """
-    if dt == 'energy':
-        col = 'energyMJ'
-
-    elif dt == 'ghgs':
-        col = 'ghgsTonneCO2e'
-
-    ocs_share = ghgrp_data_shared_ocs.groupby(
-        ['registryID', 'fuelTypeStd', 'unitTypeStd']
-        )[col].sum()
-
-    ocs_share = ocs_share.divide(
-        ocs_share.sum(level=[0, 1])
-        )
-
-    ocs_share = pd.DataFrame(ocs_share).reset_index()
+    # This next step should capture the facilities that only have OCS units
+    ghgrp_data_ocs = ghgrp_data_ocs[ghgrp_data_ocs == 1].join(
+        ghgrp_data_[ghgrp_data_.unitType == 'OCS (Other combustion source)'].set_index('registryID'),
+        how='inner'
+        ).dropna()
     
-    ocs_share = ocs_share.query(f"unitTypeStd=='other combustion' & {col}>=@cutoff")
+    if ocs is True:
 
-    return ocs_share
+        ghgrp_data_ocs = ghgrp_data.set_index('registryID').join(
+            ghgrp_data_ocs[['ut_count']], how='inner'
+            )
+        
+        ghgrp_data_ocs.reset_index(inplace=True)
+
+        ghgrp_data_ocs.drop('ut_count', axis=1, inplace=True)
+    
+    else:
+
+        ghgrp_data_ocs = ghgrp_data.set_index('registryID').join(
+            ghgrp_data_ocs[['ut_count']], how='outer'
+            )
+        
+        ghgrp_data_ocs.reset_index(inplace=True)
+
+        ghgrp_data_ocs = ghgrp_data_ocs[ghgrp_data_ocs.ut_count.isnull()]
+
+        ghgrp_data_ocs.drop('ut_count', axis=1, inplace=True)
+        
+    return ghgrp_data_ocs
+
+
+    # ghgrp_data_ = pd.DataFrame()
+
+    # gd_grpd = ghgrp_data.groupby(['registryID', 'ghgrpID', 'fuelTypeStd'])
+
+    # for g in gd_grpd.groups:
+
+    #     try:
+    #         gd_grpd.get_group(g)
+
+    #     except KeyError:  # One row has NaN fuelTypeStd
+    #         continue
+
+    #     else:
+    #         if ocs:
+    #             if 'OCS (Other combustion source)' in gd_grpd.get_group(g).unitType.values:
+    #                 ghgrp_data_ = pd.concat(
+    #                     [ghgrp_data_, gd_grpd.get_group(g)], axis=0
+    #                     )
+
+    #             else:
+    #                 continue
+
+    #         else:
+    #             if 'OCS (Other combustion source)' not in gd_grpd.get_group(g).unitType.values:
+    #                 ghgrp_data_ = pd.concat(
+    #                     [ghgrp_data_, gd_grpd.get_group(g)], axis=0
+    #                     )
+
+    #             else:
+    #                 continue
+
+    # return ghgrp_data_
+
+
+# def calc_share_ocs(ghgrp_data_shared_ocs, cutoff=0.5, dt='energy'):
+#     """
+#     Calculate other combustion source (OCS) energy or emissions portion
+#     for GHGRP reporters by registryID, fuelTypeStd, and unitTypeStd.
+#     Returns unit based on cutoff value (
+#     e.g., records where OCS share >=0.5 are returned with
+#     cutoff=0.5)
+
+#     Parameters
+#     ----------
+#     ghgrp_data_shared_ocs : pandas.DataFrame
+#         DataFrame with 
+
+#     cutoff : float, default=0.5
+#         OCS share of energy by registryID, fuelTypeStd, and
+#         unitTypeStd to identify unit
+
+#     dt : str, default='energy'; {'energy', 'ghgs'}
+#         Indicate whether shares are calculated for energy or 
+#         greenhouse gas emissions (ghgs).
+
+#     Returns
+#     -------
+#     ocs_share : pandas.DataFrame
+#         Share of energy or ghgs by resgistry, fuelTypeStd, and unitTypeStd
+#         that is OCS
+#     """
+#     if dt == 'energy':
+#         col = 'energyMJ'
+
+#     elif dt == 'ghgs':
+#         col = 'ghgsTonneCO2e'
+
+#     ocs_share = ghgrp_data_shared_ocs.groupby(
+#         ['registryID', 'fuelTypeStd', 'unitTypeStd']
+#         )[col].sum()
+
+#     ocs_share = ocs_share.divide(
+#         ocs_share.sum(level=[0, 1])
+#         )
+
+#     ocs_share = pd.DataFrame(ocs_share).reset_index()
+    
+#     ocs_share = ocs_share.query(f"unitTypeStd=='other combustion' & {col}>=@cutoff")
+
+#     return ocs_share
 
 
 def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy'):
@@ -705,19 +814,26 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
 
     if dt == 'energy':
         ghgrp_col = 'energyMJ'
-        nei_col = 'energyMJq0'
+        nei_col = 'energyMJq2'
         portion_col = 'energyMJPortion'
-        nei_sum_cols = ['energyMJq0', 'energyMJq2','energyMJq3']
+        # nei_sum_cols = ['energyMJq0', 'energyMJq2','energyMJq3']
 
     elif dt == 'ghgs':
         ghgrp_col = 'ghgsTonneCO2e'
         nei_col = 'ghgsTonneCO2eQ0'
         portion_col = 'ghgsPortion'
-        nei_sum_cols = ['ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2','ghgsTonneCO2eQ3']
+        # nei_sum_cols = ['ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2','ghgsTonneCO2eQ3']
 
     nei_dso = nei_data_shared_ocs.copy(deep=True)
     ghgrp_dso = ghgrp_data_shared_ocs.copy(deep=True)
 
+    #TODO delete after debugging
+    if dt == 'ghgs':
+        nei_dso.to_csv('nei_dso.csv')
+        ghgrp_dso.to_csv('ghgrp_dso.csv')
+
+    # Cleaning up the unecessary 'index' column 
+    # #TODO (minor): find what merge or join is creating this column
     for df in [nei_dso, ghgrp_dso]:
         if 'index' in df.columns:
             df.drop('index', axis=1, inplace=True)
@@ -758,96 +874,133 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
 
     nei_data_shared_portion.name = portion_col
 
-    # nei_data_shared_portion = pd.DataFrame(nei_data_shared_portion)
+    ## nei_data_shared_portion = pd.DataFrame(nei_data_shared_portion)
 
-    # nei_dso = nei_dso.join(
-    #     nei_data_shared_portion
-    #     )
+    ## nei_dso = nei_dso.join(
+    ##     nei_data_shared_portion
+    ##     )
 
-    # The join (as well as merge) were causing a crash
-    # Updating the DataFrame was not working (nans weren't updated)
-    # nei_dso.loc[:, 'energyMJPortion'] = np.nan
-    # nei_dso.update(nei_data_shared_portion)
+    ## The join (as well as merge) were causing a crash
+    ## Updating the DataFrame was not working (nans weren't updated)
+    ##
+    ##  nei_dso.loc[:, 'energyMJPortion'] = np.nan
+    ## nei_dso.update(nei_data_shared_portion)
 
     nei_dso.loc[:, portion_col] = nei_data_shared_portion
-    # nei_dso.dropna(subset=['energyMJPortion'], inplace=True)
 
     nei_dso.reset_index(
         ['eisFacilityID', 'eisProcessID', 'eisUnitID'], drop=False,
         inplace=True
         )
-    # nei_data_shared_portion.reset_index(inplace=True)
 
-    # nei_dso.loc[:, 'energyMJPortion'] = nei_dso.energyMJ.divide(
-    #     nei_data_shared_portion.energyMJ, fill_value=0
-    #     )
+    # ocs_share = calc_share_ocs(ghgrp_dso, dt=dt)
 
-    ocs_share = calc_share_ocs(ghgrp_dso)
-
-    ocs_share.set_index(['registryID', 'fuelTypeStd'], inplace=True)
+    # ocs_share.set_index(['registryID', 'fuelTypeStd'], inplace=True)
 
     # nei_dso.set_index(['registryID', 'fuelTypeStd'], inplace=True)
+
     nei_dso.sort_index(inplace=True)
     ghgrp_dso.set_index(['registryID', 'fuelTypeStd'], inplace=True)
 
     ghgrp_dso.sort_index(inplace=True)
 
-    ocs_allocated = pd.DataFrame()
+    ocs_allocated = pd.merge(
+        nei_dso, ghgrp_dso[[ghgrp_col]], left_index=True, right_index=True,
+        how='left'
+        )
+    
+    ocs_allocated[ghgrp_col].update(
+        ocs_allocated[portion_col].multiply(ocs_allocated[ghgrp_col])
+        )
 
-    #TODO refactor this for loop.
-    for i in ghgrp_dso.index.drop_duplicates():
 
-        if i in ocs_share.index:
+    check = pd.concat(
+        [ocs_allocated[ghgrp_col].sum(level=[0,1]), 
+         ghgrp_dso[ghgrp_col].sum(level=[0,1])], axis=1
+        )
+    
+    check.columns = ['allocated', 'original']
 
-            ghgrp_sum = ghgrp_dso.xs(i)[ghgrp_col].sum()
+    check.loc[:, 'comparison'] = check.allocated.divide(check.original)
 
-            try:
+    missing = check[check.allocated.isnull()]
 
-                nei_sum = nei_dso.xs(i)[nei_sum_cols].sum()
+    missing = ghgrp_dso.join(
+        missing[['allocated']], how='inner'
+        )
 
-            except (KeyError, TypeError):
-                energy_or_ghgs = pd.DataFrame(ghgrp_dso.loc[i, :])
-                energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp')
+    ocs_allocated = ocs_allocated.join(
+        check[check.allocated.notnull()][['allocated']], how='inner'
+        )
+    
+    for df in [missing, ocs_allocated]:
 
-            else:
+        df.reset_index(inplace=True)
 
-                if nei_sum[0] > 0:
+        df.drop(['allocated'], axis=1, inplace=True)
 
-                    # Assume that energy estimates derived from ghgrp are
-                    # more robust than NEI derivations.
-                    if nei_sum[0] < ghgrp_sum:
-
-                        energy_or_ghgs = \
-                            pd.DataFrame(nei_dso.loc[i, :])
-
-                        energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'nei')
-
-                    else:
-                        energy_or_ghgs = \
-                            pd.DataFrame(nei_dso.loc[i, :])
-                        energy_or_ghgs.loc[:, ghgrp_col] = \
-                            energy_or_ghgs.loc[:, portion_col] * ghgrp_sum
-
-                        energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp')
-
-                        # Remove NEI derivations in this case
-                        energy_or_ghgs.loc[:, nei_sum_cols] = None
-
-                else:
-
-                    energy_or_ghgs = pd.DataFrame(ghgrp_dso.loc[i, :])
-                    energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp')
-
-        else:
-            energy_or_ghgs = pd.DataFrame(ghgrp_dso.loc[i, :])
-            energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp')
-
-        ocs_allocated = pd.concat(
-            [ocs_allocated, energy_or_ghgs.reset_index()],
-            axis=0, ignore_index=True, sort=True
-            )
+    ocs_allocated = assign_estimate_source(ocs_allocated, 'ghgrp', dt=dt)
 
     ocs_allocated.drop([portion_col], axis=1, inplace=True)
+
+    ocs_allocated = ocs_allocated.append(missing)
+
+    # ocs_allocated = pd.DataFrame()
+
+    # #TODO refactor this for loop.
+    # for i in ghgrp_dso.index.drop_duplicates():
+
+    #     if i in ocs_share.index:
+
+    #         ghgrp_sum = ghgrp_dso.xs(i)[ghgrp_col].sum()
+
+    #         try:
+
+    #             nei_sum = nei_dso.xs(i)[nei_sum_cols].sum()
+
+    #         except (KeyError, TypeError):
+    #             energy_or_ghgs = pd.DataFrame(ghgrp_dso.loc[i, :])
+    #             energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp', dt=dt)
+
+    #         else:
+    #             #TODO make different for ghgs and energy (< for energy; > for ghgs?)
+    #             if nei_sum[1] > 0:  # The second value is the median
+
+    #                 # Assume that energy estimates derived from ghgrp are
+    #                 # more robust than NEI derivations.
+    #                 if nei_sum[1] > ghgrp_sum:
+
+    #                     energy_or_ghgs = \
+    #                         pd.DataFrame(nei_dso.loc[i, :])
+
+    #                     energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'nei', dt=dt)
+
+    #                 else:
+    #                     energy_or_ghgs = \
+    #                         pd.DataFrame(nei_dso.loc[i, :])
+    #                     energy_or_ghgs.loc[:, ghgrp_col] = \
+    #                         energy_or_ghgs.loc[:, portion_col] * ghgrp_sum
+
+    #                     energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp', dt=dt)
+
+    #                     # Remove NEI derivations in this case
+    #                     energy_or_ghgs.loc[:, nei_sum_cols] = None
+
+    #             else:
+
+    #                 energy_or_ghgs = pd.DataFrame(ghgrp_dso.loc[i, :])
+    #                 energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp', dt=dt)
+
+    #     else:
+    #         energy_or_ghgs = pd.DataFrame(ghgrp_dso.loc[i, :])
+    #         energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp', dt=dt)
+
+    #     ocs_allocated = pd.concat(
+    #         [ocs_allocated, energy_or_ghgs.reset_index()],
+    #         axis=0, ignore_index=True, sort=True
+    #         )
+
+    # ocs_allocated.drop([portion_col], axis=1, inplace=True)
 
     return ocs_allocated
 
@@ -998,8 +1151,10 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         nei_data, on='eisFacilityID',
         how='inner'
         )
-    
-    nei_only_data = assign_estimate_source(nei_only_data, 'nei')
+
+    for dt in ['energy', 'ghgs']:
+
+        nei_only_data = assign_estimate_source(nei_only_data, 'nei', dt=dt)
 
     # GHGRP facility IDs that don't report to NEI
     ghgrp_ids_noeis = melt_multiple_ids(ghgrp_no_eis, ghgrp_unit_data)
@@ -1010,7 +1165,8 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         how='inner'
         )
     
-    ghgrp_only_data = assign_estimate_source(ghgrp_only_data, 'ghgrp')
+    for dt in ['energy', 'ghgs']:
+        ghgrp_only_data = assign_estimate_source(ghgrp_only_data, 'ghgrp', dt=dt)
 
     # NEI and GHGRP facilities
     nei_ids_shared = melt_multiple_ids(nei_and_ghgrp, nei_data)
@@ -1241,7 +1397,6 @@ if __name__ == '__main__':
 
         sys.exit("Run frs_extraction.py or check location of frs_data_formatted.csv")
 
-
         # frs_methods = FRS()
         # frs_methods.download_unzip_frs_data(combined=True)
         # frs_data = frs_methods.import_format_frs(combined=True)
@@ -1253,6 +1408,8 @@ if __name__ == '__main__':
     # ghgrp_energy_file = GHGRP.main(year, year)
     ghgrp_energy_file = "ghgrp_energy_20240110-1837.parquet"
     ghgrp_unit_data = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
+
+    ghgrp_unit_data = check_registry_id(ghgrp_unit_data, frs_data)
 
     nei_data = NEI().main()
 

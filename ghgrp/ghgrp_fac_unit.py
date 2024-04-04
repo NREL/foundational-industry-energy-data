@@ -220,7 +220,7 @@ class GHGRP_unit_char():
         
         return ghgrp_df
     
-    # GHG emissions in the GHGRP unit file are aggregated to unit and not fuel type and unit. which is what is
+    # GHG emissions in the GHGRP unit file are aggregated to unit and not fuel type and unit, which is what is
     # needed.
 
     def format_ghgrp_df(self, ghgrp_df):
@@ -417,7 +417,8 @@ class GHGRP_unit_char():
 
 
 if __name__ == '__main__':
-    ghgrp_energy_file = 'ghgrp_energy_20240110-1837.parquet'
-    reporting_year = 2017
+    # ghgrp_energy_file = 'ghgrp_energy_20240110-1837.parquet'
+    ghgrp_energy_file = 'all_ghgrp_energy.parquet'
+    reporting_year = 2018
     ghgrp_df = GHGRP_unit_char(ghgrp_energy_file, reporting_year).main()
-    # ghgrp_df.to_csv('formatted_ghgrp_unit_data.csv')
+    ghgrp_df.to_csv('formatted_ghgrp_unit_data_2018_DECARB.csv')

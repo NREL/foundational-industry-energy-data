@@ -427,6 +427,7 @@ class GHGRP(FiedGIS, TierEnergy):
             return formatted_ghgrp_data
 
         if subpart == 'subpartV_fac':
+
             filename = 'fac_table_'
             ghgrp_data = self.download_or_read_ghgrp_file(subpart, filename)
             formatted_ghgrp_data = self.format_facilities(ghgrp_data)
@@ -524,8 +525,6 @@ class GHGRP(FiedGIS, TierEnergy):
                     (energy_subC.FUEL_TYPE == 'Wood and Wood Residuals (dry basis)'),
                         'T4CH4COMBUSTIONEMISSIONS'].multiply(1.9 / 7.2)
 
-        # tier_calcs = ghg_tiers.tier_energy(years=self.years,
-        #                                   std_efs=self.std_efs)
 
         # New method for calculating energy based on tier methodology
         energy_subC = self.tier_calcs.calc_all_tiers(energy_subC)

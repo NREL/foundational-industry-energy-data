@@ -12,14 +12,14 @@ Used Oil: other
 Fuel Gas: other
 Landfill Gas: other
 Solid Byproducts: biomass
-Kerosene: other
+Kerosene: kerosene
 Residual Fuel Oil No. 6: resFuelOil 
 residual fuel oil: resFuelOil
 digester gas: other
 Heavy Gas Oils: other
 Distillate Fuel Oil No. 1: other 
 Bituminous: coal
-Kerosene-Type Jet Fuel: other
+Kerosene-Type Jet Fuel: jetA
 Coal Coke: coke 
 Pentanes Plus: lpgHGL
 Butane: lpgHGL
@@ -148,7 +148,9 @@ Bituminous Coal: coal
 Liquified Petroleum Gas: lpgHGL
 Distillate Oil (Diesel): diesel
 Gasified Coal: coal
-Kerosene/Naphtha (Jet Fuel): other
+jet a fuel : jetA
+jet_a : jetA
+Kerosene/Naphtha (Jet Fuel): kerosene
 Residual/Crude Oil: other
 Digester Gas: other
 Lignite Coal: coal
@@ -188,7 +190,7 @@ Refuse: other
 direct wood: biomass
 direct natural gas: naturalGas
 co boiler: other
-kerosene/naphtha (jet fuel): other
+kerosene/naphtha (jet fuel): kerosene
 tire-derived fuel: other
 petroleum coke: other 
 wood residuals: biomass
