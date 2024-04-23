@@ -323,7 +323,7 @@ class FRS:
 
         dups = data[~data.index.isin(data_unique.index)]
         dups = dups.groupby('REGISTRY_ID').apply(
-            lambda x: x['NAICS_CODE'].to_list()
+            lambda x: list(x['NAICS_CODE'].unique())
             )
         dups.name = 'NAICS_CODE_additional'
 
