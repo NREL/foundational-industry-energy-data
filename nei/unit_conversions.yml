@@ -1,11 +1,15 @@
 # Conversions
 basic_units: # Unit conversions for EF numerator UOM to emissions UOM 
   LB_to_TON: 0.0005
+  KG_to_TON: 0.0011023
+  KG_to_LB: 2.2046
   LB_to_LB: 1
   TON_to_TON: 1
   MILLIGRM_to_LB: 2.2046E-6
   MILLIGRM_to_TON: 1.1023E-8  # 0.0022046/1000/2000
   G_to_LB: 0.0022046
+  G_to_TON: 1.1E-6
+  NG_to_LB: 2.2046E-9
   TON_to_LB: 2000
   MEGAGRAM_to_TON: 1.102
   BTU_to_MJ: 1.055E-9
@@ -50,7 +54,7 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     E3BBL_to_MJ: 6.425E+6   # 42000 gal/E3BBL * 0.145 MMBtu/gal * 1055 MMBtu/MJ
     MJ_to_KGCO2e: 0.07142  # No. 6 residual
   lignite:
-    TON_TO_MJ: 14992   # 14.21 MMBtu/ton * 1055 MJ/MMBtu
+    TON_to_MJ: 14992   # 14.21 MMBtu/ton * 1055 MJ/MMBtu
     MJ_to_KGCO2e: 0.09333  
   coke:
     TON_to_MJ: 26164   # 24.80 MMBtu/ton * 1055 MJ/MMBtu
@@ -62,7 +66,7 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     E6BTU_to_MJ: 1055
     MJ_to_KGCO2e: 0.09901
   wood:
-    TON_TO_MJ: 16226  # 15.38 MMBtu/ton * 1055 MJ/MMBtu
+    TON_to_MJ: 16226  # 15.38 MMBtu/ton * 1055 MJ/MMBtu
     E6BTU_to_MJ: 1055
     LB_to_MJ: 8.11 # 0.0005 ton/lb * 15.38 MMBtu/ton * 1055 MJ/MMBtu
     E3LB_to_MJ: 8110
@@ -70,7 +74,7 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     E6BDFT_to_MJ: 1.3516E+7
     MJ_to_KGCO2e: 0.08964  # N. American softwood
   bagasse:
-    TON_TO_MJ: 0.00185  # 0.0005 ton/lb * 3500 Btu/lb * 1E-6 MMBtu/Btu * 1055 MJ/MMBtu
+    TON_to_MJ: 0.00185  # 0.0005 ton/lb * 3500 Btu/lb * 1E-6 MMBtu/Btu * 1055 MJ/MMBtu
     LB_to_MJ: 3.69 # 3500 Btu/lb * 1E-6 MMBtu/Btu * 1055 MJ/MMBtu
     MJ_to_KGCO2e: 0.09068
   process_gas:
@@ -110,53 +114,57 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
   oil:
     MJ_to_KGCO2e: 0.07089  # crude oil
   anthracite:
-    TON_to_MJ:
+    TON_to_MJ: 26469.95   # 25.09 MMBtu/ton * 1055 MJ/MMBtu
     MJ_to_KGCO2e: 0.09899 
   bituminous:
-    TON_to_MJ: 
+    TON_to_MJ: 26301.15   # 24.93 MMBtu/ton * 1055 MJ/MMBtu
     MJ_to_KGCO2e: 0.08912
   subbituminous:
-    TON_TO_MJ:
+    TON_to_MJ: 18198.75  # 17.25 MMBtu/ton * 1055 MJ/MMBtu
     MJ_to_KGCO2e: 0.09281
   mixed_coking:
-    TON_TO_MJ:
+    TON_to_MJ: 27725.4 # 26.28 MMBtu/ton * 1055 MJ/MMBtu
     MJ_to_KGCO2e: 0.08971
   mixed_ind:  # Mixed industrial sector
-    TON_TO_MJ:
+    TON_to_MJ: 23579.25 # 22.35 MMBtu/ton * 1055 MJ/MMBtu
     MJ_to_KGCO2e: 0.09044
   diesel:
     GAL_to_MJ: 145.59  # 0.138 MMBtu/gal * 1055 MJ/MMBtu
     MJ_to_KGCO2e:  
   bfg: 
-    FT3_TO_MJ:
+    FT3_to_MJ:
     MJ_to_KGCO2e: 
   fuel_gas:
-    TON_TO_MJ:
-    MJ_to_KGCO2: 
+    TON_to_MJ:
+    MJ_to_KGCO2: 0.0559  # 59 Kg CO2/MMBtu / 1055 MMBtu/MJ 
   methanol:
     MJ_to_KGCO2e: 0.06493  # ethanol
+    E3GAL_to_MJ: 68575 # 0.0652 MMBtu/gal * 1000 gal/E3GAL * 1055 MJ/MMBtu
   landfill_gas:
-    FT3_to_MJ:
+    E6FT3_to_MJ: 511675  # 0.000485 MMBtu/scf * 1E6 scf/ E6FT3 * 1055 MJ/MMBtu
     MJ_to_KGCO2e: 0.04961
   propane:
     GAL_to_MJ:
-    MJ_to_KGCO2:
+    MJ_to_KGCO2: 0.05826 # 61.46 KG CO2/MMBtu / 1055 MJ/MMBtu
   liquid waste:
-    GAL_to_MJ:
     MJ_to_KGCO2e: 0.07038  # used oil
+    E3GAL_to_MJ: 145590   # used oil 0.138 MMBtu/gal * 1000 gal/1 E3GAL * 1055 MJ/MMBtu
   ag_byprod:
-    TON_TO_MJ:
-    MJ_to_KGCO2:
+    TON_to_MJ:
+    MJ_to_KGCO2: 0.112  # 118.17 kg CO2/MMBtu / 1055 MJ/MMBtu 
   recovered solvents:
     MJ_to_KGCO2e: 0.06661  # pentanes plus
   sawdust:
     MJ_to_KGCO2e: 0.09009  # wood and wood residuals
+    TON_to_MJ: 18441 # wood and wood residuals 17.48 MMBtu/Ton * 1055 MJ/MMBtu
   solid waste:
     MJ_to_KGCO2e: 0.08791  # municipal solid waste
+    TON_to_MJ: 10497.25  # 9.95 MMBtu/ton * 1055 MJ/MMBtu
   tire-derived fuel:
     MJ_to_KGCO2e: 0.08343 # tires
   waste oil:
     MJ_to_KGCO2e: 0.07038
+    E3GAL_to_MJ: 145590   # used oil 0.138 MMBtu/gal * 1000 gal/1 E3GAL * 1055 MJ/MMBtu
   wood residuals:
     MJ_to_KGCO2e: 0.09009  # wood and wood residuals
   wood/bark waste:

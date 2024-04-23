@@ -8,6 +8,7 @@ import requests
 import zipfile
 import pdb
 from io import BytesIO
+from itertools import compress
 
 logging.basicConfig(level=logging.INFO)
 
@@ -262,6 +263,9 @@ class NEI:
             NEI data with offending energy estimates either
             updated or removed.
         """
+
+        #should use this to check energy_MJ_nei values against energy_MJ_web values
+        # as well as energy_MJ_nei values > ~5E9
 
         # Max estimated unit energy from GHGRP in 2017 (MJ).
         ghgrp_max = 7.925433e+10
@@ -724,12 +728,241 @@ class NEI:
 
         # Drop values that are >25,000 metric tons. If these values are not
         # errors, then they will be picked up by the inclusion of GHGRP unit emissions
-        emissions = emissions.query("ghgsTonneCO2eQ3 < 25000 ")
+        # emissions = emissions.query("ghgsTonneCO2eQ3 < 25000 ")
 
-        nei_data.update(emissions)
+        # nei_data.update(emissions)
 
-        nei_data.drop('ef', axis=1, inplace=True)
+        # nei_data.drop('ef', axis=1, inplace=True)
     
+        return nei_data
+
+    def estimate_webfr_median(self, webfr):
+        """
+        NEI-repored emissions factors may overestimate energy values.
+        Estimate median emissions factor by pollutant, material, and unit
+        calculated from WebFires data. 
+
+        Parameters
+        ----------
+        webfr: pandas.DataFrame
+            Webfires Emissions Factors.
+
+        Returns
+        -------
+        med_ef : pandas.DataFrame
+            Median WebFires emission factors by NEI_POLLUTANT_CODE,
+            MATERIAL, UNIT (numerator), and MEASURE (denominator).
+        
+        """
+
+        med_ef = webfr[webfr.FACTOR != 'FORMULA'].copy(deep=True)
+
+        efs = med_ef.drop_duplicates('FACTOR').copy(deep=True)
+
+        efs.loc[:, 'FACTOR_float'] = np.nan
+
+        for i, f in efs.FACTOR.iteritems():
+
+            try:
+                ef = float(f)
+
+            except ValueError:
+                ef = np.nan
+
+            efs.loc[i, 'FACTOR_float'] = ef
+
+        med_ef = pd.merge(med_ef, efs[['FACTOR', 'FACTOR_float']], on='FACTOR', how='left')
+        med_ef = med_ef.where(med_ef.ACTION.isin(
+            ['Burned', 'Combusted', 'Processed', 'Input', 'Throughput', 'Used', 'Applied',
+             'Consumed', 'Produced', 'Charged', 'Fed', 'Operating', 'Generated', 'Dried', 'Baked',
+             'Circulated']
+             )).dropna(how='all')
+        
+        # Not all of the MEASURE values in WebFires match those used by NEI.
+        webfr_nei = {
+            '1000 Gallons': 'E3GAL',
+            'Lb': 'LB',
+            '1000 Barrels': 'E3BBL',
+            '1000 Cubic Feet': 'E3FT3',
+            '1000 Horsepower-Hours': 'E3HP-HR',
+            '1000 Pounds': 'E3LB',
+            'MMBTU': 'E6BTU',
+            'MMBtu': 'E6BTU',
+            'Million Gallons': 'E6GAL',
+            'Million Standard Cubic Feet': 'E6FT3',
+            'Pounds': 'LB'
+            }
+        
+        med_ef.MEASURE.update(
+            med_ef.MEASURE.map(webfr_nei)
+        )
+
+        med_ef.UNIT.update(med_ef.UNIT.apply(lambda x: x.upper()))
+        med_ef.MEASURE.update(med_ef.MEASURE.apply(lambda x: x.upper()))
+        med_ef.MATERIAL.update(med_ef.MATERIAL.apply(lambda x: x.lower()))
+
+        # Convert all mass units to pounds (LB))
+        in_lbs = med_ef.UNIT.apply(lambda x: f'{x}_to_LB').map(
+            self._unit_conv['basic_units']
+            ) * med_ef.FACTOR_float
+    
+        in_lbs.dropna(inplace=True)
+        
+        med_ef.loc[in_lbs.index, 'UNIT'] = 'LB'
+        med_ef.FACTOR_float.update(in_lbs)
+
+        med_ef = pd.DataFrame(med_ef.groupby(
+            ['NEI_POLLUTANT_CODE', 'MATERIAL', 'UNIT', 'MEASURE'],
+            as_index=False
+            ).FACTOR_float.median())
+
+        return med_ef
+    
+    def apply_median_webfr_ef(self, nei_data, webfr, cutoff=0.75):
+        """
+        NEI-repored emissions factors may overestimate energy values.
+        This method provides a second estimate based on the median emissions
+        factor calculated from WebFires data.
+
+        Parameters
+        ----------
+        nei_data : pandas.DataFrame
+            NEI data after energy and throughput have been estimated.
+
+        webfr : pandas.DataFrame
+            Webfires Emissions Factors.
+
+        cutoff : float; default=0.75
+            Ratio of NEI emission factor to WebFires emission factor median value, 
+            under which the NEI emission factor is not used for energy 
+            calculations.
+
+        Returns
+        -------
+        nei_data : pandas.DataFrame
+            NEI data with updated energy estimates. 
+        """
+
+        # Calculate medians of WebFires emission factors
+        med_ef = self.estimate_webfr_median(webfr)
+
+        # Find relevant eis_units by 
+        # nei_data[(nei_data.energy_MJ_nei > 1E10) & (nei_data.energy_MJ_web.isnull())]
+
+        nei_data = pd.merge(
+            nei_data,
+            med_ef,
+            left_on=['pollutant_code', 'scc_fuel_type', 'ef_numerator_uom',
+                        'ef_denominator_uom'],
+            right_on=['NEI_POLLUTANT_CODE', 'MATERIAL', 'UNIT', 'MEASURE'],
+            how='left',
+            suffixes=['', '_webfr']
+            )
+    
+        nei_data.loc[:, 'cutoff_check'] = nei_data.emission_factor.divide(
+            nei_data.nei_ef_num_fac
+            ).divide(nei_data.FACTOR_float)
+        
+        nei_data.cutoff_check.update(
+            nei_data.cutoff_check.dropna() < cutoff
+            )
+
+        # Only concerned with entries where the energy estimated from the original NEI EF is 
+        # more than two times the energy estimated with the WebFires EF.
+        check_items_index = nei_data[
+            (nei_data.cutoff_check == True) & (nei_data.energy_MJ_nei / nei_data.energy_MJ_web > 2)
+            ].index
+
+        nei_data.loc[:, 'energy_MJ_webfr_med'] = nei_data.loc[check_items_index, :].apply(
+            lambda x: x.total_emissions / x.FACTOR_float * self._unit_conv['energy_units'][x.fuel_type][f'{x.MEASURE_webfr}_to_MJ'], 
+            axis=1
+            )
+
+        return nei_data
+
+    def calc_and_apply_iqr(self, df):
+        """
+        Calculate and apply the interquartile range (IQR) 
+        as an outlier indicator.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+
+        Returns
+        -------
+        df : pd.DataFrame
+        """
+
+        q3 = np.quantile(df.emission_factor, 0.75)
+        med = np.quantile(df.emission_factor, 0.50)
+        q1 = np.quantile(df.emission_factor, 0.25)
+
+        iqr = q3 - q1
+
+        upper = q3 + 1.5 * iqr
+        lower = q1 - 1.5 * iqr
+
+        # Doesn't make sense to have a negative lower bound. Use mean - 2* std dev instead
+        if lower < 0:
+            lower = np.mean(df.emission_factor) - 2 * np.std(df.emission_factor)
+
+        df.loc[:, 'masked'] = [(x > upper) | (x < lower) for x in df.emission_factor.values]
+
+        df.loc[:, 'emission_factor_median'] = np.nan
+
+        if any(df.masked.values):
+
+            df.loc[df[df.masked == True].index, 'emission_factor_median'] = med
+
+        df.drop(['masked'], axis=1, inplace=True)
+
+        df.dropna(subset=['emission_factor_median'], inplace=True)  # contains original index in multi-index
+        # outliers = [x for x in compress(df.emission_factor.values, mask)]
+
+        # if not outliers:
+        #     outliers = np.nan
+
+        # df.reset_index(level=[0, 1, 2, 3, 4], drop=True, inplace=True)
+    
+        return df
+    
+    def detect_and_fix_ef_outliers(self, nei_data):
+        """
+        Finds emission factors (EFs) that are 1.5 * interquartile range 
+        beyond the first and third quartiles by SCC, pollutant code, 
+        and fuel type.
+        EFs that are identiied as outliers are augemented with the 
+        median value.
+
+        Parameters
+        ----------
+        nei_data : pd.DataFrame
+
+        Returns
+        -------
+        nei_data : pd.DataFrame
+            NEI data with new column 'emission_factor_median' that contains the median
+            of EFs found to be outliers. These EFs have the same numerator and
+            denominator units and the orginally reported EFs.
+        """
+    
+        # nei_ef = nei_data.groupby(
+        #     ['scc', 'fuel_type', 'pollutant_code', 'ef_numerator_uom', 'ef_denominator_uom']
+        #     )
+        
+        nei_ef = nei_data[
+            (nei_data.emission_factor.notnull()) & (nei_data.fuel_type.notnull())
+            ].groupby(
+                ['scc', 'fuel_type', 'pollutant_code', 'ef_numerator_uom', 'ef_denominator_uom']
+            )
+
+        outliers = nei_ef.apply(lambda x: self.calc_and_apply_iqr(x))
+
+        outliers.reset_index(level=[0, 1, 2, 3, 4], drop=True, inplace=True)
+   
+        nei_data.loc[:, 'emission_factor_median'] = outliers.emission_factor_median
+
         return nei_data
 
     def match_webfire_to_nei(self, nei_data, webfr):
@@ -924,7 +1157,10 @@ class NEI:
 
         nei.loc[:, 'nei_ef_LB_per_TON'] = \
             nei['emission_factor'] * nei['nei_ef_num_fac'] / nei['nei_ef_denom_fac']
-
+        
+        nei.loc[:, 'nei_ef_median_LB_per_TON'] = \
+            nei['emission_factor_median'] * nei['nei_ef_num_fac'] / nei['nei_ef_denom_fac']
+        
         # convert NEI emission_factor to LB/MJ for energy input
         for f in nei.fuel_type.dropna().unique():
 
@@ -954,6 +1190,9 @@ class NEI:
 
         nei.loc[:, 'nei_ef_LB_per_MJ'] = \
             nei['emission_factor']*nei['nei_ef_num_fac']/nei['nei_denom_fuel_fac']
+
+        nei.loc[:, 'nei_ef_median_LB_per_MJ'] = \
+            nei['emission_factor_median']*nei['nei_ef_num_fac']/nei['nei_denom_fuel_fac']
 
         # WebFire----------------------------------------------
         nei.loc[:, 'UNIT'] = nei['UNIT'].str.upper()
@@ -1039,9 +1278,18 @@ class NEI:
 
             for v in ['throughput_TON', 'energy_MJ']:
 
-                nei.loc[:, f'{v}_{f}'] = nei.total_emissions_LB.divide(
-                    nei[f'{f}_ef_LB_per_{v.split("_")[1]}']
-                    )
+                if f == 'nei':
+                    
+                    for m in ['', 'median_']:
+
+                        nei.loc[:, f'{v}_{m}{f}'] = nei.total_emissions_LB.divide(
+                            nei[f'{f}_ef_{m}LB_per_{v.split("_")[1]}']
+                            )
+                        
+                else:
+                    nei.loc[:, f'{v}_{f}'] = nei.total_emissions_LB.divide(
+                            nei[f'{f}_ef_LB_per_{v.split("_")[1]}']
+                            )
 
             # remove throughput_TON if WebFire ACTION is listed as Burned
             nei.loc[(~nei[f'throughput_TON_{f}'].isnull()) & 
@@ -1049,6 +1297,13 @@ class NEI:
 
         return nei
 
+    def calc_emission_outlier(nei_data):
+        """
+        """
+
+        emiss = nei_data.groupby(
+            ['naics_code', 'scc', 'pollutant_code', 'emissions_uom']
+            ).total_emissions.describe()
 
     def get_median_throughput_and_energy(self, nei):
         """
@@ -1072,6 +1327,24 @@ class NEI:
         """
         # This is the primary output of estimating throughput and energy from NEI
 
+        # Use energy values calculated after replacing outlier emission factors 
+        # with median value.
+        ef_outliers = nei.query(
+            "energy_MJ_median_nei.notnull() & energy_MJ_nei.notnull()"
+            ).copy(deep=True)
+        
+        # Update original values to values calculated with median
+        nei.energy_MJ_nei.update(ef_outliers.energy_MJ_median_nei) 
+
+        # Also use energy values calculated using the median WebFires
+        med_ef = nei.query(
+            "energy_MJ_median_nei.isnull() & energy_MJ_nei.notnull() & energy_MJ_webfr_med.notnull()"
+            ).copy(deep=True)
+        
+        nei.energy_MJ_nei.update(med_ef.energy_MJ_webfr_med)
+
+        nei.to_csv('nei_check_med_update.csv')
+
         med_unit = pd.concat(
             [pd.melt(
                 nei[['eis_facility_id',
@@ -1092,6 +1365,9 @@ class NEI:
                 value_name=f'{v}'
                 ) for v in ['energy_MJ', 'throughput_TON']], axis=0, sort=True
             )
+
+        # Groupby was not including entries that were missing a unit type or fuel type.
+        med_unit.fillna({'fuel_type': 'unknown', 'unit_type': 'unknown'}, inplace=True)
 
         med_unit = med_unit.query(
                 "throughput_TON > 0 | energy_MJ > 0"
@@ -1398,31 +1674,26 @@ class NEI:
         logging.info("Merging SCC data...")
         nei_char = nei.assign_types_nei(nei_char, iden_scc)
         nei_char = nei.remove_unit_types(nei_char)  # remove some non-combustion related unit types
+        logging.info("Finding emission factor outliers...")
+        nei_char = nei.detect_and_fix_ef_outliers(nei_char)
         logging.info("Converting emissions units...")
         nei_char = nei.convert_emissions_units(nei_char)
         logging.info("Estimating throughput and energy...")
         nei_char = nei.calc_unit_throughput_and_energy(nei_char)
+        # Use median EF from WebFires as alt approach to estimating energy
+        nei_char = nei.apply_median_webfr_ef(nei_char, webfr, cutoff=0.75)  
         nei_char.to_csv('nei_char_pre_median.csv', index=False)
         logging.info("Extracting and aggregating GHG emissions")
         ghgs = nei.extract_ghg_emissions(nei_char)
         logging.info("Final NEI data assembly...")
-
         med_unit = nei.get_median_throughput_and_energy(nei_char)
         missing_unit = nei.separate_missing_units(nei_char)
 
         nei_char = nei.merge_med_missing(med_unit, missing_unit)
 
-        # nei_char = pd.concat(
-        #     [nei.get_median_throughput_and_energy(nei_char),
-        #         nei.separate_missing_units(nei_char)], axis=0,
-        #     ignore_index=True
-        #     )
-
         logging.info("Merging and filling GHG emissions")
         nei_char = nei.merge_fill_ghg_emissions(ghgs, nei_char)
-
         nei_char = nei.format_nei_char(nei_char)
-
         nei_char = nei.find_missing_cap(nei_char)  # Fill in missing capacity data, where possible
         nei_char = nei.convert_capacity(nei_char)  # Convert energy capacities all to MW
         nei_char = nei.check_estimates(nei_char)  # check estimates 
