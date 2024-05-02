@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 
 class FIED_analysis:
 
-    def __init__(self, year, file_path=None, df=None):
+    def __init__(self, year, file_path=None, pio_engine=None, df=None, fig_format='png'):
 
         if file_path is None:
             self._fied = df
@@ -35,7 +35,7 @@ class FIED_analysis:
 
             except (pyarrow.ArrowIOError, pyarrow.ArrowInvalid):
                 self._fied = pd.read_csv(
-                    file_path, low_memory=False
+                    file_path, low_memory=False, index_col=0
                     )
 
         self._fied = self.make_consistent_naics_column(self._fied, n=2)
@@ -44,13 +44,15 @@ class FIED_analysis:
 
         self._fig_path = pathlib.Path('./analysis/figures')
 
+        self._pio_engine = pio_engine
+
         if self._fig_path.exists():
             pass
     
         else:
             pathlib.Path.mkdir(self._fig_path)
 
-        self._fig_format = 'svg'
+        self._fig_format = fig_format
 
     def get_cbp_data(self):
         """
@@ -97,9 +99,11 @@ class FIED_analysis:
 
         self.summary_unit_bar(summary_table, write_fig=kwargs['write_fig'])
 
-        self.stacked_bar_missing(write_fig=kwargs['write_fig'])
+        self.plot_stacked_bar_missing(write_fig=kwargs['write_fig'])
 
         self.plot_facility_count(write_fig=kwargs['write_fig'])
+
+        self.plot_best_characterized()
 
         for u in self._fied.unitTypeStd.unique():
             try:
@@ -108,7 +112,7 @@ class FIED_analysis:
                 continue
             else:
                 for m in ['energy', 'power']:
-                    self.unit_bubble_map(u, m, write_fig=kwargs['write_fig'])
+                    self.plot_unit_bubble_map(u, m, write_fig=kwargs['write_fig'])
 
         for v in ['count', 'energy', 'capacity']:
             for n in [None, 2, 3]:
@@ -257,7 +261,7 @@ class FIED_analysis:
         ind_cbp_data = pd.DataFrame(cbp_data.query("ind == True"))
         ind_cbp_data.loc[:, 'naics'] = ind_cbp_data.naics.astype(int)
 
-        fied_count = pd.DataFrame(self._fied)
+        fied_count = self._fied.copy(deep=True)
         fied_count.loc[:, 'n4'] = fied_count.naicsCode.apply(
             lambda x: int(str(int(x))[0:4])
             )
@@ -269,14 +273,15 @@ class FIED_analysis:
             ignore_index=False
             ).reset_index()
 
-        fied_count['index'].update(fied_count['index'].astype(str))
+        index_str = fied_count['index'].astype(str)
+        fied_count.loc[:, 'index'] = index_str
         fied_count.loc[:, 'sector'] = fied_count['index'].apply(
             lambda x: x[0:2]
             ).map(ind_map)
         
         fied_cumsum = pd.merge(
             fied_count[['index', 'sector']],
-            fied_count.groupby(['sector'])['registryID', 'est'].cumsum(),
+            fied_count.groupby(['sector'])[['registryID', 'est']].cumsum(),
             left_index=True, right_index=True
             )
 
@@ -318,10 +323,12 @@ class FIED_analysis:
             font=dict(size=16)
             )
     
-        if write_fig is True:
+        if write_fig:
             pio.write_image(
                 fig,
-                file=self._fig_path / f'counts_{self._year}.{self._fig_format}'
+                file=self._fig_path / f'counts_{self._year}',
+                format=self._fig_format,
+                engine=self._pio_engine
                 )
 
         else:
@@ -486,10 +493,12 @@ class FIED_analysis:
             height=800
             )
 
-        if write_fig is True:
+        if write_fig:
             pio.write_image(
                 fig,
-                file=self._fig_path / f'summary_figure_{self._year}.{self._fig_format}'
+                file=self._fig_path / f'summary_figure_{self._year}', 
+                format=self._fig_format,
+                engine=self._pio_engine
                 )
 
         else:
@@ -497,7 +506,7 @@ class FIED_analysis:
 
         return None
 
-    def unit_bubble_map(self, unit_type, measure, max_size=45, write_fig=True):
+    def plot_unit_bubble_map(self, unit_type, measure, max_size=66, write_fig=True):
         """
         Plot locations of a single standard unit type by
         either energy (MJ) or design capacity.
@@ -511,8 +520,9 @@ class FIED_analysis:
             'flare', 'stove', 'compressor', 'pump',
             'building heat', 'distillation'
 
-        measure : str
-            Either 'energy' (results in MJ) or 'power' (results in MW)
+        measure : str; {'energy', 'power', 'ghgs'}
+            Either 'energy' (results in MJ), 'power' (results in MW), or
+            'ghgs' (results in MTCO2e)
 
         max_size : int
             Max size of bubbles on map
@@ -524,11 +534,11 @@ class FIED_analysis:
         if unit_type:
 
             plot_data = pd.DataFrame(self._fied.query("unitTypeStd == @unit_type"))
-            file_name = f'bubble_map_{measure}-{unit_type}_{self._year}.{self._fig_format}'
+            file_name = f'bubble_map_{measure}-{unit_type}_{self._year}'
 
         else:
             plot_data = self._fied.copy(deep=True)
-            file_name = f'bubble_map_{measure}_{self._year}.{self._fig_format}'
+            file_name = f'bubble_map_{measure}_{self._year}'
 
         plot_args = {
             'lat': 'latitude',
@@ -557,17 +567,31 @@ class FIED_analysis:
                 }
             plot_args['title'] = f'Location of {unit_type.title()} Units Reporting Capacity Data'
 
+        
+        elif measure == 'ghgs':
+            plot_data = plot_data.query(
+                "designCapacityUOM=='MW' & designCapacity>0"
+                )
+            plot_args['size'] = plot_data.designCapacity.to_list()
+            plot_args['labels'] = {
+                'designCapacity': 'Unit Capacity (MW)'
+                }
+            plot_args['title'] = f'Location of {unit_type.title()} Units Reporting Capacity Data'
+
         # sizeref = plot_args['size'].max()/max_size**2
 
         fig = px.scatter_geo(plot_data, **plot_args)
+        fig.update_geos(bgcolor='#FFFFFF')
         fig.update_layout(showlegend=True)
         fig.update_yaxes(automargin=True)
         fig.update_xaxes(automargin=True)
 
-        if write_fig is True:
+        if write_fig:
             pio.write_image(
                 fig,
-                file=self._fig_path / file_name
+                file=self._fig_path / file_name,
+                format=self._fig_format,
+                engine=self._pio_engine
                 )
 
         else:
@@ -575,7 +599,7 @@ class FIED_analysis:
 
         return None
 
-    def stacked_bar_missing(self, naics_level=2, data_subset=None, write_fig=True):
+    def plot_stacked_bar_missing(self, naics_level=2, data_subset=None, write_fig=True):
         """"
         Creates stacked bar showing counts of facilities
         with and without unit-level data.
@@ -585,7 +609,7 @@ class FIED_analysis:
         naics_level : int; default=2
             Specific level of NAICS aggregation to display
             data. NAICS is a range of integers from 2 to 6.
-
+            
         data_subset : str; {None, 'ghgrp', 'nei'}
             Plot subset of data, either facilities that 
             are GHGRP or NEI reporters
@@ -658,10 +682,12 @@ class FIED_analysis:
             font=dict(size=16)
             )
 
-        if write_fig is True:
+        if write_fig:
             pio.write_image(
                 fig,
-                file=self._fig_path / f'stacked_bar_NAICS{naics_level}_{data_subset}_{self._year}.{self._fig_format}'
+                file=self._fig_path / f'stacked_bar_NAICS{naics_level}_{data_subset}_{self._year}',
+                format=self._fig_format,
+                engine=self._pio_engine
                 )
 
         else:
@@ -709,7 +735,7 @@ class FIED_analysis:
 
             else:
                 plot_data = self.make_consistent_naics_column(
-                    self._fied, naics_level
+                    plot_data, naics_level
                     )
 
             plot_data.loc[:, f'n{naics_level}'] = \
@@ -778,10 +804,12 @@ class FIED_analysis:
         fig.update_yaxes(automargin=True)
         fig.update_xaxes(automargin=True)
 
-        if write_fig is True:
+        if write_fig:
             pio.write_image(
                 fig,
-                file=self._fig_path / f'unittype_NAICS{naics_level}_{variable}_{self._year}.{self._fig_format}'
+                file=self._fig_path / f'unittype_NAICS{naics_level}_{variable}_{self._year}',
+                format=self._fig_format,
+                engine=self._pio_engine
                 )
 
         else:
@@ -827,44 +855,146 @@ class FIED_analysis:
             lambda x: int(str(x)[0:n])
             )
 
-        analysis_data = final_data.copy()
+        analysis_data = final_data.copy(deep=True)
         analysis_data = pd.merge(
             analysis_data, df_naics_consistent, on='naicsCode'
             )
 
         return analysis_data
-
-    def unit_capacity_nonintensive(self):
+    
+    def get_eia_data(self, year):
         """
-        
-        Parameters
-        ----------
-
-        df : pandas.DataFrame
-            Final foundational dataset
-
-        naics : str; {'all', 'non-mfg', 'intensive', 'other-mfg'} or list of ints; default='all'
-            Group output by NAICS code group (str) or by list of integer(s). Integers must
-            be at 4-digit NAICS level.
-
-        Returns
-        -------
-
-        naics_plot : 
+        Get EIA Monthly Energy Review and SEDS data.
         
         """
 
-        # plot_data = id_sectors(final_data)
+        return
+    
 
-        # Make subplots, one each for non-mfg,
-        # intenstive, and other-mfg
-        fig = make_subplots(
-            rows=2, cols=2,
-            specs=[
-                [{}, {}],
-                [{"colspan": 2}, None]
-                ],
-            print_grid=False)
+    
+    def plot_best_characterized(self):
+        """
+        Identify which NAICS codes have the highest portion of facilities that
+        have some unit-level characterization associated with them.
+
+        """
+
+        plot_data = self._fied.copy(deep=True)
+
+        # find most aggregated NAICS (smallest number of digits)
+        smallest_n = plot_data.naicsCode.unique()
+
+        smallest_n = min([len(str(int(x))) for x in smallest_n])
+
+        plot_data = self.make_consistent_naics_column(plot_data, smallest_n)
+
+        plot_data = plot_data.groupby('stateCode') 
+
+        plot_data = pd.concat([plot_data.apply(lambda x: pd.concat(
+            [x.query("unitTypeStd.isnull()", engine="python").groupby(
+                f'n{smallest_n}'
+                ).apply(lambda y: np.size(y.registryID.unique())),
+            x.query("unitTypeStd.notnull()", engine="python").groupby(
+                f'n{smallest_n}'
+                ).apply(lambda y: np.size(y.registryID.unique()))], 
+            axis=1,
+            ignore_index=False
+            ))], axis=0)
+        
+        
+        plot_data.columns = ['unchar', 'char']
+        plot_data.loc[:, 'total'] = plot_data.sum(axis=1)
+        plot_data.loc[:, 'fraction_char'] = plot_data.char.divide(
+            plot_data.total
+            )
+        
+        plot_data.fillna(0, inplace=True)
+        
+        # # State sorted mean characterized
+        # state_char = pd.concat(
+        #     [plot_data.fraction_char.mean(level=0),
+        #      plot_data.total.sum(level=0)], axis=1
+        #     ).sort_values(by='fraction_char', ascending=False)
+
+        # # NAICS sorted mean characterized
+        # naics_char = pd.concat(
+        #     [plot_data.fraction_char.mean(level=1),
+        #      plot_data.total.sum(level=1)],
+        #      axis=1
+        #     ).sort_values(by='fraction_char', ascending=False)
+    
+        # Level 0 is state aggregation; level 1 is NAICS aggregation
+        for k in [0, 1]:
+
+            d = pd.concat(
+                [plot_data.fraction_char.mean(level=k),
+                plot_data.total.sum(level=k)], axis=1
+                ).sort_values(by='fraction_char', ascending=False)
+            
+            if k == 1:
+
+                d.index = d.index.astype('str')
+
+                d = d[d.fraction_char > 0]
+
+            fig, ax = plt.subplots(figsize=(6, 12), tight_layout=False)
+            
+            sns.scatterplot(
+                data=d,
+                y=d.index,
+                x="fraction_char",
+                size="total",
+                sizes=(10, 800),
+                alpha=.5, ax=ax
+                )
+            
+            if k == 1:
+                [l.set_visible(False) for (i, l) in enumerate(ax.yaxis.get_ticklabels()) if i % 6 != 0]
+                ax.set_ylabel('NAICS Code')
+                
+            else:
+                ax.set_ylabel('State')
+           
+            ax.set_xlabel("Fraction of Facilities with Unit Characterization")
+            plt.legend(
+                title='Total Number of Facilities', 
+                loc='best',
+                frameon=False)
+
+            plt.show()
+            
+
+    # def unit_capacity_nonintensive(self):
+    #     """
+        
+    #     Parameters
+    #     ----------
+
+    #     df : pandas.DataFrame
+    #         Final foundational dataset
+
+    #     naics : str; {'all', 'non-mfg', 'intensive', 'other-mfg'} or list of ints; default='all'
+    #         Group output by NAICS code group (str) or by list of integer(s). Integers must
+    #         be at 4-digit NAICS level.
+
+    #     Returns
+    #     -------
+
+    #     naics_plot : 
+        
+    #     """
+
+    #     # plot_data = id_sectors(final_data)
+
+    #     # Make subplots, one each for non-mfg,
+    #     # intenstive, and other-mfg
+    #     fig = make_subplots(
+    #         rows=2, cols=2,
+    #         specs=[
+    #             [{}, {}],
+    #             [{"colspan": 2}, None]
+    #             ],
+    #         print_grid=False)
         
 
     def summary_table_intensive(self):
@@ -948,7 +1078,6 @@ if __name__ == '__main__':
         
     year = 2017
     filepath = os.path.abspath('foundational_industry_data_2017.csv.gz')
-    fa = FIED_analysis(year=2017, file_path=filepath)
+    fa = FIED_analysis(year=2017, file_path=filepath, fig_format='svg')
 
-    fa.create_core_analysis(write_fig=True)
-        
+    fa.create_core_analysis(write_fig=False)

@@ -18,10 +18,6 @@ from qpc.census_qpc import QPC
 from geocoder.geopandas_tools import FiedGIS
 import geocoder.geo_tools
 
-# from geocoder.geo_tools import fcc_block_api
-# from geocoder.geo_tools import get_blocks_parallelized
-# from geocoder.get_tools
-
 
 logging.basicConfig(level=logging.INFO)
 
@@ -336,11 +332,8 @@ def blend_estimates(nei_data_shared, ghgrp_data_shared):
             ghgrp_data_shared_ocs, nei_data_shared_ocs, dt=dt)
 
         logging.info(f"Reonciling shared non-ocs {dt}...")
-        # shared[f'shared_nonocs_{dt}'] = reconcile_shared_nonocs(
-        #     nei_data_shared_nonocs, ghgrp_data_shared_nonocs, dt=dt
-        #     )
 
-        # Just use GHGRP data at this point.
+        # Instead of the reconcile_shared_ocs method, just use GHGRP data.
         shared[f'shared_nonocs_{dt}'] = ghgrp_data_shared_nonocs 
         
     shared_ocs_ = shared['shared_ocs_energy'].copy(deep=True)
@@ -702,39 +695,6 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
     return ghgrp_data_ocs
 
 
-    # ghgrp_data_ = pd.DataFrame()
-
-    # gd_grpd = ghgrp_data.groupby(['registryID', 'ghgrpID', 'fuelTypeStd'])
-
-    # for g in gd_grpd.groups:
-
-    #     try:
-    #         gd_grpd.get_group(g)
-
-    #     except KeyError:  # One row has NaN fuelTypeStd
-    #         continue
-
-    #     else:
-    #         if ocs:
-    #             if 'OCS (Other combustion source)' in gd_grpd.get_group(g).unitType.values:
-    #                 ghgrp_data_ = pd.concat(
-    #                     [ghgrp_data_, gd_grpd.get_group(g)], axis=0
-    #                     )
-
-    #             else:
-    #                 continue
-
-    #         else:
-    #             if 'OCS (Other combustion source)' not in gd_grpd.get_group(g).unitType.values:
-    #                 ghgrp_data_ = pd.concat(
-    #                     [ghgrp_data_, gd_grpd.get_group(g)], axis=0
-    #                     )
-
-    #             else:
-    #                 continue
-
-    # return ghgrp_data_
-
 
 # def calc_share_ocs(ghgrp_data_shared_ocs, cutoff=0.5, dt='energy'):
 #     """
@@ -842,18 +802,28 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
             continue
 
     nei_dso.set_index(
-        ['registryID', 'eisFacilityID', 'fuelTypeStd', 'eisProcessID',
-         'eisUnitID'],
-        inplace=True
+        ['registryID', 'eisFacilityID', 'fuelTypeStd'], inplace=True
         )
+
+    # nei_dso.set_index(
+    #     ['registryID', 'eisFacilityID', 'fuelTypeStd', 'eisProcessID',
+    #      'eisUnitID'],
+    #     inplace=True
+    #     )
 
     nei_dso.sort_index(inplace=True)
 
     # Use min of nei energy estimates
     # This can be changed in the future
+    # nei_data_shared_portion = nei_dso[nei_col].sum(
+    #     level=[0, 1, 2]
+    #     )
+    
     nei_data_shared_portion = nei_dso[nei_col].sum(
         level=[0, 1, 2]
         )
+    
+    nei_dso.set_index('eisUnitID', append=True, inplace=True)
 
     nei_data_shared_portion = nei_data_shared_portion.where(
         nei_data_shared_portion > 0
@@ -863,28 +833,16 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
             nei_data_shared_portion, fill_value=0
             )
 
-    # Order of index levels is getting mixed up after the above division
-    if nei_data_shared_portion.index.names == ['registryID', 'eisFacilityID', 'fuelTypeStd', 'eisUnitID']:
-        nei_data_shared_portion = nei_data_shared_portion.swaplevel('eisUnitID', 'eisProcessID')
-
-    else:
-        pass
+    # # Order of index levels is getting mixed up after the above division
+    # if nei_data_shared_portion.index.names == ['registryID', 'eisFacilityID', 'fuelTypeStd', 'eisUnitID']:
+    #     nei_data_shared_portion = nei_data_shared_portion.swaplevel('eisUnitID', 'eisProcessID')
+# 
+    # else:
+    #     pass
 
     nei_data_shared_portion.dropna(inplace=True)
 
     nei_data_shared_portion.name = portion_col
-
-    ## nei_data_shared_portion = pd.DataFrame(nei_data_shared_portion)
-
-    ## nei_dso = nei_dso.join(
-    ##     nei_data_shared_portion
-    ##     )
-
-    ## The join (as well as merge) were causing a crash
-    ## Updating the DataFrame was not working (nans weren't updated)
-    ##
-    ##  nei_dso.loc[:, 'energyMJPortion'] = np.nan
-    ## nei_dso.update(nei_data_shared_portion)
 
     nei_dso.loc[:, portion_col] = nei_data_shared_portion
 
@@ -892,12 +850,6 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
         ['eisFacilityID', 'eisProcessID', 'eisUnitID'], drop=False,
         inplace=True
         )
-
-    # ocs_share = calc_share_ocs(ghgrp_dso, dt=dt)
-
-    # ocs_share.set_index(['registryID', 'fuelTypeStd'], inplace=True)
-
-    # nei_dso.set_index(['registryID', 'fuelTypeStd'], inplace=True)
 
     nei_dso.sort_index(inplace=True)
     ghgrp_dso.set_index(['registryID', 'fuelTypeStd'], inplace=True)
@@ -912,7 +864,6 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
     ocs_allocated[ghgrp_col].update(
         ocs_allocated[portion_col].multiply(ocs_allocated[ghgrp_col])
         )
-
 
     check = pd.concat(
         [ocs_allocated[ghgrp_col].sum(level=[0,1]), 
@@ -932,7 +883,7 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
     ocs_allocated = ocs_allocated.join(
         check[check.allocated.notnull()][['allocated']], how='inner'
         )
-    
+
     for df in [missing, ocs_allocated]:
 
         df.reset_index(inplace=True)
@@ -940,67 +891,11 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
         df.drop(['allocated'], axis=1, inplace=True)
 
     ocs_allocated = assign_estimate_source(ocs_allocated, 'ghgrp', dt=dt)
+    missing = assign_estimate_source(missing, 'ghgrp', dt=dt)
 
     ocs_allocated.drop([portion_col], axis=1, inplace=True)
 
     ocs_allocated = ocs_allocated.append(missing)
-
-    # ocs_allocated = pd.DataFrame()
-
-    # #TODO refactor this for loop.
-    # for i in ghgrp_dso.index.drop_duplicates():
-
-    #     if i in ocs_share.index:
-
-    #         ghgrp_sum = ghgrp_dso.xs(i)[ghgrp_col].sum()
-
-    #         try:
-
-    #             nei_sum = nei_dso.xs(i)[nei_sum_cols].sum()
-
-    #         except (KeyError, TypeError):
-    #             energy_or_ghgs = pd.DataFrame(ghgrp_dso.loc[i, :])
-    #             energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp', dt=dt)
-
-    #         else:
-    #             #TODO make different for ghgs and energy (< for energy; > for ghgs?)
-    #             if nei_sum[1] > 0:  # The second value is the median
-
-    #                 # Assume that energy estimates derived from ghgrp are
-    #                 # more robust than NEI derivations.
-    #                 if nei_sum[1] > ghgrp_sum:
-
-    #                     energy_or_ghgs = \
-    #                         pd.DataFrame(nei_dso.loc[i, :])
-
-    #                     energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'nei', dt=dt)
-
-    #                 else:
-    #                     energy_or_ghgs = \
-    #                         pd.DataFrame(nei_dso.loc[i, :])
-    #                     energy_or_ghgs.loc[:, ghgrp_col] = \
-    #                         energy_or_ghgs.loc[:, portion_col] * ghgrp_sum
-
-    #                     energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp', dt=dt)
-
-    #                     # Remove NEI derivations in this case
-    #                     energy_or_ghgs.loc[:, nei_sum_cols] = None
-
-    #             else:
-
-    #                 energy_or_ghgs = pd.DataFrame(ghgrp_dso.loc[i, :])
-    #                 energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp', dt=dt)
-
-    #     else:
-    #         energy_or_ghgs = pd.DataFrame(ghgrp_dso.loc[i, :])
-    #         energy_or_ghgs = assign_estimate_source(energy_or_ghgs, 'ghgrp', dt=dt)
-
-    #     ocs_allocated = pd.concat(
-    #         [ocs_allocated, energy_or_ghgs.reset_index()],
-    #         axis=0, ignore_index=True, sort=True
-    #         )
-
-    # ocs_allocated.drop([portion_col], axis=1, inplace=True)
 
     return ocs_allocated
 
@@ -1168,6 +1063,7 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
     for dt in ['energy', 'ghgs']:
         ghgrp_only_data = assign_estimate_source(ghgrp_only_data, 'ghgrp', dt=dt)
 
+    ghgrp_only_data.to_pickle('ghgrp_only_data.pkl')
     # NEI and GHGRP facilities
     nei_ids_shared = melt_multiple_ids(nei_and_ghgrp, nei_data)
 
@@ -1198,7 +1094,8 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         'ghgrp_only': ghgrp_only_data, 
         'no_nei_or_ghgrp': no_nei_or_ghgrp # All relevant facilities from this group are included in final data.
         }
-
+    for k in data_dict.keys():
+        data_dict[k].to_pickle(f'data_dict_{k}.pkl')
     return data_dict
 
 
@@ -1276,8 +1173,6 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     # has 1:1 registryID: eisFacilityID.
     final_energy_data.drop('eisFacilityID', axis=1, inplace=True)
 
-    final_energy_data.to_pickle('initial_final_energy_data.pkl')
-
     # There are some discrepancies between registryIDs reported by
     # FRS and by GHGRP.
     frs_melted_ghgrp = melt_multiple_ids(frs_data,
@@ -1308,6 +1203,7 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     energy_missing_ghgrp.reset_index(inplace=True, drop=False)
     energy_missing_ghgrp.set_index('og_index', inplace=True)
     energy_missing_ghgrp.index.name = None
+    energy_missing_ghgrp = assign_estimate_source(energy_missing_ghgrp, 'ghgrp', 'energy')
 
     # energy_missing_ghgrp.to_pickle('energy_missing_ghgrp.pkl')
     final_data.update(energy_missing_ghgrp)
@@ -1318,8 +1214,6 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     final_data = merge_qpc_data(final_data, qpc_data)
 
     final_data = geocoder.geo_tools.fix_county_fips(final_data)
-
-    # #TODO something is going wrong with finding these missing HUCs; 
 
     # This doesn't result in any additional units.
     # missing_units = frs_api.find_unit_data_parallelized(final_data)
