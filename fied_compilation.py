@@ -743,6 +743,38 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
 
 #     return ocs_share
 
+def group_nei_by_unit(nei_data):
+    """"
+    Emissions from the NEI are attributed to processes, not individual units. So,
+    there may be more than one process associated with an individual unit 
+    (see the NEI data model: https://www.epa.gov/enviro/nei-model).
+    This method aggregates the unit-process estimates into estimates by unit.
+
+    Parameters
+    ----------
+    nei_data : pandas.DataFrame
+        Formatted NEI data with energy and GHG emissions estimates
+
+    Returns
+    -------
+    nei_data_unit : pandas.DataFrame
+        Formatted NEI data with energy and GHG emissions estimates aggregated to unit and fuel.
+    """
+
+    nei_data_unit = nei_data.groupby(
+        ['eisFacilityID', 'eisUnitID', 'unitType', 'unitDescription',
+         'designCapacity', 'designCapacityUOM', 'fuelType', 'fuelTypeStd']
+        )
+
+    nei_data_unit = pd.concat(
+        [nei_data_unit[c].sum() for c in ['energyMJq0', 'energyMJq2', 'energyMJq3',
+              'throughputTonneQ0', 'throughputTonneQ2', 'throughputTonneQ3',
+              'ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']], axis=1
+        )
+    
+    nei_data_unit.reset_index(inplace=True)
+
+    return nei_data_unit
 
 def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy'):
     """
@@ -802,7 +834,7 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
             continue
 
     nei_dso.set_index(
-        ['registryID', 'eisFacilityID', 'fuelTypeStd'], inplace=True
+        ['registryID', 'fuelTypeStd', 'eisUnitID'], inplace=True
         )
 
     # nei_dso.set_index(
@@ -819,19 +851,19 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
     #     level=[0, 1, 2]
     #     )
     
-    nei_data_shared_portion = nei_dso[nei_col].sum(
-        level=[0, 1, 2]
+    nei_dso.loc[:, portion_col] = nei_dso[nei_col].divide(
+        nei_dso[nei_col].sum(level=[0, 1])
         )
     
-    nei_dso.set_index('eisUnitID', append=True, inplace=True)
+    # nei_dso.set_index('eisUnitID', append=True, inplace=True)
 
-    nei_data_shared_portion = nei_data_shared_portion.where(
-        nei_data_shared_portion > 0
-        ).dropna(how='all')
+    # nei_data_shared_portion = nei_data_shared_portion.where(
+    #     nei_data_shared_portion > 0
+    #     ).dropna(how='all')
 
-    nei_data_shared_portion = nei_dso[nei_col].divide(
-            nei_data_shared_portion, fill_value=0
-            )
+    # nei_data_shared_portion = nei_dso[nei_col].divide(
+    #         nei_data_shared_portion, fill_value=0
+    #         )
 
     # # Order of index levels is getting mixed up after the above division
     # if nei_data_shared_portion.index.names == ['registryID', 'eisFacilityID', 'fuelTypeStd', 'eisUnitID']:
@@ -840,30 +872,28 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
     # else:
     #     pass
 
-    nei_data_shared_portion.dropna(inplace=True)
+    # nei_data_shared_portion.dropna(inplace=True)
 
-    nei_data_shared_portion.name = portion_col
+    # nei_data_shared_portion.name = portion_col
 
-    nei_dso.loc[:, portion_col] = nei_data_shared_portion
+    # nei_dso.loc[:, portion_col] = nei_data_shared_portion
 
-    nei_dso.reset_index(
-        ['eisFacilityID', 'eisProcessID', 'eisUnitID'], drop=False,
-        inplace=True
-        )
+    nei_dso.reset_index(['eisUnitID'], drop=False, inplace=True)
 
     nei_dso.sort_index(inplace=True)
+
     ghgrp_dso.set_index(['registryID', 'fuelTypeStd'], inplace=True)
 
     ghgrp_dso.sort_index(inplace=True)
 
     ocs_allocated = pd.merge(
-        nei_dso, ghgrp_dso[[ghgrp_col]], left_index=True, right_index=True,
+        nei_dso, ghgrp_dso[[ghgrp_col]].sum(level=[0,1]), 
+        left_index=True,
+        right_index=True,
         how='left'
         )
     
-    ocs_allocated[ghgrp_col].update(
-        ocs_allocated[portion_col].multiply(ocs_allocated[ghgrp_col])
-        )
+    ocs_allocated.loc[:, ghgrp_col] = ocs_allocated[portion_col].multiply(ocs_allocated[ghgrp_col])
 
     check = pd.concat(
         [ocs_allocated[ghgrp_col].sum(level=[0,1]), 
@@ -874,28 +904,38 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
 
     check.loc[:, 'comparison'] = check.allocated.divide(check.original)
 
-    missing = check[check.allocated.isnull()]
+    missing = check[(check.allocated.isnull())|(check.comparison==0)]
 
     missing = ghgrp_dso.join(
         missing[['allocated']], how='inner'
         )
 
-    ocs_allocated = ocs_allocated.join(
-        check[check.allocated.notnull()][['allocated']], how='inner'
+    ocs_allocated = pd.concat(
+        [ocs_allocated, missing], axis=0, ignore_index=False
         )
 
-    for df in [missing, ocs_allocated]:
+    # ocs_allocated = ocs_allocated.join(
+    #     check[check.allocated.notnull()][['allocated']], how='inner'
+    #     )
 
-        df.reset_index(inplace=True)
+    # Need to fill in energy values for instances where there is a GHGRP energy
+    # estimate, but no NEI energy esimtate (energyMJPortion == na).
+    # Use
 
-        df.drop(['allocated'], axis=1, inplace=True)
+    ocs_allocated.reset_index(inplace=True)
+    ocs_allocated.drop(['allocated'], axis=1, inplace=True)
+    # for df in [missing, ocs_allocated]:
+
+    #     df.reset_index(inplace=True)
+
+    #     df.drop(['allocated'], axis=1, inplace=True)
 
     ocs_allocated = assign_estimate_source(ocs_allocated, 'ghgrp', dt=dt)
-    missing = assign_estimate_source(missing, 'ghgrp', dt=dt)
+    # missing = assign_estimate_source(missing, 'ghgrp', dt=dt)
 
     ocs_allocated.drop([portion_col], axis=1, inplace=True)
 
-    ocs_allocated = ocs_allocated.append(missing)
+    # ocs_allocated = ocs_allocated.append(missing)
 
     return ocs_allocated
 
@@ -1208,7 +1248,7 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
     # energy_missing_ghgrp.to_pickle('energy_missing_ghgrp.pkl')
     final_data.update(energy_missing_ghgrp)
 
-    final_data.drop(['ghgrpID_x', 'SCC'], inplace=True, axis=1)
+    final_data.drop(['ghgrpID_x'], inplace=True, axis=1)
     final_data.rename(columns={'ghgrpID_y': 'ghgrpID'}, inplace=True)
 
     final_data = merge_qpc_data(final_data, qpc_data)
@@ -1306,6 +1346,8 @@ if __name__ == '__main__':
     ghgrp_unit_data = check_registry_id(ghgrp_unit_data, frs_data)
 
     nei_data = NEI().main()
+
+    nei_data = group_nei_by_unit(nei_data)
 
     data_dict = separate_unit_data(frs_data, nei_data, ghgrp_unit_data)
 
