@@ -17,6 +17,6 @@ def test_allocate_shared_ocs():
     ghgs_sum = np.around(results_dict['ghgs'].ghgsTonneCO2e.sum(), 0)
 
     og_energy = np.around(ghgrp_data_shared_ocs.energyMJ.sum(), 0)
-    og_ghgs = np.around(ghgrp_data_shared_ocs.energyMJ.sum(), 0)
+    og_ghgs = np.around(ghgrp_data_shared_ocs.ghgsTonneCO2e.sum(), 0)
 
     assert (energy_sum, ghgs_sum) == (og_energy, og_ghgs)

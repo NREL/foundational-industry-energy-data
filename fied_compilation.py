@@ -812,17 +812,12 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
 
     elif dt == 'ghgs':
         ghgrp_col = 'ghgsTonneCO2e'
-        nei_col = 'ghgsTonneCO2eQ0'
+        nei_col = 'ghgsTonneCO2eQ2'
         portion_col = 'ghgsPortion'
         # nei_sum_cols = ['ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2','ghgsTonneCO2eQ3']
 
     nei_dso = nei_data_shared_ocs.copy(deep=True)
     ghgrp_dso = ghgrp_data_shared_ocs.copy(deep=True)
-
-    #TODO delete after debugging
-    if dt == 'ghgs':
-        nei_dso.to_csv('nei_dso.csv')
-        ghgrp_dso.to_csv('ghgrp_dso.csv')
 
     # Cleaning up the unecessary 'index' column 
     # #TODO (minor): find what merge or join is creating this column
@@ -837,46 +832,11 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
         ['registryID', 'fuelTypeStd', 'eisUnitID'], inplace=True
         )
 
-    # nei_dso.set_index(
-    #     ['registryID', 'eisFacilityID', 'fuelTypeStd', 'eisProcessID',
-    #      'eisUnitID'],
-    #     inplace=True
-    #     )
-
     nei_dso.sort_index(inplace=True)
-
-    # Use min of nei energy estimates
-    # This can be changed in the future
-    # nei_data_shared_portion = nei_dso[nei_col].sum(
-    #     level=[0, 1, 2]
-    #     )
     
     nei_dso.loc[:, portion_col] = nei_dso[nei_col].divide(
         nei_dso[nei_col].sum(level=[0, 1])
         )
-    
-    # nei_dso.set_index('eisUnitID', append=True, inplace=True)
-
-    # nei_data_shared_portion = nei_data_shared_portion.where(
-    #     nei_data_shared_portion > 0
-    #     ).dropna(how='all')
-
-    # nei_data_shared_portion = nei_dso[nei_col].divide(
-    #         nei_data_shared_portion, fill_value=0
-    #         )
-
-    # # Order of index levels is getting mixed up after the above division
-    # if nei_data_shared_portion.index.names == ['registryID', 'eisFacilityID', 'fuelTypeStd', 'eisUnitID']:
-    #     nei_data_shared_portion = nei_data_shared_portion.swaplevel('eisUnitID', 'eisProcessID')
-# 
-    # else:
-    #     pass
-
-    # nei_data_shared_portion.dropna(inplace=True)
-
-    # nei_data_shared_portion.name = portion_col
-
-    # nei_dso.loc[:, portion_col] = nei_data_shared_portion
 
     nei_dso.reset_index(['eisUnitID'], drop=False, inplace=True)
 
@@ -914,28 +874,12 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
         [ocs_allocated, missing], axis=0, ignore_index=False
         )
 
-    # ocs_allocated = ocs_allocated.join(
-    #     check[check.allocated.notnull()][['allocated']], how='inner'
-    #     )
-
-    # Need to fill in energy values for instances where there is a GHGRP energy
-    # estimate, but no NEI energy esimtate (energyMJPortion == na).
-    # Use
-
     ocs_allocated.reset_index(inplace=True)
     ocs_allocated.drop(['allocated'], axis=1, inplace=True)
-    # for df in [missing, ocs_allocated]:
-
-    #     df.reset_index(inplace=True)
-
-    #     df.drop(['allocated'], axis=1, inplace=True)
 
     ocs_allocated = assign_estimate_source(ocs_allocated, 'ghgrp', dt=dt)
-    # missing = assign_estimate_source(missing, 'ghgrp', dt=dt)
 
     ocs_allocated.drop([portion_col], axis=1, inplace=True)
-
-    # ocs_allocated = ocs_allocated.append(missing)
 
     return ocs_allocated
 
