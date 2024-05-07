@@ -221,30 +221,38 @@ class SCC_ID:
                     unit_types_detail.append('Space heater')
                     fuel_types.append(r['scc_level_four'].split(': ')[0])
 
-            else:
+            elif 'boiler' in r['scc_level_two'].lower():
 
                 fuel_types.append(r['scc_level_three'])
 
-                split_ut = r['scc_level_four'].split(': ')
-
-                if len(split_ut) == 2:
-                    ut = split_ut[-1]
-
-                    if ut in other_fuels:
-                        unit_types_detail.append('Boiler')
-
-                    else:
-                        unit_types_detail.append(ut)
-
-                elif len(split_ut) > 2:
-                    unit_types_detail.append((' '.join(split_ut[1:])))
+                if 'boiler' in r['scc_level_four'].lower():
+                    ut = r['scc_level_four']
 
                 else:
-                    if 'boiler' in r['scc_level_four'].lower():
-                        unit_types_detail.append(r['scc_level_four'])
+                    ut = f'Boiler, {r.scc_level_four}'
 
-                    else:
-                        unit_types_detail.append('Boiler')
+                unit_types_detail.append(ut)
+
+                # split_ut = r['scc_level_four'].split(': ')
+
+                # if len(split_ut) == 2:
+                #     ut = split_ut[-1]
+
+                #     if ut in other_fuels:
+                #         unit_types_detail.append('Boiler')
+
+                #     else:
+                #         unit_types_detail.append(ut)
+
+                # elif len(split_ut) > 2:
+                #     unit_types_detail.append((' '.join(split_ut[1:])))
+
+                # else:
+                #     if 'boiler' in r['scc_level_four'].lower():
+                #         unit_types_detail.append(r['scc_level_four'])
+
+                #     else:
+                #         unit_types_detail.append('Boiler')
 
         scc_exc.loc[:, 'unit_type'] = unit_types_detail
         scc_exc.loc[:, 'fuel_type'] = fuel_types

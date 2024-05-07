@@ -9,6 +9,7 @@ import zipfile
 import pdb
 from io import BytesIO
 from itertools import compress
+from tools.misc_tools import Tools
 
 logging.basicConfig(level=logging.INFO)
 
@@ -62,6 +63,8 @@ class NEI:
                 'CO2': 1
                 }
             }
+        
+        self.unit_regex = Tools()
 
     def find_missing_cap(self, df):
         """
@@ -502,28 +505,6 @@ class NEI:
                 else:
                     continue
 
-                    # zip_path = os.path.join(os.path.dirname(nei_data_path), f)
-                    # with zipfile.ZipFile(zip_path) as zf:
-                    #     for k in zf.namelist():
-                    #         logging.info(f'File {k}')
-                    #         if '.csv' in k:
-                    #             # zipfile throws NotImplementedError: compression type 9 (deflate64)
-                    #             # for the point source zip file.                         try:
-                    #                 with zf.open(k) as kf:
-                    #                     data = pd.read_csv(kf, low_memory=False)
-                    #                     data.columns = \
-                    #                         data.columns.str.replace(' ', '_')
-
-                    #             except NotImplementedError:
-                    #                 continue
-                    #             else:
-                    #                 nei_data = nei_data.append(data, sort=False)
-                    #         else:
-                    #             continue
-
-            # nei_data_process = nei_data.drop_duplicates(
-            #     subset=['eis_facility_id', 'eis_process_id']
-            #     )
             unit_matches = NEI.match_partial(full_unit, partial_unit)
             meth_matches = NEI.match_partial(full_method, partial_method)
 
@@ -1004,6 +985,175 @@ class NEI:
         nei_emiss.rename(columns={'SCC': 'SCC_web'}, inplace=True)
 
         return nei_emiss
+    
+    #TODO refactor 
+    def unit_type_selection(self, series):
+        """
+        Algorithm for selecting unit type between NEI (unit_type), SCC, and NEI (unit_description).
+        Preferences NEI (unit_type) and instances where two sources share the same
+        standardized unit type.
+
+        Parameters
+        ----------
+        series : pandas.Series
+            Series containing columns of 'nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std',
+            'nei_unit_type', 'scc_unit_type', 'unit_description'.
+
+        Returns
+        -------
+        ut : str or float
+            Returns selected unit type. May be np.nan (float).
+        
+        """
+
+        if series['nei_unit_type_std'] == 'other':
+
+            if series['scc_unit_type_std'] == 'other':
+
+                if series['desc_unit_type_std'] == 'other':
+
+                    ut = series['nei_unit_type']
+
+                elif type(series['desc_unit_type_std']) is float:
+
+                    ut = series['nei_unit_type']
+
+                else:
+
+                    ut = series['unit_description']
+
+                return ut
+
+            elif type(series['scc_unit_type_std']) is float:
+
+                if type(series['desc_unit_type_std']) is float:
+
+                    ut = series['nei_unit_type']
+
+                elif series['desc_unit_type_std'] == 'other':
+
+                    ut = series['unit_description']
+
+                else:
+
+                    ut = series['unit_description']
+
+                return ut
+
+            else:
+
+                if type(series['desc_unit_type_std']) is float:
+
+                    ut = series['scc_unit_type']
+
+                elif series['desc_unit_type_std'] == 'other':
+
+                    ut = series['scc_unit_type']
+
+                else:
+
+                    ut = series['scc_unit_type']
+
+                return ut
+
+        elif type(series['nei_unit_type_std']) is float:
+
+            if series['scc_unit_type_std'] == 'other':
+
+                if series['desc_unit_type_std'] == 'other':
+
+                    ut = series['unit_description']
+
+                elif type(series['desc_unit_type_std']) is float:
+
+                    ut = series['scc_unit_type']
+
+                else:
+                    ut = series['unit_description']
+
+            elif type(series['scc_unit_type_std']) is float:
+
+                if type(series['desc_unit_type_std']) is float:
+
+                    ut = np.nan
+
+                elif series['desc_unit_type_std'] == 'other':
+
+                    ut = series['unit_description']
+
+                else:
+
+                    ut = series['unit_description']
+
+            else:
+
+                if type(series['desc_unit_type_std']) is float:
+
+                    ut = series['scc_unit_type']
+
+                elif series['desc_unit_type_std'] == 'other':
+
+                    ut = series['scc_unit_type']
+
+                else:
+
+                    ut = series['scc_unit_type']
+
+        else:
+
+            if series['scc_unit_type_std'] == 'other':
+
+                if series['desc_unit_type_std'] == 'other':
+
+                    ut = series['nei_unit_type']
+
+                elif type(series['desc_unit_type_std']) is float:
+
+                    ut = series['nei_unit_type']
+
+                else:
+
+                    ut = series['nei_unit_type']
+
+            elif type(series['scc_unit_type_std']) is float:
+
+                if type(series['desc_unit_type_std']) is float:
+
+                    ut = series['nei_unit_type']
+
+                elif series['desc_unit_type_std'] == 'other':
+
+                    ut = series['nei_unit_type']
+
+                else:
+
+                    ut = series['nei_unit_type']
+
+            else:
+
+                if type(series['desc_unit_type_std']) is float:
+
+                    ut = series['nei_unit_type']
+
+                elif series['desc_unit_type_std'] == 'other':
+
+                    ut = series['nei_unit_type']
+
+                else:
+
+                    if (series['nei_unit_type_std'] == series['scc_unit_type_std'] == series['desc_unit_type_std']):
+
+                        ut = series['nei_unit_type']
+                    
+                    elif (series['scc_unit_type_std'] == series['desc_unit_type_std']):
+                    
+                        ut = series['scc_unit_type']
+
+                    else:
+                        ut = series['nei_unit_type']
+
+        
+            return ut
 
     def assign_types_nei(self, nei, iden_scc):
         """
@@ -1031,17 +1181,79 @@ class NEI:
             right_on='SCC',
             how='left'
             )
+        
+        nei.rename(columns={'unit_type': 'nei_unit_type'}, inplace=True)
+        
+        # Also look for unit types in unit_description
+        nei.loc[:, 'desc_unit_type_std'] = nei.unit_description.dropna().apply(
+            lambda x: self.unit_regex.unit_regex(x)
+            )
 
         # set unit type equal to SCC unit type if listed as
         #   'Unclassified' or'Other' in NEI
-        nei.loc[(nei['unit_type'] == 'Unclassified') |
-                (nei['unit_type'] == 'Other process equipment'), 'unit_type'] = \
-                    nei['scc_unit_type']
+        # nei.loc[(nei['nei_unit_type'] == 'Unclassified') |
+        #         (nei['nei_unit_type'] == 'Other process equipment'), 'unit_type'] = \
+        #             nei['scc_unit_type']
+        
+        # Remove non-combustion, non-electricity unit types
+        nei = self.remove_unit_types(nei)
+        
+        # unit_desc types are already "standardized." Do same for nei and scc types.
+        for c in ['nei_unit_type', 'scc_unit_type']:
 
-        nei.loc[(nei['unit_type'] == 'Unclassified') |
-                (nei['unit_type'] == 'Other process equipment'), 'unit_type'] = \
-                    nei['scc_unit_type']
+            unit_map = nei[c].dropna().drop_duplicates().copy(deep=True)
+            unit_map = pd.concat([unit_map, unit_map.apply(lambda x: self.unit_regex.unit_regex(x))], axis=1)
+            unit_map.columns = ['ut', 'ut_std']
+            unit_map = dict(unit_map.values)
 
+            nei.loc[:, f'{c}_std'] = nei[c].dropna().map(unit_map)
+            
+        units = nei[['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std', 'nei_unit_type', 'scc_unit_type', 'unit_description']].copy(deep=True)
+
+        units.drop_duplicates(inplace=True)
+
+        units.loc[:, 'unit_type_final'] = units.apply(lambda x: self.unit_type_selection(x), axis=1)
+
+        # Keep unit type with the largest count. Instances where
+        # there are three different unit types identified (i.e., [1, 1, 1]),
+        # the list index defaults to the first position (0), which is the 
+        # nei unit type. 
+        # units.loc[:, 'u_count'] = units.apply(
+        #     lambda x: [list(
+        #         x[['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std']]
+        #         ).count(y) for y in list(
+        #             x[['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std']]
+        #               )], axis=1)
+        
+        # units.loc[:, 'u_count'] = units.apply(
+        #     lambda x: [x[
+        #         ['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std']
+        #         ].value_counts().get(x) for x in x[
+        #             ['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std']
+        #             ]], axis=1
+        #         )
+        
+        # units = units.join(units.desc_unit_type_std, lsuffix='', rsuffix='_d')
+
+        # units = units[['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std', 
+        #                'nei_unit_type', 'scc_unit_type', 'desc_unit_type_std_d',
+        #                'u_count']].copy(deep=True)
+    
+        # units.loc[:, 'unit_type_final'] = units.apply(
+        #     lambda x: list(x)[x.u_count.index(max(x.u_count))+3], axis=1
+        #     )
+        
+        units.set_index(['nei_unit_type', 'scc_unit_type', 'unit_description'], inplace=True)
+        units = units.unit_type_final.to_dict()
+
+        nei.loc[:, 'units_tuple'] = pd.Series(
+            list(nei[['nei_unit_type', 'scc_unit_type', 'unit_description']].itertuples(index=False, name=None))
+            )
+
+        nei.loc[:, 'unit_type_final'] = nei.units_tuple.map(units)
+
+        nei.drop(['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std', 'units_tuple'], axis=1, inplace=True)
+        
         # get fuel types from NEI text and SCC descriptions
         for c in ['unit_description', 'process_description', 'scc_fuel_type']:
             nei.loc[:, c] = nei[c].str.lower()
@@ -1297,14 +1509,6 @@ class NEI:
 
         return nei
 
-    def calc_emission_outlier(nei_data):
-        """
-        """
-
-        emiss = nei_data.groupby(
-            ['naics_code', 'scc', 'pollutant_code', 'emissions_uom']
-            ).total_emissions.describe()
-
     def get_median_throughput_and_energy(self, nei):
         """
         Use the lower, middle, and upper quartiles for estimated throughput_TON 
@@ -1350,14 +1554,14 @@ class NEI:
                 nei[['eis_facility_id',
                      'eis_process_id',
                      'eis_unit_id',
-                     'unit_type',
+                     'unit_type_final',
                      'fuel_type',
                      f'{v}_nei',
                      f'{v}_web']],
                 id_vars=['eis_facility_id',
                          'eis_process_id',
                          'eis_unit_id',
-                         'unit_type',
+                         'unit_type_final',
                          'fuel_type'],
                 value_vars=[f'{v}_nei',
                             f'{v}_web'],
@@ -1367,7 +1571,7 @@ class NEI:
             )
 
         # Groupby was not including entries that were missing a unit type or fuel type.
-        med_unit.fillna({'fuel_type': 'unknown', 'unit_type': 'unknown'}, inplace=True)
+        med_unit.fillna({'fuel_type': 'unknown', 'unit_type_final': 'unknown'}, inplace=True)
 
         med_unit = med_unit.query(
                 "throughput_TON > 0 | energy_MJ > 0"
@@ -1375,7 +1579,7 @@ class NEI:
                     ['eis_facility_id',
                      'eis_process_id',
                      'eis_unit_id',
-                     'unit_type',
+                     'unit_type_final',
                      'fuel_type']
                     )[['throughput_TON', 'energy_MJ']].quantile([0, 0.5, 0.75])
 
@@ -1386,7 +1590,7 @@ class NEI:
             index=['eis_facility_id',
                    'eis_process_id',
                    'eis_unit_id',
-                   'unit_type',
+                   'unit_type_final',
                    'fuel_type'],
             columns='level_5', values=['energy_MJ', 'throughput_TON'])
 
@@ -1398,14 +1602,14 @@ class NEI:
 
         other = nei.drop_duplicates(
             ['eis_facility_id', 'eis_process_id',
-             'eis_unit_id', 'unit_type',
+             'eis_unit_id', 'unit_type_final',
              'fuel_type']
             )[other_cols]
 
         med_unit = med_unit.join(
             other.set_index(
                 ['eis_facility_id', 'eis_process_id',
-                 'eis_unit_id', 'unit_type',
+                 'eis_unit_id', 'unit_type_final',
                  'fuel_type']
                 )
             )
@@ -1441,7 +1645,7 @@ class NEI:
             )
 
         missing_zero = missing_zero.where(
-            missing_zero.unit_type.notnull()
+            missing_zero.unit_type_final.notnull()
             ).dropna(how='all')
 
         missing_na = nei.query(
@@ -1450,7 +1654,7 @@ class NEI:
             )
 
         missing_na = missing_na.where(
-            missing_na.unit_type.notnull()
+            missing_na.unit_type_final.notnull()
             ).dropna(how='all')
 
         missing = pd.concat(
@@ -1515,7 +1719,7 @@ class NEI:
             'Silo'
             ]
 
-        df = df.where(~df.unit_type.isin(remove)).dropna(how='all')
+        df = df.where(~df.nei_unit_type.isin(remove)).dropna(how='all')
 
         df.reset_index(inplace=True, drop=True)
 
@@ -1576,7 +1780,7 @@ class NEI:
         rename_dict = {
             'eis_facility_id': 'eisFacilityID',
             'eis_unit_id': 'eisUnitID',
-            'unit_type': 'unitType',
+            'unit_type_final': 'unitType',
             'unit_description': 'unitDescription',
             'design_capacity': 'designCapacity',
             'design_capacity_uom': 'designCapacityUOM',
@@ -1596,7 +1800,7 @@ class NEI:
 
         keep_cols = [
             'eis_facility_id', 'eis_unit_id', 'SCC',
-            'unit_type', 'unit_description', 'design_capacity',
+            'unit_type_final', 'unit_description', 'design_capacity',
             'design_capacity_uom', 'fuel_type', 'eis_process_id',
             'process_description',
             'energy_MJ_q0', 'energy_MJ_q2', 'energy_MJ_q3',
@@ -1672,8 +1876,10 @@ class NEI:
         logging.info("Merging WebFires data...")
         nei_char = nei.match_webfire_to_nei(nei_data, webfr)
         logging.info("Merging SCC data...")
+        nei_char.to_pickle('nei_char.pkl')
+        logging.info("Assigning unit and fuel types...")
         nei_char = nei.assign_types_nei(nei_char, iden_scc)
-        nei_char = nei.remove_unit_types(nei_char)  # remove some non-combustion related unit types
+        # nei_char = nei.remove_unit_types(nei_char)  # remove some non-combustion related unit types
         logging.info("Finding emission factor outliers...")
         nei_char = nei.detect_and_fix_ef_outliers(nei_char)
         logging.info("Converting emissions units...")
@@ -1682,7 +1888,6 @@ class NEI:
         nei_char = nei.calc_unit_throughput_and_energy(nei_char)
         # Use median EF from WebFires as alt approach to estimating energy
         nei_char = nei.apply_median_webfr_ef(nei_char, webfr, cutoff=0.75)  
-        nei_char.to_csv('nei_char_pre_median.csv', index=False)
         logging.info("Extracting and aggregating GHG emissions")
         ghgs = nei.extract_ghg_emissions(nei_char)
         logging.info("Final NEI data assembly...")
@@ -1700,7 +1905,6 @@ class NEI:
 
         return nei_char
 
-# #TODO figure out tests to check calculations and other aspects of code.
 
 if __name__ == '__main__':
 

@@ -505,6 +505,25 @@ class FIED_analysis:
             fig.show()
 
         return None
+    
+    def plot_eia_comparison(self, eia_mecs=1.568E13, eia_mer=2.316E13):
+        """
+        Plot bar chart depicting FIED energy estimates relative to EIA estimates.    
+
+
+        Parameters
+        ----------
+        eia_mecs : float; default=1.568E13
+            Combustion energy use (in MJ) from EIA Manufacturing Consumption survey. 
+            Default represents 2018 value.
+
+        eia_mer : float; default=2.316E13
+            Combustion energy use (in MJ) for industry from EIA Monthly Energy Review (MER).
+            Default represents 2017 value. 
+        
+        """
+
+
 
     def plot_unit_bubble_map(self, unit_type, measure, max_size=66, write_fig=True):
         """

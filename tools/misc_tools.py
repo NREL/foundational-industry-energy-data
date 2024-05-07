@@ -2,6 +2,7 @@
 import requests
 import json
 import logging
+import re
 import concurrent.futures
 import numpy as np
 
@@ -306,3 +307,89 @@ class FRS_API:
         results = self.parallelize_api(self.find_unit_data, final_data_noid)
 
         return results
+
+
+class Tools:
+
+    def __init__(self):
+
+        # Combustion unit types
+        self._unit_types = [
+            'kiln', 'dryer', 'oven', 'furnace',
+            'boiler', 'incinerator', 'flare',
+            'heater', 'calciner', 'turbine',
+            'stove', 'distillation', 'other combustion',
+            'engine', 'generator', 'oxidizer', 'pump',
+            'compressor', 'building heat', 'cupola',
+            'PCWD', 'PCWW', 'PCO', 'PCT', 'OFB', 'broil',
+            'reciprocating'
+            ]
+
+    def unit_regex(self, unitType):
+        """
+        Use regex to standardize unit types,
+        where appropriate. See unit_types variable
+        for included types.
+
+        Parameters
+        ----------
+        unitType : str
+            Detailed unit type
+
+        Returns
+        -------
+        unitTypeStd : str;
+            Standardized unit type
+        """
+
+        other_boilers = ['PCWD', 'PCWW', 'PCO', 'PCT', 'OFB']
+
+        ut_std = []
+
+        for unit in self._unit_types:
+
+            unit_pattern = re.compile(r'({})'.format(unit), flags=re.IGNORECASE)
+
+            try:
+                unit_search = unit_pattern.search(unitType)
+
+            except TypeError:
+                continue
+
+            if unit_search:
+                ut_std.append(unit)
+
+            else:
+                continue
+
+        if any([x in ut_std for x in ['engine', 'reciprocating']]):
+            ut_std = 'engine'
+
+        elif (len(ut_std) > 1):
+            ut_std = 'other combustion'
+
+        elif (len(ut_std) == 0):
+            ut_std = 'other'
+
+        elif ut_std[0] == 'calciner':
+            ut_std = 'kiln'
+
+        elif ut_std[0] == 'oxidizer':
+            ut_std = 'thermal oxidizer'
+
+        elif ut_std[0] == 'buidling heat':
+            ut_std = 'heater'
+
+        elif ut_std[0] in ['cupola', 'broil']:
+            ut_std = 'other combustion'
+
+        elif any([x in ut_std[0] for x in other_boilers]):
+            ut_std = 'boiler'
+
+        elif ut_std[0] == 'reciprocating':
+            ut_std = 'engine'
+
+        else:
+            ut_std = ut_std[0]
+
+        return ut_std
