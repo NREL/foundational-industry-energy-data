@@ -6,14 +6,16 @@ import re
 import logging
 import requests
 import zipfile
-import pdb
+import sys
 from io import BytesIO
-from itertools import compress
+from pathlib import Path
+sys.path.append(Path(__file__).parents[1]/"tools")
 from tools.misc_tools import Tools
+
 
 logging.basicConfig(level=logging.INFO)
 
-class NEI:
+class NEI ():
     """
     Calculates unit throughput and energy input (later op hours?) from
     emissions and emissions factors, specifically from: PM, SO2, NOX,
@@ -64,7 +66,7 @@ class NEI:
                 }
             }
         
-        self.unit_regex = Tools()
+        self.unit_regex = Tools().unit_regex
 
     def find_missing_cap(self, df):
         """
@@ -617,11 +619,10 @@ class NEI:
         
         """
     
-        ghgs = pd.DataFrame(
-            nei_data.query("pollutant_code=='CO2'|pollutant_code=='CH4'|pollutant_code=='N2O'")
-            )
+        ghgs = nei_data.query(
+            "pollutant_code=='CO2'|pollutant_code=='CH4'|pollutant_code=='N2O'"
+            ).copy(deep=True)
 
-        
         # Appears that facilities that report to GHGRP may include a unique
         # EIS unit ID for their **total facility** GHG emissions reported to the 
         # GHGRP.
@@ -630,7 +631,7 @@ class NEI:
         # report CO2 emissions above the 25,000 tonne CO2 GHGRP reporting threshold, but
         # aren't listed as GHGRP reporters. It doesn't appear that there is a way
         # to systematically correct these emissions. 
-        ghgs = ghgs.query("process_description!='epaghg facility reported emissions'")
+        ghgs = ghgs.query("process_description!='epaghg facility reported emissions'").copy(deep=True)
 
         # convert short tons to metric tonnes
         # Method currently only works if all units of emissions are in short tons
@@ -646,13 +647,13 @@ class NEI:
 
         # aggregated to facility, unit, and process and fuel type
         ghgs = ghgs.groupby(
-            ['eis_facility_id', 'eis_unit_id', 'eis_process_id', 'fuel_type'],
+            ['eis_facility_id', 'eis_unit_id', 'unit_type_final', 'fuel_type'],
             as_index=False
             ).ghgsTonneCO2e.sum()
         
         # Drop values that are >25,000 metric tons. If these values are not
         # errors, then they will be picked up by the inclusion of GHGRP unit emissions
-        ghgs = ghgs.query("ghgsTonneCO2e < 25000")
+        ghgs = ghgs.query("ghgsTonneCO2e < 25000").copy(deep=True)
 
         # Make ghg columns consistent with energy columns. Because there is only one
         # reported value, these are all equal.
@@ -666,8 +667,8 @@ class NEI:
 
     def merge_fill_ghg_emissions(self, ghgs, nei_data):
         """
-        Not all NEI facilities report GHG emissions from fuel combustion. Calculate these missing values using 
-        EPA default emissions factors.
+        Not all NEI facilities report GHG emissions from fuel combustion. 
+        Calculate these missing values using EPA default emissions factors.
 
         Parameters
         ----------
@@ -686,7 +687,7 @@ class NEI:
 
         nei_data = pd.merge(
             nei_data, ghgs,
-            on=['eis_facility_id', 'eis_unit_id', 'eis_process_id', 'fuel_type'],
+            on=['eis_facility_id', 'eis_unit_id', 'unit_type_final', 'fuel_type'],
             how='left'
             )
 
@@ -899,12 +900,6 @@ class NEI:
         df.drop(['masked'], axis=1, inplace=True)
 
         df.dropna(subset=['emission_factor_median'], inplace=True)  # contains original index in multi-index
-        # outliers = [x for x in compress(df.emission_factor.values, mask)]
-
-        # if not outliers:
-        #     outliers = np.nan
-
-        # df.reset_index(level=[0, 1, 2, 3, 4], drop=True, inplace=True)
     
         return df
     
@@ -990,8 +985,8 @@ class NEI:
     def unit_type_selection(self, series):
         """
         Algorithm for selecting unit type between NEI (unit_type), SCC, and NEI (unit_description).
-        Preferences NEI (unit_type) and instances where two sources share the same
-        standardized unit type.
+        Preference unit types extracted from unit_description, even when NEI unit_type and
+        SCC unit types agree.
 
         Parameters
         ----------
@@ -1006,15 +1001,15 @@ class NEI:
         
         """
 
-        if series['nei_unit_type_std'] == 'other':
+        if (series['nei_unit_type_std'] == 'other'):
 
-            if series['scc_unit_type_std'] == 'other':
+            if (series['scc_unit_type_std'] == 'other'):
 
-                if series['desc_unit_type_std'] == 'other':
+                if(series['desc_unit_type_std'] == 'other'):
 
                     ut = series['nei_unit_type']
 
-                elif type(series['desc_unit_type_std']) is float:
+                elif type(series['desc_unit_type_std']) is float:  #capturing NaN value
 
                     ut = series['nei_unit_type']
 
@@ -1030,7 +1025,7 @@ class NEI:
 
                     ut = series['nei_unit_type']
 
-                elif series['desc_unit_type_std'] == 'other':
+                elif (series['desc_unit_type_std'] == 'other'):
 
                     ut = series['unit_description']
 
@@ -1046,21 +1041,21 @@ class NEI:
 
                     ut = series['scc_unit_type']
 
-                elif series['desc_unit_type_std'] == 'other':
+                elif (series['desc_unit_type_std'] == 'other'):
 
                     ut = series['scc_unit_type']
 
                 else:
 
-                    ut = series['scc_unit_type']
+                    ut = series['unit_description']
 
                 return ut
 
         elif type(series['nei_unit_type_std']) is float:
 
-            if series['scc_unit_type_std'] == 'other':
+            if (series['scc_unit_type_std'] == 'other'):
 
-                if series['desc_unit_type_std'] == 'other':
+                if (series['desc_unit_type_std'] == 'other'):
 
                     ut = series['unit_description']
 
@@ -1070,6 +1065,8 @@ class NEI:
 
                 else:
                     ut = series['unit_description']
+
+                return ut
 
             elif type(series['scc_unit_type_std']) is float:
 
@@ -1077,13 +1074,15 @@ class NEI:
 
                     ut = np.nan
 
-                elif series['desc_unit_type_std'] == 'other':
+                elif (series['desc_unit_type_std'] == 'other'):
 
                     ut = series['unit_description']
 
                 else:
 
                     ut = series['unit_description']
+                
+                return ut
 
             else:
 
@@ -1091,19 +1090,21 @@ class NEI:
 
                     ut = series['scc_unit_type']
 
-                elif series['desc_unit_type_std'] == 'other':
+                elif (series['desc_unit_type_std'] == 'other'):
 
                     ut = series['scc_unit_type']
 
                 else:
 
-                    ut = series['scc_unit_type']
+                    ut = series['unit_description']
+
+                return ut
 
         else:
 
-            if series['scc_unit_type_std'] == 'other':
+            if (series['scc_unit_type_std'] == 'other'):
 
-                if series['desc_unit_type_std'] == 'other':
+                if (series['desc_unit_type_std'] == 'other'):
 
                     ut = series['nei_unit_type']
 
@@ -1113,7 +1114,9 @@ class NEI:
 
                 else:
 
-                    ut = series['nei_unit_type']
+                    ut = series['unit_description']
+
+                return ut
 
             elif type(series['scc_unit_type_std']) is float:
 
@@ -1121,13 +1124,15 @@ class NEI:
 
                     ut = series['nei_unit_type']
 
-                elif series['desc_unit_type_std'] == 'other':
+                elif (series['desc_unit_type_std'] == 'other'):
 
                     ut = series['nei_unit_type']
 
                 else:
 
-                    ut = series['nei_unit_type']
+                    ut = series['unit_description']
+
+                return ut
 
             else:
 
@@ -1135,7 +1140,7 @@ class NEI:
 
                     ut = series['nei_unit_type']
 
-                elif series['desc_unit_type_std'] == 'other':
+                elif (series['desc_unit_type_std'] == 'other'):
 
                     ut = series['nei_unit_type']
 
@@ -1150,12 +1155,13 @@ class NEI:
                         ut = series['scc_unit_type']
 
                     else:
-                        ut = series['nei_unit_type']
+                        ut = series['unit_description']
 
+                return ut
         
-            return ut
+        return ut
 
-    def assign_types_nei(self, nei, iden_scc):
+    def assign_types(self, nei, iden_scc):
         """
         Assign unit type and fuel type based on NEI and SCC descriptions
 
@@ -1186,7 +1192,7 @@ class NEI:
         
         # Also look for unit types in unit_description
         nei.loc[:, 'desc_unit_type_std'] = nei.unit_description.dropna().apply(
-            lambda x: self.unit_regex.unit_regex(x)
+            lambda x: self.unit_regex(x)
             )
 
         # set unit type equal to SCC unit type if listed as
@@ -1202,7 +1208,7 @@ class NEI:
         for c in ['nei_unit_type', 'scc_unit_type']:
 
             unit_map = nei[c].dropna().drop_duplicates().copy(deep=True)
-            unit_map = pd.concat([unit_map, unit_map.apply(lambda x: self.unit_regex.unit_regex(x))], axis=1)
+            unit_map = pd.concat([unit_map, unit_map.apply(lambda x: self.unit_regex(x))], axis=1)
             unit_map.columns = ['ut', 'ut_std']
             unit_map = dict(unit_map.values)
 
@@ -1552,14 +1558,14 @@ class NEI:
         med_unit = pd.concat(
             [pd.melt(
                 nei[['eis_facility_id',
-                     'eis_process_id',
+                    #  'eis_process_id',
                      'eis_unit_id',
                      'unit_type_final',
                      'fuel_type',
                      f'{v}_nei',
                      f'{v}_web']],
                 id_vars=['eis_facility_id',
-                         'eis_process_id',
+                        #  'eis_process_id',
                          'eis_unit_id',
                          'unit_type_final',
                          'fuel_type'],
@@ -1577,38 +1583,40 @@ class NEI:
                 "throughput_TON > 0 | energy_MJ > 0"
                 ).groupby(
                     ['eis_facility_id',
-                     'eis_process_id',
+                    #  'eis_process_id',
                      'eis_unit_id',
                      'unit_type_final',
                      'fuel_type']
                     )[['throughput_TON', 'energy_MJ']].quantile([0, 0.5, 0.75])
 
         med_unit.reset_index(inplace=True)
-        med_unit.level_5.replace({0: 'q0', 0.5: 'q2', 0.75: 'q3'}, 
+        med_unit.level_4.replace({0: 'q0', 0.5: 'q2', 0.75: 'q3'}, 
                                  inplace=True)
         med_unit = med_unit.pivot_table(
             index=['eis_facility_id',
-                   'eis_process_id',
+                #    'eis_process_id',
                    'eis_unit_id',
                    'unit_type_final',
                    'fuel_type'],
-            columns='level_5', values=['energy_MJ', 'throughput_TON'])
+            columns='level_4', values=['energy_MJ', 'throughput_TON'])
 
         m = med_unit.columns.map('_'.join)
-        med_unit = med_unit.groupby(m, axis=1).mean()
+        med_unit.columns = m  
 
         other_cols = nei.columns
         other_cols = set(other_cols).difference(set(med_unit.columns))
 
         other = nei.drop_duplicates(
-            ['eis_facility_id', 'eis_process_id',
+            ['eis_facility_id', 
+            #  'eis_process_id',
              'eis_unit_id', 'unit_type_final',
              'fuel_type']
             )[other_cols]
 
         med_unit = med_unit.join(
             other.set_index(
-                ['eis_facility_id', 'eis_process_id',
+                ['eis_facility_id', 
+                #  'eis_process_id',
                  'eis_unit_id', 'unit_type_final',
                  'fuel_type']
                 )
@@ -1663,7 +1671,9 @@ class NEI:
             )
 
         missing.drop_duplicates(
-            ['eis_facility_id', 'eis_unit_id', 'eis_process_id', 'fuel_type'],
+            ['eis_facility_id', 'eis_unit_id', 
+            #  'eis_process_id', 
+             'fuel_type'],
             inplace=True)
 
         # missing = self.format_nei_char(missing)
@@ -1725,7 +1735,7 @@ class NEI:
 
         return df
 
-    #TODO use tools method
+    #TODO make tools method
     def harmonize_fuel_type(self, ghgrp_unit_data, fuel_type_column):
         """
         Applies fuel type mapping to fuel types reported under GHGRP
@@ -1842,12 +1852,18 @@ class NEI:
         """
 
         med_unit.set_index(
-            ['eis_facility_id', 'eis_process_id', 'eis_unit_id'],
+            ['eis_facility_id', 
+            #  'eis_process_id', 
+             'eis_unit_id',
+             'fuel_type'],
             inplace=True
             )
 
         missing_unit.set_index(
-            ['eis_facility_id', 'eis_process_id', 'eis_unit_id'],
+            ['eis_facility_id', 
+            #  'eis_process_id', 
+             'eis_unit_id',
+             'fuel_type'],
             inplace=True
             )
 
@@ -1876,9 +1892,8 @@ class NEI:
         logging.info("Merging WebFires data...")
         nei_char = nei.match_webfire_to_nei(nei_data, webfr)
         logging.info("Merging SCC data...")
-        nei_char.to_pickle('nei_char.pkl')
         logging.info("Assigning unit and fuel types...")
-        nei_char = nei.assign_types_nei(nei_char, iden_scc)
+        nei_char = nei.assign_types(nei_char, iden_scc)
         # nei_char = nei.remove_unit_types(nei_char)  # remove some non-combustion related unit types
         logging.info("Finding emission factor outliers...")
         nei_char = nei.detect_and_fix_ef_outliers(nei_char)
@@ -1889,12 +1904,13 @@ class NEI:
         # Use median EF from WebFires as alt approach to estimating energy
         nei_char = nei.apply_median_webfr_ef(nei_char, webfr, cutoff=0.75)  
         logging.info("Extracting and aggregating GHG emissions")
-        ghgs = nei.extract_ghg_emissions(nei_char)
+        nei_char.to_pickle('nei_char_pre_med.pkl')
         logging.info("Final NEI data assembly...")
         med_unit = nei.get_median_throughput_and_energy(nei_char)
         missing_unit = nei.separate_missing_units(nei_char)
 
         nei_char = nei.merge_med_missing(med_unit, missing_unit)
+        ghgs = nei.extract_ghg_emissions(nei_char)
 
         logging.info("Merging and filling GHG emissions")
         nei_char = nei.merge_fill_ghg_emissions(ghgs, nei_char)

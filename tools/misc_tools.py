@@ -319,10 +319,10 @@ class Tools:
             'boiler', 'incinerator', 'flare',
             'heater', 'calciner', 'turbine',
             'stove', 'distillation', 'other combustion',
-            'engine', 'generator', 'oxidizer', 'pump',
+            'engine\s', 'generator', 'oxidizer', 'pump',
             'compressor', 'building heat', 'cupola',
             'PCWD', 'PCWW', 'PCO', 'PCT', 'OFB', 'broil',
-            'reciprocating'
+            'reciprocating', 'roaster'
             ]
 
     def unit_regex(self, unitType):
@@ -362,7 +362,7 @@ class Tools:
             else:
                 continue
 
-        if any([x in ut_std for x in ['engine', 'reciprocating']]):
+        if any([x in ut_std for x in ['engine\s', 'reciprocating']]):
             ut_std = 'engine'
 
         elif (len(ut_std) > 1):
@@ -378,9 +378,12 @@ class Tools:
             ut_std = 'thermal oxidizer'
 
         elif ut_std[0] == 'buidling heat':
-            ut_std = 'heater'
+            ut_std = 'other combustion'
 
         elif ut_std[0] in ['cupola', 'broil']:
+            ut_std = 'other combustion'
+
+        elif ut_std[0] == 'roaster':
             ut_std = 'other combustion'
 
         elif any([x in ut_std[0] for x in other_boilers]):
