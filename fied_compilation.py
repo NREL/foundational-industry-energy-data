@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 from tools.naics_matcher import naics_matcher
 from tools.misc_tools import FRS_API
-# import ghgrp.run_GHGRP as GHGRP
+from tools.misc_tools import Tools
 from scc.scc_unit_id import SCC_ID
 from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
 from nei.nei_EF_calculations import NEI
@@ -174,7 +174,7 @@ def check_registry_id(ghgrp_unit_data, frs_data):
     return ghgrp_unit_data
 
 
-def melt_multiple_ids(frs_data, other_data, pkle=False):
+def melt_multiple_ids(frs_data, other_data):
     """
     Melt FRS data for facilities, extracting multiple NEI or GHGRP IDs.
 
@@ -195,8 +195,6 @@ def melt_multiple_ids(frs_data, other_data, pkle=False):
 
     """
 
-    col_names = []
-
     if 'ghgrpID' in other_data.columns:
 
         col_names = ['ghgrpID', 'ghgrpIDAdditional']
@@ -210,6 +208,7 @@ def melt_multiple_ids(frs_data, other_data, pkle=False):
     # Check if 'registryID' in frs_mult
     if 'registryID' in frs_mult.columns:
         pass
+
     else:
         logging.error("registryID missing")
         frs_mult.to_csv('frs_mult.csv')
@@ -220,8 +219,10 @@ def melt_multiple_ids(frs_data, other_data, pkle=False):
         )
 
     frs_mult = frs_mult.melt(
-        id_vars=['registryID'], value_name=col_names[0]
+        id_vars=['registryID'], value_name=f'{col_names[0]}_melted'
         ).drop('variable', axis=1)
+    
+    frs_mult.columns = ['registryID', col_names[0]]
 
     melted = pd.concat([
         frs_mult, frs_data[frs_data[col_names[1]].isnull()][
@@ -517,8 +518,6 @@ def reconcile_shared_nonocs(nei_data_shared_nonocs, ghgrp_data_shared_nonocs, dt
         how='outer'
         )
 
-    compare.to_pickle(f'{dt}_compare.pkl')
-
     use_nei_data = {}  # Dictionary for index selections that will use NEI data
     use_ghgrp_data = {}  # Dictionary for index selections that will use GHGRP data
 
@@ -743,38 +742,38 @@ def id_ghgrp_units(ghgrp_data, ocs=True):
 
 #     return ocs_share
 
-def group_nei_by_unit(nei_data):
-    """"
-    Emissions from the NEI are attributed to processes, not individual units. So,
-    there may be more than one process associated with an individual unit 
-    (see the NEI data model: https://www.epa.gov/enviro/nei-model).
-    This method aggregates the unit-process estimates into estimates by unit.
+# def group_nei_by_unit(nei_data):
+#     """"
+#     Emissions from the NEI are attributed to processes, not individual units. So,
+#     there may be more than one process associated with an individual unit 
+#     (see the NEI data model: https://www.epa.gov/enviro/nei-model).
+#     This method aggregates the unit-process estimates into estimates by unit.
 
-    Parameters
-    ----------
-    nei_data : pandas.DataFrame
-        Formatted NEI data with energy and GHG emissions estimates
+#     Parameters
+#     ----------
+#     nei_data : pandas.DataFrame
+#         Formatted NEI data with energy and GHG emissions estimates
 
-    Returns
-    -------
-    nei_data_unit : pandas.DataFrame
-        Formatted NEI data with energy and GHG emissions estimates aggregated to unit and fuel.
-    """
+#     Returns
+#     -------
+#     nei_data_unit : pandas.DataFrame
+#         Formatted NEI data with energy and GHG emissions estimates aggregated to unit and fuel.
+#     """
 
-    nei_data_unit = nei_data.groupby(
-        ['eisFacilityID', 'eisUnitID', 'unitType', 'unitDescription',
-         'designCapacity', 'designCapacityUOM', 'fuelType', 'fuelTypeStd']
-        )
+#     nei_data_unit = nei_data.groupby(
+#         ['eisFacilityID', 'eisUnitID', 'unitType', 'unitDescription',
+#          'designCapacity', 'designCapacityUOM', 'fuelType', 'fuelTypeStd']
+#         )
 
-    nei_data_unit = pd.concat(
-        [nei_data_unit[c].sum() for c in ['energyMJq0', 'energyMJq2', 'energyMJq3',
-              'throughputTonneQ0', 'throughputTonneQ2', 'throughputTonneQ3',
-              'ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']], axis=1
-        )
+#     nei_data_unit = pd.concat(
+#         [nei_data_unit[c].sum() for c in ['energyMJq0', 'energyMJq2', 'energyMJq3',
+#               'throughputTonneQ0', 'throughputTonneQ2', 'throughputTonneQ3',
+#               'ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']], axis=1
+#         )
     
-    nei_data_unit.reset_index(inplace=True)
+#     nei_data_unit.reset_index(inplace=True)
 
-    return nei_data_unit
+#     return nei_data_unit
 
 def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy'):
     """
@@ -812,12 +811,15 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
 
     elif dt == 'ghgs':
         ghgrp_col = 'ghgsTonneCO2e'
-        nei_col = 'ghgsTonneCO2eQ2'
+        nei_col = 'ghgsTonneCO2eQ2' 
         portion_col = 'ghgsPortion'
         # nei_sum_cols = ['ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2','ghgsTonneCO2eQ3']
 
     nei_dso = nei_data_shared_ocs.copy(deep=True)
     ghgrp_dso = ghgrp_data_shared_ocs.copy(deep=True)
+
+    ghgrp_dso.to_pickle(f'ghgrp_dso_{dt}.pkl')
+    nei_dso.to_pickle(f'nei_dso_{dt}.pkl')
 
     # Cleaning up the unecessary 'index' column 
     # #TODO (minor): find what merge or join is creating this column
@@ -835,7 +837,7 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
     nei_dso.sort_index(inplace=True)
     
     nei_dso.loc[:, portion_col] = nei_dso[nei_col].divide(
-        nei_dso[nei_col].sum(level=[0, 1])
+        nei_dso[nei_col].dropna().sum(level=[0, 1]), fill_value=0
         )
 
     nei_dso.reset_index(['eisUnitID'], drop=False, inplace=True)
@@ -875,6 +877,7 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
         )
 
     ocs_allocated.reset_index(inplace=True)
+
     ocs_allocated.drop(['allocated'], axis=1, inplace=True)
 
     ocs_allocated = assign_estimate_source(ocs_allocated, 'ghgrp', dt=dt)
@@ -884,86 +887,86 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
     return ocs_allocated
 
 
-def unit_regex(unitType):
-    """
-    Use regex to standardize unit types,
-    where appropriate. See unit_types variable
-    for included types.
+# def unit_regex(unitType):
+#     """
+#     Use regex to standardize unit types,
+#     where appropriate. See unit_types variable
+#     for included types.
 
-    Parameters
-    ----------
-    unitType : str
-        Detailed unit type
+#     Parameters
+#     ----------
+#     unitType : str
+#         Detailed unit type
 
-    Returns
-    -------
-    unitTypeStd : str;
-        Standardized unit type
-    """
+#     Returns
+#     -------
+#     unitTypeStd : str;
+#         Standardized unit type
+#     """
 
-    other_boilers = ['PCWD', 'PCWW', 'PCO', 'PCT', 'OFB']
+#     other_boilers = ['PCWD', 'PCWW', 'PCO', 'PCT', 'OFB']
 
-    # Combustion unit types
-    unit_types = [
-        'kiln', 'dryer', 'oven', 'furnace',
-        'boiler', 'incinerator', 'flare',
-        'heater', 'calciner', 'turbine',
-        'stove', 'distillation', 'other combustion',
-        'engine', 'generator', 'oxidizer', 'pump',
-        'compressor', 'building heat', 'cupola',
-        'PCWD', 'PCWW', 'PCO', 'PCT', 'OFB', 'broil',
-        'reciprocating'
-        ]
+#     # Combustion unit types
+#     unit_types = [
+#         'kiln', 'dryer', 'oven', 'furnace',
+#         'boiler', 'incinerator', 'flare',
+#         'heater', 'calciner', 'turbine',
+#         'stove', 'distillation', 'other combustion',
+#         'engine', 'generator', 'oxidizer', 'pump',
+#         'compressor', 'building heat', 'cupola',
+#         'PCWD', 'PCWW', 'PCO', 'PCT', 'OFB', 'broil',
+#         'reciprocating'
+#         ]
 
-    ut_std = []
+#     ut_std = []
 
-    for unit in unit_types:
+#     for unit in unit_types:
 
-        unit_pattern = re.compile(r'({})'.format(unit), flags=re.IGNORECASE)
+#         unit_pattern = re.compile(r'({})'.format(unit), flags=re.IGNORECASE)
 
-        try:
-            unit_search = unit_pattern.search(unitType)
+#         try:
+#             unit_search = unit_pattern.search(unitType)
 
-        except TypeError:
-            continue
+#         except TypeError:
+#             continue
 
-        if unit_search:
-            ut_std.append(unit)
+#         if unit_search:
+#             ut_std.append(unit)
 
-        else:
-            continue
+#         else:
+#             continue
 
-    if any([x in ut_std for x in ['engine', 'reciprocating']]):
-        ut_std = 'engine'
+#     if any([x in ut_std for x in ['engine', 'reciprocating']]):
+#         ut_std = 'engine'
 
-    elif (len(ut_std) > 1):
-        ut_std = 'other combustion'
+#     elif (len(ut_std) > 1):
+#         ut_std = 'other combustion'
 
-    elif (len(ut_std) == 0):
-        ut_std = 'other'
+#     elif (len(ut_std) == 0):
+#         ut_std = 'other'
 
-    elif ut_std[0] == 'calciner':
-        ut_std = 'kiln'
+#     elif ut_std[0] == 'calciner':
+#         ut_std = 'kiln'
 
-    elif ut_std[0] == 'oxidizer':
-        ut_std = 'thermal oxidizer'
+#     elif ut_std[0] == 'oxidizer':
+#         ut_std = 'thermal oxidizer'
 
-    elif ut_std[0] == 'buidling heat':
-        ut_std = 'heater'
+#     elif ut_std[0] == 'buidling heat':
+#         ut_std = 'heater'
 
-    elif ut_std[0] in ['cupola', 'broil']:
-        ut_std = 'other combustion'
+#     elif ut_std[0] in ['cupola', 'broil']:
+#         ut_std = 'other combustion'
 
-    elif any([x in ut_std[0] for x in other_boilers]):
-        ut_std = 'boiler'
+#     elif any([x in ut_std[0] for x in other_boilers]):
+#         ut_std = 'boiler'
 
-    elif ut_std[0] == 'reciprocating':
-        ut_std = 'engine'
+#     elif ut_std[0] == 'reciprocating':
+#         ut_std = 'engine'
 
-    else:
-        ut_std = ut_std[0]
+#     else:
+#         ut_std = ut_std[0]
 
-    return ut_std
+#     return ut_std
 
 
 def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
@@ -1023,7 +1026,7 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         )
 
     # EIS facility IDs that don't report to GHGRP
-    nei_ids_noghgrp = melt_multiple_ids(nei_no_ghgrp, nei_data, pkle=True)
+    nei_ids_noghgrp = melt_multiple_ids(nei_no_ghgrp, nei_data)
 
     nei_only_data = pd.merge(
         nei_ids_noghgrp,
@@ -1047,7 +1050,7 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
     for dt in ['energy', 'ghgs']:
         ghgrp_only_data = assign_estimate_source(ghgrp_only_data, 'ghgrp', dt=dt)
 
-    ghgrp_only_data.to_pickle('ghgrp_only_data.pkl')
+
     # NEI and GHGRP facilities
     nei_ids_shared = melt_multiple_ids(nei_and_ghgrp, nei_data)
 
@@ -1078,8 +1081,10 @@ def separate_unit_data(frs_data, nei_data, ghgrp_unit_data):
         'ghgrp_only': ghgrp_only_data, 
         'no_nei_or_ghgrp': no_nei_or_ghgrp # All relevant facilities from this group are included in final data.
         }
-    for k in data_dict.keys():
-        data_dict[k].to_pickle(f'data_dict_{k}.pkl')
+
+    # for k in data_dict.keys():
+    #     data_dict[k].to_pickle(f'data_dict_{k}.pkl')
+    
     return data_dict
 
 
@@ -1265,6 +1270,7 @@ if __name__ == '__main__':
 
     SCC_ID().main()
     fiedgis = FiedGIS()
+    unit_regex = Tools().unit_regex
 
     try:
         frs_data = pd.read_csv(
@@ -1291,7 +1297,7 @@ if __name__ == '__main__':
 
     nei_data = NEI().main()
 
-    nei_data = group_nei_by_unit(nei_data)
+    # nei_data = group_nei_by_unit(nei_data)
 
     data_dict = separate_unit_data(frs_data, nei_data, ghgrp_unit_data)
 

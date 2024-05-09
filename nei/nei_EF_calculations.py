@@ -712,9 +712,9 @@ class NEI ():
         # errors, then they will be picked up by the inclusion of GHGRP unit emissions
         # emissions = emissions.query("ghgsTonneCO2eQ3 < 25000 ")
 
-        # nei_data.update(emissions)
+        nei_data.update(emissions)
 
-        # nei_data.drop('ef', axis=1, inplace=True)
+        nei_data.drop('ef', axis=1, inplace=True)
     
         return nei_data
 
@@ -1195,12 +1195,6 @@ class NEI ():
             lambda x: self.unit_regex(x)
             )
 
-        # set unit type equal to SCC unit type if listed as
-        #   'Unclassified' or'Other' in NEI
-        # nei.loc[(nei['nei_unit_type'] == 'Unclassified') |
-        #         (nei['nei_unit_type'] == 'Other process equipment'), 'unit_type'] = \
-        #             nei['scc_unit_type']
-        
         # Remove non-combustion, non-electricity unit types
         nei = self.remove_unit_types(nei)
         
@@ -1216,49 +1210,65 @@ class NEI ():
             
         units = nei[['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std', 'nei_unit_type', 'scc_unit_type', 'unit_description']].copy(deep=True)
 
-        units.drop_duplicates(inplace=True)
+        units.drop_duplicates(inplace=True)  # Accounts for duplicates due to multiple pollutant types per unique eis_unit_id
 
         units.loc[:, 'unit_type_final'] = units.apply(lambda x: self.unit_type_selection(x), axis=1)
 
-        # Keep unit type with the largest count. Instances where
-        # there are three different unit types identified (i.e., [1, 1, 1]),
-        # the list index defaults to the first position (0), which is the 
-        # nei unit type. 
-        # units.loc[:, 'u_count'] = units.apply(
-        #     lambda x: [list(
-        #         x[['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std']]
-        #         ).count(y) for y in list(
-        #             x[['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std']]
-        #               )], axis=1)
-        
-        # units.loc[:, 'u_count'] = units.apply(
-        #     lambda x: [x[
-        #         ['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std']
-        #         ].value_counts().get(x) for x in x[
-        #             ['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std']
-        #             ]], axis=1
-        #         )
-        
-        # units = units.join(units.desc_unit_type_std, lsuffix='', rsuffix='_d')
+        units = pd.merge(units, nei[['eis_unit_id']], how='inner', left_index=True, right_index=True)
 
-        # units = units[['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std', 
-        #                'nei_unit_type', 'scc_unit_type', 'desc_unit_type_std_d',
-        #                'u_count']].copy(deep=True)
-    
-        # units.loc[:, 'unit_type_final'] = units.apply(
-        #     lambda x: list(x)[x.u_count.index(max(x.u_count))+3], axis=1
-        #     )
-        
-        units.set_index(['nei_unit_type', 'scc_unit_type', 'unit_description'], inplace=True)
-        units = units.unit_type_final.to_dict()
+        # Multiple unit types may be assigned to a uniuqe unit id
+        mult_types = units.groupby('eis_unit_id').apply(lambda x: len(x.unit_type_final.unique()))
+        mult_types = mult_types[mult_types > 1]
 
-        nei.loc[:, 'units_tuple'] = pd.Series(
-            list(nei[['nei_unit_type', 'scc_unit_type', 'unit_description']].itertuples(index=False, name=None))
-            )
+        units.set_index('eis_unit_id', inplace=True)
 
-        nei.loc[:, 'unit_type_final'] = nei.units_tuple.map(units)
+        for i in mult_types.index:
 
-        nei.drop(['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std', 'units_tuple'], axis=1, inplace=True)
+            nei_ut_std = units.xs(i).nei_unit_type_std.drop_duplicates().dropna().values.tolist()  # All units should have only one nei_unit_type
+            scc_ut_std = units.xs(i).scc_unit_type_std.drop_duplicates().dropna().values.tolist()
+
+            if (nei_ut_std[0] != 'other'):
+
+                fut = units.xs(i).nei_unit_type.drop_duplicates().dropna().values[0]
+
+            elif len(scc_ut_std)==1:
+
+                if scc_ut_std != 'other':
+
+                    fut = units.xs(i).scc_unit_type.drop_duplicates().dropna().values[0]
+
+                else:
+
+                    fut = units.xs(i).desc_unit_type_std.drop_duplicates().dropna().values[0]
+
+            elif len(scc_ut_std) == 2:
+
+                try: 
+                    
+                    scc_ut_std.remove('other')
+
+                except ValueError:
+
+                    try:
+
+                        fut = units.xs(i).desc_unit_type_std.drop_duplicates().dropna().values[0]
+
+                    except IndexError:
+
+                        fut = units.xs(i).scc_unit_type.drop_duplicates().dropna().values[-1]  # default to last value
+
+            elif len(scc_ut_std) > 2:
+
+                fut = units.xs(i).desc_unit_type_std.drop_duplicates().dropna().values[0]
+
+            units.loc[i, 'unit_type_final'] = fut
+
+        units.reset_index(inplace=True)
+        units = units[['eis_unit_id', 'unit_type_final']].drop_duplicates()  
+
+        nei = pd.merge(nei, units, on='eis_unit_id', how='left')
+
+        nei.drop(['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std'], axis=1, inplace=True)
         
         # get fuel types from NEI text and SCC descriptions
         for c in ['unit_description', 'process_description', 'scc_fuel_type']:
@@ -1623,6 +1633,8 @@ class NEI ():
             )
 
         med_unit.reset_index(inplace=True)
+
+        # Remove duplicate eis_unit_ids (a sinlge eis_unit_id may have multiple fuel types)
 
         return med_unit
 
