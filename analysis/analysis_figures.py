@@ -95,32 +95,41 @@ class FIED_analysis:
         Create summary figures and table.
         """
 
-        summary_table = self.summary_unit_table()
+        # summary_table_all = self.summary_unit_table()
 
-        self.summary_unit_bar(summary_table, write_fig=kwargs['write_fig'])
+        # summary_table_eisghgrp = self.summary_unit_table(eis_or_ghgrp_only=True)
 
-        self.plot_stacked_bar_missing(write_fig=kwargs['write_fig'])
+        # self.summary_unit_bar(summary_table_all, write_fig=kwargs['write_fig'])
 
-        self.plot_facility_count(write_fig=kwargs['write_fig'])
+        # self.plot_stacked_bar_missing(write_fig=kwargs['write_fig'])
 
-        self.plot_best_characterized()
+        # for ds in ['ghgrp', 'nei']:
+        #     self.plot_stacked_bar_missing(data_subset=ds, write_fig=kwargs['write_fig'])
 
-        for u in self._fied.unitTypeStd.unique():
-            try:
-                u.title()
-            except AttributeError:
-                continue
-            else:
-                for m in ['energy', 'power']:
-                    self.plot_unit_bubble_map(u, m, write_fig=kwargs['write_fig'])
+        # self.plot_facility_count(write_fig=kwargs['write_fig'])
 
-        for v in ['count', 'energy', 'capacity']:
-            for n in [None, 2, 3]:
-                self.plot_ut_by_naics(n, v, write_fig=kwargs['write_fig'])
+        # # self.plot_best_characterized()
+
+        # for u in self._fied.unitTypeStd.unique():
+        #     try:
+        #         u.title()
+        #     except AttributeError:
+        #         continue
+        #     else:
+        #         for m in ['energy', 'power']:
+        #             self.plot_unit_bubble_map(u, m, write_fig=kwargs['write_fig'])
+
+        # for v in ['count', 'energy', 'capacity']:
+        #     for n in [None, 2, 3]:
+        #         self.plot_ut_by_naics(n, v, write_fig=kwargs['write_fig'])
+
+        for ds in ['mecs', 'seds']:
+            self.plot_eia_comparison_maps(dataset=ds, year=2017)
 
         return
     
-    def summary_unit_table(self):
+
+    def summary_unit_table(self, eis_or_ghgrp_only=False):
         """
         Creates a table that summarizes by industrial sector
         (i.e., 2-digit NAICS) various aspects of the 
@@ -141,6 +150,15 @@ class FIED_analysis:
         table_data = self._fied.copy(deep=True)
 
         table_data = self.id_sectors(table_data)
+
+        if eis_or_ghgrp_only:
+            table_data = table_data[
+                (table_data.eisFacilityID.notnull())|(table_data.ghgrpID.notnull())
+                ].copy(deep=True)
+            
+            fname = './analysis/summary_unit_table_eisghgrp_only.csv'
+        else:
+            fname = './analysis/summary_unit_table_eisghgrp_only.csv'
 
         desc = ['count', 'sum', 'mean', 'std', 'min', 'median', 'max']
 
@@ -493,10 +511,12 @@ class FIED_analysis:
             height=800
             )
 
+        fname = self._fig_path / f'summary_figure_{self._year}'
+
         if write_fig:
             pio.write_image(
                 fig,
-                file=self._fig_path / f'summary_figure_{self._year}', 
+                file=fname, 
                 format=self._fig_format,
                 engine=self._pio_engine
                 )
@@ -505,6 +525,306 @@ class FIED_analysis:
             fig.show()
 
         return None
+    
+    def set_mecs_data(self, year=2018):
+        """"
+        MECS format is not machine-friendly. This is a manual input
+        of MECS combustion energy estimates from MECS Table 3.2:
+        https://www.eia.gov/consumption/manufacturing/about.php
+
+        Returns
+        -------
+        mecs : dict
+            Dictionary of combustion energy estimates from MECS (in MJ), on
+            a national and census region basis.
+        """
+
+        mecs = {
+            2018: {
+                'nation': (14859 - 2591) * 1.055E9,
+                'northeast': (1130 - 250) * 1.055E9 ,
+                'midwest': (3907 - 834) * 1.055E9,
+                'south': (7897 - 1143) * 1.055E9,
+                'west': (1925 - 365) * 1.055E9
+                }
+            }
+        
+        return mecs[year]
+    
+    def get_eia_seds(self, year=2017):
+        """
+        Get EIA State Energy Data System (SEDS) data
+
+        Parameters
+        ----------
+        year : int; default=2017
+            Year of SEDS data to return.
+
+        Returns
+        -------
+        seds : pandas.DataFrame
+            
+        
+        """
+        seds_url = 'https://www.eia.gov/opendata/bulk/SEDS.zip'
+
+        try:
+            r = requests.get(seds_url)
+            r.raise_for_status()
+
+        except r.exceptions.HTTPError as e:
+            logging.ERROR(e)
+
+        else:
+            with zipfile.ZipFile(BytesIO(r.content)) as zf:
+                with zf.open(zf.namelist()[0]) as f:
+                    seds = pd.read_json(f, lines=True)
+                    # eia_data = pd.DataFrame.from_dict(f)
+
+
+        seds.dropna(subset=['series_id'], inplace=True)
+        seds.dropna(axis=1, thresh=1, inplace=True)
+
+        # Natural gas consumed by the industrial sector (including supplemental gaseous fuels)
+        # All petroleum products consumed by the industrial sector
+        # Coal consumed by the industrial sector
+        # Wood and waste consumed in the industrial sector
+        series = ['NGICB', 'PAICB' , 'CLICB', 'WWICB']
+
+        seds = seds[seds.series_id.apply(
+            lambda x: any([s in x for s in series])
+            )].copy(deep=True)
+            
+        seds.reset_index(drop=True, inplace=True)
+
+        final_seds = pd.DataFrame()
+
+        for i in seds.index:
+
+            data = pd.DataFrame(
+                seds.loc[i, 'data'], 
+                columns=['year', 'BillionBtu']
+                )
+            
+            data = pd.concat(
+                [pd.DataFrame(np.tile(seds.loc[i, seds.columns[0:-1]].values.reshape(13, 1), len(data))).T,
+                 data], axis=1)
+            
+            final_seds = final_seds.append(data)
+
+        for i, v in enumerate(seds.columns[0:-1]):
+            final_seds.rename(columns={i:v}, inplace=True)
+
+        final_seds.year.update(final_seds.year.astype(int))
+
+        final_seds = final_seds.query("year==@year").copy(deep=True)
+        
+
+        # seds = pd.DataFrame()
+        
+        # for i in eia_data.index:
+        #     try:
+        #         data = pd.read_json(eia_data.loc[i, 0])
+        #     except ValueError:
+        #         continue
+    
+        #     else:
+    
+        #         data = pd.concat([
+        #             data, 
+        #             pd.DataFrame(
+        #                 [x for x in data.data.values], columns=['year', 'BillionBtu']
+        #                 )], axis=1
+        #             )
+
+        #         seds = seds.append(data)
+
+        final_seds.loc[:, 'MJ'] = final_seds.BillionBtu * 1.055E6
+        final_seds.drop(['start', 'end', 'BillionBtu', 'last_updated'], 
+                        axis=1, inplace=True)
+        
+        final_seds = final_seds[final_seds.geography != 'USA'].copy(deep=True)
+        
+        def split_columns(**kwargs):
+
+            final_seds = kwargs['data']
+
+            df = pd.DataFrame(
+                final_seds[kwargs['data_column']].unique(),
+                columns=[kwargs['data_column']]
+                )
+
+            df.loc[:, kwargs['new_column']] = df[kwargs['data_column']].apply(
+                lambda x: x.split(f'{kwargs["split_char"]}')[1]
+                )
+            
+            final_seds = pd.merge(final_seds, df, on=kwargs['data_column'], how='left')
+
+            return final_seds
+
+        final_seds = split_columns(
+            data=final_seds,
+            data_column= 'geography', 
+            new_column='state',
+            split_char='-'
+            )
+
+        # final_seds = split_columns(
+        #     data = final_seds,
+        #     data_column = 'series_id', 
+        #     new_column='data_id',
+        #     split_char= '.'
+        #     )
+
+        # states = pd.DataFrame(final_seds.geography.unique(), columns=['geography'])
+        # states.loc[:, 'state'] = states.geography.apply(
+        #     lambda x: x.split('-')[1]
+        #     )
+        
+        # final_seds = pd.merge(final_seds, states, on='geography', how='left')
+
+        final_seds = final_seds.groupby('state', as_index=False).MJ.sum()
+
+        return final_seds
+
+
+    def get_state_region(self):
+        """ Download state to region file"""
+
+        url = 'https://raw.githubusercontent.com/cphalpert/census-regions/master/us%20census%20bureau%20regions%20and%20divisions.csv'
+    
+        s_r = pd.read_csv(url, encoding='latin_1')
+
+        return s_r
+    
+    def plot_eia_comparison_maps(self, dataset, year=2017):
+        """
+        Plots a relative comparison of FIED vs. EIA on a geographic 
+        basis (combustion energy only). 
+        For MECS, this is census region; for SEDS, states.
+
+        Parameters
+        ----------
+        dataset : str; {'mecs', 'seds'}
+            EIA dataset to compare FIED against.
+
+        year : int ; default=2017
+
+        
+        Returns
+        -------
+        
+        """
+        shared_plot_args = dict(
+            color_continuous_scale= [
+                [0, 'rgb(43,131,186)'],
+                [0.25, 'rgb(171,221,164)'],
+                [0.5, 'rgb(255,255,191)'],
+                [0.75, 'rgb(253,174,97)'],
+                [1, 'rgb(215,25,28)']
+                ],
+            color_continuous_midpoint=1,
+            locationmode="USA-states",
+            scope='usa',
+            locations = 'stateCode',
+            color = 'fied_relative',
+            labels={'fied_relative': f'FIED relative to EIA {dataset.upper()}'}
+            )
+
+        plot_data = self._fied.copy(deep=True)
+
+        # with requests.get('https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/us-state-boundaries/exports/geojson?lang=en&timezone=America%2FNew_York') as r:
+        #     states = r.json()
+
+        # for s in range(0, len(states['features'])):
+        #     states['features'][s]['id'] =  states['features'][s]['properties']['stusab']
+
+        if dataset == 'mecs':
+            
+            mecs = self.set_mecs_data()
+
+            s_r = self.get_state_region()[['State Code', 'Region']]
+            s_r.Region.update(s_r.Region.apply(lambda x: x.lower()))
+
+            plot_data = pd.merge(
+                plot_data, s_r, left_on='stateCode', right_on='State Code',
+                how='inner'
+                )
+            
+            plot_data = pd.concat([
+                plot_data[
+                    (plot_data.energyMJ==0) | (plot_data.energyMJ.isnull())
+                    ].groupby(
+                        ['Region', 'stateCode']
+                        ).energyMJq2.sum(),
+                plot_data.groupby(
+                        ['Region', 'stateCode']
+                    ).energyMJ.sum()
+                ], axis=1
+                )
+
+            plot_data.loc[:, 'totalMJ'] = plot_data.sum(axis=1)
+
+            plot_data.loc[:, 'mecsMJ'] = plot_data.index.get_level_values(0).map(mecs)
+
+            plot_data.loc[:, 'fied_relative'] =  plot_data.totalMJ.sum(level=0).divide(plot_data.mecsMJ)
+
+            plot_data.reset_index(inplace=True)
+
+        elif dataset == 'seds':
+
+            seds = self.get_eia_seds(year=2017)
+            seds.rename(columns={'MJ': 'sedsMJ'}, inplace=True)
+
+            plot_data = pd.concat([
+                plot_data[
+                    (plot_data.energyMJ==0) | (plot_data.energyMJ.isnull())
+                    ].groupby(['stateCode']).energyMJq2.sum(),
+                plot_data.groupby(['stateCode']).energyMJ.sum()
+                ], axis=1
+                )
+            
+            plot_data.loc[:, 'totalMJ'] = plot_data.sum(axis=1)
+
+            plot_data = plot_data.join(seds.set_index('state'))
+
+            plot_data.loc[:, 'fied_relative'] =  plot_data.totalMJ.divide(plot_data.sedsMJ)
+            
+            plot_data.reset_index(inplace=True)
+    
+            plot_data.dropna(inplace=True)  # Drop Territories
+
+        rel_max = plot_data.fied_relative.max()
+        
+        if rel_max > np.around(rel_max):
+            rel_max = np.around(rel_max)+1
+
+        else:   
+            rel_max = np.around(rel_max)
+
+        shared_plot_args['range_color'] =(0, rel_max)
+        shared_plot_args['data_frame'] = plot_data
+
+        fig = px.choropleth(**shared_plot_args)
+            # plot_data,
+            # color_continuous_scale= [
+            #     [0, 'rgb(43,131,186)'],
+            #     [0.25, 'rgb(171,221,164)'],
+            #     [0.5, 'rgb(255,255,191)'],
+            #     [0.75, 'rgb(253,174,97)'],
+            #     [1, 'rgb(215,25,28)']
+            #     ],
+            # range_color=(0, rel_max),
+            # color_continuous_midpoint=1,
+            # locationmode="USA-states",
+            # scope='usa',
+            # locations = 'stateCode',
+            # color = 'fied_relative',
+            #     labels={'fied_relative': 'FIED Relative to EIA MECS'}
+            # )
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+        fig.show()
+            
     
     def plot_eia_comparison(self, eia_mecs=1.568E13, eia_mer=2.316E13):
         """
@@ -651,7 +971,7 @@ class FIED_analysis:
 
         elif data_subset == 'nei':
             plot_data = plot_data.query(
-                "nei.notnull()", engine="python"
+                "eisFacilityID.notnull()", engine="python"
                 ).copy()
             
             label = label + " (NEI Reporters Only)"
@@ -880,15 +1200,6 @@ class FIED_analysis:
             )
 
         return analysis_data
-    
-    def get_eia_data(self, year):
-        """
-        Get EIA Monthly Energy Review and SEDS data.
-        
-        """
-
-        return
-    
 
     
     def plot_best_characterized(self):
