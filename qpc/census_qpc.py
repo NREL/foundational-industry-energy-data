@@ -1,12 +1,9 @@
 import pandas as pd
 import numpy as np
-# from statsmodels.tsa.stattools import adfuller
-# from scipy.signal import detrend
-# from statsmodels.formula.api import ols
 import os
 import urllib
 import sys
-sys.path.append(r'c:/users/cmcmilla/foundational-industry-energy-data')
+sys.path.append(os.path.abspath(""))
 import tools.naics_matcher
 
 class QPC:
@@ -209,70 +206,6 @@ class QPC:
 
         return qpc_data
 
-    def test_seasonality(self, qpc_data_naics):
-        """
-        Test for seasonality between quarters by NAICS using OLS.
-
-        """
-
-        #sort data
-        qpc_data_naics.sort_values(by=['Year', 'Q'], ascending=True,
-                                   inplace=True)
-
-        # Create annual lag of quarterly weekly operating data (L4)
-        qpc_data_naics['L4'] = qpc_data_naics.Weekly_op_hours.shift(4)
-
-        # Test if data are trend stationary.
-        # Null hypothesis is that there is a unit root (nonstationary)
-        # Returns (test_stat, pvalue, usedlag, nobs, critical_values, icbest,
-        # resstore)
-        # adf_test = adfuller(
-        #     qpc_data_naics['Weekly_op_hours'].values, regression='ct',
-        #     )
-        #
-        #
-        # Can't reject null if p-value is > critical value.
-        # Remove trend for seasonality testing
-        # if adf_test[1] > 0.05:
-        #
-        #     qpc_data_naics['hours_detrended'] = detrend(
-        #         qpc_data_naics['Weekly_op_hours'], type='linear'
-        #         )
-        #
-        #     # Constant is q1 season.
-        #     ols_season = ols('hours_detrended ~ C(Q)', data=qpc_data_naics).fit()
-
-        # Regress quarterly dummies and annual lag on weekly operating hours
-        ols_season = \
-                ols('Weekly_op_hours ~ C(Q)+L4', data=qpc_data_naics).fit()
-
-        ols_final = pd.DataFrame(np.nan, columns=['q1', 'q2', 'q3', 'q4'],
-                                 index=[qpc_data_naics.NAICS.unique()[0]])
-
-        if any(ols_season.pvalues < 0.05):
-
-            ols_res = pd.DataFrame(
-                np.multiply(ols_season.pvalues < 0.05, ols_season.params),
-                )
-
-            ols_res = ols_res[ols_res > 0].T
-
-            ols_res.rename(
-                columns={
-                    'Intercept': 'q1', 'C(Q)[T.q2]': 'q2',
-                    'C(Q)[T.q2]': 'q2',
-                    'C(Q)[T.q3]': 'q3',
-                    'C(Q)[T.q4]': 'q4'
-                    },
-                index={0:qpc_data_naics.NAICS.unique()[0]}, inplace=True
-                )
-
-            ols_final.update(ols_res)
-
-        ols_final.index.name = 'NAICS'
-
-        return ols_final
-
     def calc_hours_CI(self, selected_qpc_data, CI=95):
         """
         Calculates confidence interval of average weekly operating hours using
@@ -305,118 +238,35 @@ class QPC:
 
         selected_qpc_data['Weekly_op_hours_low'] = \
             selected_qpc_data.Weekly_op_hours.subtract(qpc_data_ci)
-
-        op_hour_min = selected_qpc_data.where(
-            selected_qpc_data.Weekly_op_hours_low > 0
-            ).Weekly_op_hours_low.fillna(np.nan).min()
-
+        
         # Constrain to positive operating hours.
-        # Assume minimum of data set.
-        selected_qpc_data.loc[:, 'Weekly_op_hours_low'] = selected_qpc_data.where(
+        # Assume annual minimum by NAICS; if NaN, min of data set.
+        op_hour_min = selected_qpc_data[
             selected_qpc_data.Weekly_op_hours_low > 0
-            ).Weekly_op_hours_low.fillna(op_hour_min)
+            ].groupby('NAICS').Weekly_op_hours_low.min()
+        
+        neg_hour = selected_qpc_data[
+            selected_qpc_data.Weekly_op_hours_low < 0
+            ]
+        
+        selected_qpc_data.Weekly_op_hours_low.update(
+            neg_hour.NAICS.map(op_hour_min.to_dict()).fillna(op_hour_min.min())
+            )
+
+        # op_hour_min = selected_qpc_data.where(
+        #     selected_qpc_data.Weekly_op_hours_low > 0
+        #     ).Weekly_op_hours_low.fillna(np.nan).min()
+
+        # selected_qpc_data.loc[:, 'Weekly_op_hours_low'] = selected_qpc_data.where(
+        #     selected_qpc_data.Weekly_op_hours_low > 0
+        #     ).Weekly_op_hours_low.fillna(op_hour_min)
 
         # Constrain to <168 weekly operating hours
         selected_qpc_data.loc[:, 'Weekly_op_hours_high'] = selected_qpc_data.where(
             selected_qpc_data.Weekly_op_hours_high < 168
-            ).Weekly_op_hours_low.fillna(168)
+            ).Weekly_op_hours_high.fillna(168)
 
         return selected_qpc_data
-
-    def calc_quarterly_avgs(self, qpc_data, qpc_seasonality):
-        """
-        Calculate average weekly operating hours by NAICS from census QPC data.
-        Accounts for quarterly seasonality results: NAICS without seasonality
-        are average across all quarters in date range.
-        """
-
-        qpc_data = self.calc_hours_CI(qpc_data)
-
-        annual = qpc_seasonality.reset_index().melt(
-            id_vars='NAICS', var_name='Q'
-            )
-
-        annual = annual[(annual.NAICS != '31-33') & (annual.value.isnull())]
-
-        # annual = qpc_seasonality.isnull().apply(lambda x: all(x), axis=1)
-        #
-        # annual = annual[annual==True]
-        #
-        # annual.name = 'annual'
-
-        # Calculate annual average using only quarters with no seasonality
-        ann_avg = pd.merge(
-            qpc_data[qpc_data.NAICS !='31-33'], annual, on=['NAICS', 'Q'],
-            how='inner'
-            )
-
-        ann_avg = pd.DataFrame(
-            ann_avg.set_index('NAICS')[
-            ['Weekly_op_hours', 'Weekly_op_hours_low', 'Weekly_op_hours_high']
-            ].mean(level=0)
-            )
-
-            # qpc_data.set_index('NAICS').join(annual, how='inner')
-
-        # ann_avg.index.name = 'NAICS'
-
-        # ann_avg = ann_avg.reset_index().groupby('NAICS').Weekly_op_hours.mean()
-
-        ann_avg = ann_avg.reindex(index=np.repeat(ann_avg.index, 4))
-
-        ann_avg['Q'] = np.tile(['q1', 'q2', 'q3', 'q4'],
-                               int(len(ann_avg)/4))
-
-        ann_avg = ann_avg.reset_index().pivot_table(
-            index='NAICS', values=['Weekly_op_hours', 'Weekly_op_hours_low',
-                                   'Weekly_op_hours_high'], aggfunc='mean',
-            columns='Q'
-            )
-
-        seasonal = qpc_seasonality.dropna(thresh=1).reset_index().melt(
-            id_vars='NAICS', var_name='Q', value_name='seasonality'
-            )
-
-        seasonal['seasonality'] = seasonal.seasonality.notnull()
-
-        # seasonal.rename(columns={'index': 'NAICS'}, inplace=True)
-
-        # seasonal.index.name = 'NAICS'
-
-        # seasonal = pd.merge(
-        #     seasonal, qpc_data, on=['NAICS', 'Q'], how='inner'
-        #     )
-
-        seasonal = pd.merge(
-            seasonal[seasonal.seasonality==True], qpc_data, on=['NAICS', 'Q'],
-            how='inner'
-            )
-
-        # seasonal_avg = seasonal.groupby(
-        #     ['NAICS', 'seasonality']
-        #     ).Weekly_op_hours.mean()
-
-        seasonal_avg = seasonal.groupby(['NAICS', 'Q'])[
-            ['Weekly_op_hours', 'Weekly_op_hours_low', 'Weekly_op_hours_high']
-            ].mean()
-
-        # seasonal_avg = seasonal_avg.reindex(index=seasonal.groupby(
-        #     ['NAICS', 'seasonality', 'Q']
-        #     ).Weekly_op_hours.mean().index)
-
-        # seasonal_avg.reset_index('seasonality', drop=True, inplace=True)
-
-        seasonal_avg = seasonal_avg.reset_index().pivot_table(
-            index='NAICS', values=['Weekly_op_hours', 'Weekly_op_hours_low',
-                                   'Weekly_op_hours_high'], aggfunc='mean',
-            columns='Q'
-            )
-
-        # all_avg = pd.concat([seasonal_avg, ann_avg], axis=0, sort=True)
-
-        ann_avg.update(seasonal_avg)
-
-        return ann_avg
 
     def format_foundational(self, qpc_data):
         """
