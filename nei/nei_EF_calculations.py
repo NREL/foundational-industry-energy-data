@@ -53,7 +53,8 @@ class NEI ():
             'power': {  # Convert to MW
                 'MMBtu/hr': 0.293297,
                 'KW': 1/1000,
-                'MW': 1
+                'MW': 1,
+                'BHP': 0.0007457  # Assume BHP == brake horsepower
                 }
             }
         
@@ -94,7 +95,9 @@ class NEI ():
             index=missing_cap.index
             )
 
-        found_cap.dropna(how='all')
+        found_cap.dropna(how='all', inplace=True)
+
+        found_cap.loc[:, 'designCapacityUOM'] = None
 
         for i, v in enumerate(['designCapacity', 'designCapacityUOM']):
             try:
@@ -208,7 +211,8 @@ class NEI ():
             'mmbtu/hour': 'MMBtu/hr',
             'mbtu/hr': 'MMBtu/hr',
             'mmb': 'MMBtu/hr',
-            'kw': 'KW'
+            'kw': 'KW',
+            'bhp': 'BHP'
             }
 
         value = None
@@ -1296,7 +1300,7 @@ class NEI ():
 
             if f.find('(') != -1:
     
-                fre = f.replace('(', '\(').replace(')', '\)')
+                fre = f.replace(r'(', r'\(').replace(r')', r'\)')
 
                 n = {k: re.search(fre, k) for k in self._unit_conv['fuel_dict'].keys()}
 

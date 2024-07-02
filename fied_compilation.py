@@ -319,10 +319,10 @@ def blend_estimates(nei_data_shared, ghgrp_data_shared):
     nei_data_shared_nonocs = id_nei_units_nonocs(nei_data_shared,
                                                  nei_data_shared_ocs)
 
-    ghgrp_data_shared_ocs.to_pickle('ghgrp_data_shared_ocs.pkl')
-    nei_data_shared_ocs.to_pickle('nei_data_shared_ocs.pkl')
-    ghgrp_data_shared_nonocs.to_pickle('ghgrp_data_shared_nonocs.pkl')
-    nei_data_shared_nonocs.to_pickle('nei_data_shared_nonocs.pkl')
+    # ghgrp_data_shared_ocs.to_pickle('ghgrp_data_shared_ocs.pkl')
+    # nei_data_shared_ocs.to_pickle('nei_data_shared_ocs.pkl')
+    # ghgrp_data_shared_nonocs.to_pickle('ghgrp_data_shared_nonocs.pkl')
+    # nei_data_shared_nonocs.to_pickle('nei_data_shared_nonocs.pkl')
 
     shared = {}
 
@@ -818,8 +818,8 @@ def allocate_shared_ocs(ghgrp_data_shared_ocs, nei_data_shared_ocs, dt='energy')
     nei_dso = nei_data_shared_ocs.copy(deep=True)
     ghgrp_dso = ghgrp_data_shared_ocs.copy(deep=True)
 
-    ghgrp_dso.to_pickle(f'ghgrp_dso_{dt}.pkl')
-    nei_dso.to_pickle(f'nei_dso_{dt}.pkl')
+    # ghgrp_dso.to_pickle(f'ghgrp_dso_{dt}.pkl')
+    # nei_dso.to_pickle(f'nei_dso_{dt}.pkl')
 
     # Cleaning up the unecessary 'index' column 
     # #TODO (minor): find what merge or join is creating this column

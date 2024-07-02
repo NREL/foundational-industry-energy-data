@@ -95,9 +95,9 @@ class FIED_analysis:
         Create summary figures and table.
         """
 
-        # summary_table_all = self.summary_unit_table()
+        summary_table_all = self.summary_unit_table()
 
-        # summary_table_eisghgrp = self.summary_unit_table(eis_or_ghgrp_only=True)
+        summary_table_eisghgrp = self.summary_unit_table(eis_or_ghgrp_only=True)
 
         # self.summary_unit_bar(summary_table_all, write_fig=kwargs['write_fig'])
 

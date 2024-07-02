@@ -1,0 +1,348 @@
+---
+FIED
+- Facility Identifiers
+  - registryID
+    - dtype: float
+    - description: >
+      The identification number assigned by the EPA Facility Registry Service to 
+      uniquely identify a facility site
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - name
+    - dtype: object
+    - description:>
+         The public or commercial name of a facility site (i.e., the full name that commonly
+         appears on invoices, signs, or other business documents, or as assigned by the
+         state when the name is ambiguous).
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - eisFacilityID
+    - dtype: float
+    - description: first EPA Emissions Inventory System (EIS) ID associated with registryID
+    - source: >
+         <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a> and 
+         <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - eisFacilityIDAdditional
+    - dtype: float
+    - description: first EPA Emissions Inventory System (EIS) ID associated with registryID
+    - source: >
+         <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a> and 
+         <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - ghgrpID
+    - dtype: float
+    - description: first EPA Greenhouse Gas Reporting Program (GHGRP) ID associated with registryID
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - ghgrpIDAdditional
+    - dtype: float
+    - description: additional Greenhouse Gas Reporting Program (GHGRP) IDs associated with registryID
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - naicsCode
+    - dtype: float
+    - description: >
+         first North American Industrial Classification System (NAICS) codes 
+         associated with registryID.
+         See <a href="https://www.census.gov/naics/"> documentation </a> for more information
+         on NAICS codes and their descriptions. 
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - naicsCodeAdditional
+    - dtype: float
+    - description: >
+         additional North American Industrial Classification System (NAICS) codes 
+         associated with registryID.
+         See <a href="https://www.census.gov/naics/"> documentation </a> for more information
+         on NAICS codes and their descriptions. 
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - siteTypeName
+    - dtype: object
+    - description: >
+       descriptive name for the type of site. EPA values are currently
+       'STATIONARY', 'POTENTIALLY CONTAMINATED SITE', 'FACILITY',
+       'PORTABLE', 'CONTAMINATED SITE', 'BROWNFIELDS SITE', 'MOBILE',
+       'CONTAMINATION ADDRESSED', and 'WATER SYSTEM'.
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - sensitiveInd 
+    - dtype: float
+    - description: Indicates whether or not the associated data is enforcement sensitive.
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - smallBusInd 
+    - dtype: float
+    - description: >
+         Code indicating whether or not a business is requesting relief under EPA’s Small Business Policy, 
+         which applies to businesses having less than 100 employees.
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - envJusticeCode
+    - dtype: float
+    - description: >
+         The code that identifies the type of environmental justice concern affecting the
+         facility or enforcement action.
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+- Unit Identifiers
+  - eisUnitID
+    - dtype: float
+    - description: >
+       unique Emissions Inventory System (EIS) identifier for unit associated with a emissions-producing process.
+       More than one eisUnitID may be associated with a eisProcessID.
+    - source: <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - unitName
+    - dtype: object
+    - description: reported name of unit.
+    - source: >
+       <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a> or
+       <a href="https://www.epa.gov/ghgreporting"> EPA GHGRP.</a>
+  - unitType 
+    - dtype: float
+    - description: >
+       Identified unit type. May be taken from a reported unit type, unit description, or other 
+       data field. 
+    - source: >
+       <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+       <a href="https://www.epa.gov/ghgreporting"> EPA GHGRP. </a>
+  - unitTypeStd
+    - dtype: object
+    - description: >
+       standardized unit type. Current types are 'dryer', 'other combustion', 'kiln', 'boiler', 'turbine', 'pump', 
+       'generator', 'other' [non-combustion unit], 'heater', 'engine', 'furnace', 'oven', 'incinerator', 'flare', 
+       'thermal oxidizer', 'compressor', 'distillation', 'building heat', and 'stove'.
+    - source: <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - unitDescription
+    - dtype: object
+    - description: description of the unit
+    - source: <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - designCapacity 
+    - dtype: float
+    - description: design capacity of the unit. Directly reported, or obtained from unit description or other data fields. 
+    - source: >
+       <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a> or 
+       <a href="https://www.epa.gov/ghgreporting"> EPA GHGRP. </a>
+  - designCapacityUOM
+    - dtype: object
+    - description: >
+       unit of measurement (UOM) for design capaicty. Currently includes 'MW' [megawatts], 'TON/DAY', 
+       'E3LB/HR', 'LB/HR', 'TON/HR', 'GAL', 'FT3/DAY', 'E3GAL/HR', 'DATAMIGR', 'E3FT2/HR', 'TON/YR',
+       'E6FT2/YR', 'E3BDFT/YR', 'GAL/HR', 'LB/YR', 'GAL/DAY', 'E6BDFT/YR',
+       'GAL/YR', 'DATAMIGRATION', 'FT3/MIN', 'GAL/MIN', 'FT2/HR', 'AMP-HR/HR', 'E3FT3/DAY', 
+       'FT3SD/HR', 'FT2/YR', and 'BBL'. 
+    - source: <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+- Geographic Identifiers
+  - latitude 
+    - dtype: float
+    - description: latutide associated with registryID
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - longitude
+    - dtype: float
+    - description: longitude associated with registryID
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - geoID
+    - dtype: float
+    - description: >
+       Census Geographic Identifier. Numeric codes that uniquely identify all administrative/legal and 
+       statistical geographic areas for which the Census Bureau tabulates data. See 
+       <a href="https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html"> GEOID overview </a> 
+       for more information. 
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - locationAddress
+    - dtype: object
+    - description: >
+       The address that describes the physical (geographic) location of the front door or
+       main entrance of a facility site, including
+       urban-style street address or rural address.
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - postalCode
+    - dtype: float
+    - description: >
+       The combination of the five digit ZoneImprovement Plan (ZIP) code and the four
+       digit extension code (if available) that represents the geographic segment that is
+       a subunit of the ZIP Code, assigned by the U.S. Postal Service to a geographic
+       location, where the facility site is located.
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - cityName 
+    - dtype: object
+    - description: >
+       The name of the city, town, village or other locality, when identifiable, within whose
+       boundaries (the majority of) the facility site is located. This is not always the same as
+       the city used for USPS mail delivery.
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - countyName 
+    - dtype: object
+    - description: county name of facility.
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a> 
+  - stateCode
+    - dtype: object
+    - description: two-letter state abbreviation (e.g., "AL") of facility
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - countyFIPS 
+    - dtype: float
+    - description: >
+       The Federal Informationl Processing Standard (FIPS) code that represents the county or
+      county equivalent and the state or state equivalent of the United States.
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - legislativeDistrictNumber
+    - dtype: object
+    - description: The number that represents a Legislative District within a state. 
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - epaRegionCode
+    - dtype: float
+    - description: EPA Region Code associated with registryID
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - hucCode8
+    - dtype: float
+    - description: >
+       Hydrolic Unit Code (HUC) from the USGS. Accoring to the USGS, hydrologic unitsare classified 
+       into four levels: regions, sub-regions, accounting units, and cataloging units. 
+       Each unit is identified by a unique hydrologic unit code (HUC) consisting of two to 
+       eight digits based on its classification.
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+- Energy and Emissions Identifiers
+  - fuelType 
+    - dtype: float
+    - description: >
+       fuel type that is directly reported, or is derived from SCC codes, unit or process descriptions,
+       or other data fields. 
+    - source: >
+       <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a> or
+       <a href="https://www.epa.gov/ghgreporting"> EPA GHGRP.</a>
+  - fuelTypeStd
+    - dtype: object
+    - description: >
+       standardized fuel type. Current types are 'diesel', 'naturalGas', 'resFuelOil' [residual fuel oil], 
+       'biomass', 'lpgHGL', 'gasoline', 'other', 'coal', 'coke', 'jetA'
+    - source: <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - SCC
+    - dtype: float
+    - description: >
+       Source Classification Codes are a standardized hierarchical classification of the 
+       different types of activities that generate air emissions. See additional information from 
+       <a href="https://sor.epa.gov/sor_internet/registry/scc/SCC-IntroToSCCs_2021.pdf">this documentation.</a>
+    - source: <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - eisProcessID 
+    - dtype: float
+    - description: Emissions Inventory System (EIS) identifier for a emissions-producing process. 
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - processDescription 
+    - dtype: float
+    - description: description of an emissions-producing process (eisProcessID)
+    - source: <a href="https://www.epa.gov/frs">EPA Facility Registry Service (FRS)</a>
+  - energyMJq0 
+    - dtype: float
+    - description: minimum estimated energy use by unit in megajoules (MJ). Derived from reported EPA NEI emissions.
+    - source:    <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - energyMJq2
+    - dtype: float
+    - description: median estimated energy use by unit in megajoules (MJ). Derived from reported EPA NEI emissions.
+    - source:    <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - energyMJq3 
+    - dtype: float
+    - description: third quartile estimated energy use by unit in megajoules (MJ). Derived from reported EPA NEI emissions.
+    - source:    <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - throughputTonneQ0
+    - dtype: float
+    - description: minimum estimated throughput by unit in metric tons. Derived from reported EPA NEI emissions.
+    - source:    <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - throughputTonneQ2 
+    - dtype: float
+    - description: median estimated throughput by unit in metric tons. Derived from reported EPA NEI emissions.
+    - source:    <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - throughputTonneQ3
+    - dtype: float
+    - description: third quartile estimated throughput by unit in metric tons. Derived from reported EPA NEI emissions.
+    - source: <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - ghgsTonneCO2eQ0 
+    - dtype: float
+    - description: >
+         minimum greenhouse gas emissions by unit in metric tons CO2 equivalent (TonneCO2e),
+         calculated from either data reported by EPA NEI, derived from data reported by EPA NEI.
+    - source: <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - ghgsTonneCO2eQ2
+    - dtype: float
+    - description: >
+         median greenhouse gas emissions by unit in metric tons CO2 equivalent (TonneCO2e),
+         calculated from either data reported by EPA NEI, derived from data reported by EPA NEI.
+    - source: <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - ghgsTonneCO2eQ3
+    - dtype: float
+    - description: >
+         third quartile of greenhouse gas emissions by unit in metric tons CO2 equivalent (TonneCO2e),
+         calculated from either data reported by EPA NEI, derived from data reported by EPA NEI.
+    - source: <a href="https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei">EPA National Emissions Inventory (NEI)</a>
+  - energyMJ
+    - dtype: float
+    - description: energy use by unit in MJ, either derived from reported EPA GHGRP emissions, or taken directly from reported data.    
+    - source: <a href="https://www.epa.gov/ghgreporting"> EPA GHGRP. </a> 
+  - ghgsTonneCO2e
+    - dtype: float
+    - description: >
+         emissions of greenhouse gases (GHGs) in metric tons carbon dioxide 
+         equivalents (TonneCO2e) reported by the EPA GHGRP.
+    - source:    <a href="https://www.epa.gov/ghgreporting"> EPA GHGRP. </a>
+  - energyEstimateSource
+    - dtype: float
+    - description: Source of energy estimate. Value is either 'nei' or 'ghgrp'.
+    - source: not applicable
+  - ghgsEstimateSource
+    - dtype: float
+    - description: Source of ghg emissions estimate. Value is either 'nei' or 'ghgrp'.
+    - source: not applicable
+- Other Identifiers
+- weeklyOpHoursLow_q1
+    - dtype: float
+    - description: >
+         lower bound of 95% confidence interval for average 
+         weekly operating hours first quarter. Calculated using reported data.
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHoursLow_q2
+    - dtype: float
+    - description: >
+         lower bound of 95% confidence interval for average 
+         weekly operating hours second quarter. Calculated using reported data.
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHoursLow_q3
+    - dtype: float
+    - description: >
+         lower bound of 95% confidence interval for average 
+         weekly operating hours thrid quarter. Calculated using reported data.
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHoursLow_q4
+    - dtype: float
+    - description: >
+         lower bound of 95% confidence interval for average weekly operating hours fourth quarter.
+         Calculated using reported data.
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHours_q1
+    - dtype: float
+    - description: reported average weekly operating hours first quarter. 
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHours_q2 
+    - dtype: float
+    - description: reported average weekly operating hours second quarter
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHours_q3 
+    - dtype: float
+    - description: reported average weekly operating hours third quarter
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHours_q4
+    - dtype: float
+    - description: reported average weekly operating hours fourth quarter
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHoursHigh_q1 
+    - dtype: float
+    - description: >
+         upper bound of 95% confidence interval for average weekly operating hours first quarter.
+         Calculated using reported data.
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHoursHigh_q2
+    - dtype: float
+    - description: >
+         upper bound of 95% confidence interval for average weekly operating hours second quarter.
+         Calculated using reported data.
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHoursHigh_q3     
+    - dtype: float    
+    - description: >
+         upper bound of 95% confidence interval for average 
+         weekly operating hours third quarter. Calculated using reported data.
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+- weeklyOpHoursHigh_q4
+    - dtype: float
+    - description: >
+         upper bound of 95% confidence interval for average 
+         weekly operating hours fourth quarter. Calculated using reported data.
+    - source: <a href="https://www.census.gov/programs-surveys/qpc.html"> Census QPC </a>
+...

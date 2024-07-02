@@ -102,7 +102,7 @@ class QPC:
 
         return df
 
-    def get_qpc_data(self, year):
+    def get_qpc_data(self, year, include_all=False):
         """
         Quarterly survey began 2008; start with 2010 due to  2007-2009
         recession.
@@ -176,8 +176,9 @@ class QPC:
 
             qpc_data = qpc_data.append(data, ignore_index=True)
 
-        # Don't use the aggregate manufacturing NAICS
-        qpc_data = qpc_data.query("NAICS != '31-33'")
+        if not include_all:
+            # Don't use the aggregate manufacturing NAICS
+            qpc_data = qpc_data.query("NAICS != '31-33'")
 
         qpc_data.NAICS.update(
             qpc_data.NAICS.apply(lambda x: QPC.force_format(x))
@@ -323,5 +324,6 @@ class QPC:
 
 if __name__ == '__main__':
     qpc = QPC()
+    qpc_data = pd.DataFrame()
     qpc_data = qpc.get_qpc_data(2017)
     qpc_data = qpc.calc_hours_CI(qpc_data)
