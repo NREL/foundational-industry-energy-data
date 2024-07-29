@@ -99,7 +99,9 @@ class FIED_analysis:
 
         summary_table_eisghgrp = self.summary_unit_table(eis_or_ghgrp_only=True)
 
-        # self.summary_unit_bar(summary_table_all, write_fig=kwargs['write_fig'])
+        self.summary_unit_bar(summary_table_all, write_fig=kwargs['write_fig'])
+
+        # self.plot_rel_bar_missing(write_fig=kwargs['write_fig'])
 
         # self.plot_stacked_bar_missing(write_fig=kwargs['write_fig'])
 
@@ -108,7 +110,7 @@ class FIED_analysis:
 
         # self.plot_facility_count(write_fig=kwargs['write_fig'])
 
-        # # self.plot_best_characterized()
+        # self.plot_best_characterized()
 
         # for u in self._fied.unitTypeStd.unique():
         #     try:
@@ -124,7 +126,7 @@ class FIED_analysis:
         #         self.plot_ut_by_naics(n, v, write_fig=kwargs['write_fig'])
 
         for ds in ['mecs', 'seds']:
-            self.plot_eia_comparison_maps(dataset=ds, year=2017)
+            self.plot_eia_comparison_maps(dataset=ds, year=2017, write_fig=kwargs['write_fig'])
 
         return
     
@@ -535,7 +537,7 @@ class FIED_analysis:
         Returns
         -------
         mecs : dict
-            Dictionary of combustion energy estimates from MECS (in MJ), on
+            Dictionary of combustion energy estimates from MECS (converted from TBtu to MJ), on
             a national and census region basis.
         """
 
@@ -619,26 +621,6 @@ class FIED_analysis:
 
         final_seds = final_seds.query("year==@year").copy(deep=True)
         
-
-        # seds = pd.DataFrame()
-        
-        # for i in eia_data.index:
-        #     try:
-        #         data = pd.read_json(eia_data.loc[i, 0])
-        #     except ValueError:
-        #         continue
-    
-        #     else:
-    
-        #         data = pd.concat([
-        #             data, 
-        #             pd.DataFrame(
-        #                 [x for x in data.data.values], columns=['year', 'BillionBtu']
-        #                 )], axis=1
-        #             )
-
-        #         seds = seds.append(data)
-
         final_seds.loc[:, 'MJ'] = final_seds.BillionBtu * 1.055E6
         final_seds.drop(['start', 'end', 'BillionBtu', 'last_updated'], 
                         axis=1, inplace=True)
@@ -697,7 +679,7 @@ class FIED_analysis:
 
         return s_r
     
-    def plot_eia_comparison_maps(self, dataset, year=2017):
+    def plot_eia_comparison_maps(self, dataset, year=2017, write_fig=True):
         """
         Plots a relative comparison of FIED vs. EIA on a geographic 
         basis (combustion energy only). 
@@ -708,7 +690,10 @@ class FIED_analysis:
         dataset : str; {'mecs', 'seds'}
             EIA dataset to compare FIED against.
 
-        year : int ; default=2017
+        year : int; default=2017
+
+        write_fig : bool; default=True
+            Write figure to analysis figures directory
 
         
         Returns
@@ -750,6 +735,18 @@ class FIED_analysis:
                 plot_data, s_r, left_on='stateCode', right_on='State Code',
                 how='inner'
                 )
+            
+            # Need to remove non-manufacturing facilities
+            plot_data_n = pd.Series(plot_data.naicsCode.unique())
+            plot_data_n = pd.concat(
+                [plot_data_n, plot_data_n.apply(lambda x: int(str(x)[0]))],
+                axis=1
+                )
+            plot_data_n.columns = ['naicsCode', 'n1']
+            plot_data_n = plot_data_n[plot_data_n.n1==3]
+
+            plot_data = pd.merge(plot_data, plot_data_n, how='inner',
+                                 on='naicsCode')
             
             plot_data = pd.concat([
                 plot_data[
@@ -805,6 +802,8 @@ class FIED_analysis:
         shared_plot_args['range_color'] =(0, rel_max)
         shared_plot_args['data_frame'] = plot_data
 
+        plot_data.to_csv(f'{dataset}_comparison_data.csv')
+
         fig = px.choropleth(**shared_plot_args)
             # plot_data,
             # color_continuous_scale= [
@@ -823,7 +822,18 @@ class FIED_analysis:
             #     labels={'fied_relative': 'FIED Relative to EIA MECS'}
             # )
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-        fig.show()
+
+        if write_fig:
+            fname = self._fig_path / f'{dataset}_comaprison_map_{self._year}'
+            pio.write_image(
+                fig,
+                file=fname, 
+                format=self._fig_format,
+                engine=self._pio_engine
+                )
+
+        else:
+            fig.show()
             
     
     def plot_eia_comparison(self, eia_mecs=1.568E13, eia_mer=2.316E13):
@@ -937,6 +947,90 @@ class FIED_analysis:
             fig.show()
 
         return None
+    
+    def plot_rel_bar_missing(self, write_fig=True):
+        """
+        Creates a simple stacked bar showing relative amount (percentage)
+        of GHGRP and NEI facilities with and without unit-level data.
+
+        Parameters
+        ----------
+        write_fig : bool; default=True
+            Write figure to analysis figures directory
+        
+        """
+
+        plot_data = {}
+
+        label = "Percentage of Facilities with Unit-Level Characterization"
+
+        for l in ['ghgrp', 'eisFacility']:
+            plot_data[l] = self._fied.query(f"{l}ID.notnull()", engine="python").copy()
+            
+            plot_data[l] = pd.concat(
+                [pd.Series(len(
+                    plot_data[l].query("unitTypeStd.isnull()", engine="python").registryID.unique()
+                    )),
+                pd.Series(len(
+                    plot_data[l].query("unitTypeStd.notnull()", engine="python").registryID.unique()
+                    ))], 
+                axis=1,
+                ignore_index=False
+                )
+            
+            plot_data[l].columns = ['Without Unit Characterization', 
+                                   'With Unit Characterization']
+            
+            plot_data[l] = plot_data[l].divide(
+                plot_data[l].sum(axis=1), axis=0
+                )
+            
+            plot_data[l].loc[:, 'Data Source'] = l
+
+        plot_data = pd.concat(
+            [plot_data[l] for l in plot_data.keys()],
+            axis=0, ignore_index=True
+            )
+        
+        plot_data.drop(['Without Unit Characterization'], axis=1, inplace=True)
+        
+        plot_data.replace({'eisFacility': 'NEI', 'ghgrp': 'GHGRP'}, inplace=True)
+
+        fig = px.bar(
+            plot_data,
+            x='Data Source',
+            y=['With Unit Characterization'],
+            labels={
+                'value': label,
+                'variable': 'Facilities'
+                },
+            template='plotly_white',
+            color_discrete_map={
+                'With Unit Characterization': "#756bb1"
+                })
+
+        fig.update_yaxes(automargin=True, range=[0, 1])
+        fig.update_xaxes(automargin=True, type='category')
+        fig.update_layout(
+            yaxis_tickformat=".0%",
+            template='presentation',
+            height=800,
+            width=600,
+            legend=dict(orientation="h", x=0.25, title=""),
+            font=dict(size=16)
+            )
+
+        if write_fig:
+            pio.write_image(
+                fig,
+                file=self._fig_path / f'rel_bar_unit_char_{self._year}',
+                format=self._fig_format,
+                engine=self._pio_engine
+                )
+
+        else:
+            fig.show()
+
 
     def plot_stacked_bar_missing(self, naics_level=2, data_subset=None, write_fig=True):
         """"
@@ -952,6 +1046,11 @@ class FIED_analysis:
         data_subset : str; {None, 'ghgrp', 'nei'}
             Plot subset of data, either facilities that 
             are GHGRP or NEI reporters
+
+        rel_total : bool; default=False
+            Plot the relative total of NEI and GHGRP facilities that
+            have unit-level characterization. Renders naics_level and data_subset 
+            obsolete. 
 
         write_fig : bool; default=True
             Write figure to analysis figures directory
@@ -989,14 +1088,31 @@ class FIED_analysis:
             axis=1,
             ignore_index=False
             )
+        
+        if naics_level == 2:
+            plot_data.loc['Manufacturing', :] = \
+                plot_data.loc[31:, :].sum()
 
-        plot_data.reset_index(inplace=True)
+            plot_data.reset_index(inplace=True)
 
-        plot_data.columns = ['NAICS Code', 'Without Unit Characterization', 
-                             'With Unit Characterization']
-        plot_data.dropna(subset=['NAICS Code'], inplace=True)
+            plot_data.columns = ['NAICS Code', 'Without Unit Characterization', 
+                                 'With Unit Characterization']
+        
+            plot_data['NAICS Code'].replace({11: 'Agriculture', 21: 'Mining', 23: 'Construction'},
+                              inplace=True)
 
-        plot_data.loc[:, 'NAICS Code'] = plot_data['NAICS Code'].astype(str)
+            plot_data = plot_data[[type(x)!=int for x in plot_data['NAICS Code']]]
+
+        else:
+            plot_data.reset_index(inplace=True)
+
+            plot_data.columns = ['NAICS Code', 'Without Unit Characterization', 
+                                'With Unit Characterization']
+
+            plot_data.dropna(subset=['NAICS Code'], inplace=True)
+
+            plot_data.loc[:, 'NAICS Code'] = plot_data['NAICS Code'].astype(str)
+
         fig = px.bar(plot_data,
                     x='NAICS Code',
                     y=['Without Unit Characterization',
@@ -1408,6 +1524,6 @@ if __name__ == '__main__':
         
     year = 2017
     filepath = os.path.abspath('foundational_industry_data_2017.csv.gz')
-    fa = FIED_analysis(year=2017, file_path=filepath, fig_format='svg')
+    fa = FIED_analysis(year=year, file_path=filepath, fig_format='svg')
 
     fa.create_core_analysis(write_fig=False)
