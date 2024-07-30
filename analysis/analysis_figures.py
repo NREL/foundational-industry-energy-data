@@ -101,29 +101,29 @@ class FIED_analysis:
 
         self.summary_unit_bar(summary_table_all, write_fig=kwargs['write_fig'])
 
-        # self.plot_rel_bar_missing(write_fig=kwargs['write_fig'])
+        self.plot_rel_bar_missing(write_fig=kwargs['write_fig'])
 
-        # self.plot_stacked_bar_missing(write_fig=kwargs['write_fig'])
+        self.plot_stacked_bar_missing(write_fig=kwargs['write_fig'])
 
-        # for ds in ['ghgrp', 'nei']:
-        #     self.plot_stacked_bar_missing(data_subset=ds, write_fig=kwargs['write_fig'])
+        for ds in ['ghgrp', 'nei']:
+            self.plot_stacked_bar_missing(data_subset=ds, write_fig=kwargs['write_fig'])
 
-        # self.plot_facility_count(write_fig=kwargs['write_fig'])
+        self.plot_facility_count(write_fig=kwargs['write_fig'])
 
-        # self.plot_best_characterized()
+        self.plot_best_characterized()
 
-        # for u in self._fied.unitTypeStd.unique():
-        #     try:
-        #         u.title()
-        #     except AttributeError:
-        #         continue
-        #     else:
-        #         for m in ['energy', 'power']:
-        #             self.plot_unit_bubble_map(u, m, write_fig=kwargs['write_fig'])
+        for u in self._fied.unitTypeStd.unique():
+            try:
+                u.title()
+            except AttributeError:
+                continue
+            else:
+                for m in ['energy', 'power']:
+                    self.plot_unit_bubble_map(u, m, write_fig=kwargs['write_fig'])
 
-        # for v in ['count', 'energy', 'capacity']:
-        #     for n in [None, 2, 3]:
-        #         self.plot_ut_by_naics(n, v, write_fig=kwargs['write_fig'])
+        for v in ['count', 'energy', 'capacity']:
+            for n in [None, 2, 3]:
+                self.plot_ut_by_naics(n, v, write_fig=kwargs['write_fig'])
 
         for ds in ['mecs', 'seds']:
             self.plot_eia_comparison_maps(dataset=ds, year=2017, write_fig=kwargs['write_fig'])
@@ -889,51 +889,99 @@ class FIED_analysis:
             plot_data = self._fied.copy(deep=True)
             file_name = f'bubble_map_{measure}_{self._year}'
 
-        plot_args = {
-            'lat': 'latitude',
-            'lon': 'longitude',
-            'scope': 'usa',
-            'color': 'unitTypeStd',
-            'title': f'Location of {unit_type.title()} Units Reporting {measure.title()} Data',
-            'size_max': max_size,
-            'color_discrete_sequence': px.colors.qualitative.Safe
-            }
+        # plot_args = {
+        #     'lat': 'latitude',
+        #     'lon': 'longitude',
+        #     'scope': 'usa',
+        #     'color': 'unitTypeStd',
+        #     'title': f'Location of {unit_type.title()} Units Reporting {measure.title()} Data',
+        #     'size_max': max_size,
+        #     'color_discrete_sequence': px.colors.qualitative.Safe
+        #     }
+        
 
         if measure == 'energy':
-            plot_data = plot_data.query('energyMJ>0')
-            plot_args['size'] = plot_data.energyMJ.to_list()
-            plot_args['labels'] = {
-                'energyMJ': 'Unit Energy Use (MJ)'
-                }
+            plot_data.loc[:, 'plotMJ'] = plot_data.query('energyMJ>0 & (energyMJq2.isnull() | energyMJq2==0)').energyMJ
+            plot_data.loc[:, 'plotMJ'] = plot_data.query('(energyMJ==0 | energyMJ.isnull()) & energyMJq2>0').energyMJq2
+            plot_data.dropna(subset=['plotMJ'], axis=0, inplace=True)
+
+            # plot_args['size'] = plot_data.plotMJ.to_list()
+            markersize = plot_data.plotMJ.to_list()
+            # plot_args['labels'] = {
+            #     'plotMJ': 'Unit Energy Use (MJ)'
+            #     }
+            ids = [f'{x} MJ' for x in plot_data.plotMJ.values]
+            leg_title = 'Unit Energy Use (MJ)'
+            plot_color='plotMJ'
 
         elif measure == 'power':
             plot_data = plot_data.query(
                 "designCapacityUOM=='MW' & designCapacity>0"
                 )
-            plot_args['size'] = plot_data.designCapacity.to_list()
-            plot_args['labels'] = {
-                'designCapacity': 'Unit Capacity (MW)'
-                }
-            plot_args['title'] = f'Location of {unit_type.title()} Units Reporting Capacity Data'
+            # plot_args['size'] = plot_data.designCapacity.to_list()
+            markersize = plot_data.designCapacity.to_list()
+            # plot_args['labels'] = {
+            #     'designCapacity': 'Unit Capacity (MW)'
+            #     }
+            # plot_args['title'] = f'Location of {unit_type.title()} Units Reporting Capacity Data'
+            ids = [f'{x} MW' for x in plot_data.designCapacity.values]
+            leg_title = 'Unit Capacity (MW)'
+            plot_color='designCapacity'
 
         
         elif measure == 'ghgs':
-            plot_data = plot_data.query(
-                "designCapacityUOM=='MW' & designCapacity>0"
+            plot_data.loc[:, 'plotGHG'] = plot_data.query('ghgsTonneCO2e>0 & (ghgsTonneCO2eQ2.isnull() | ghgsTonneCO2eQ2==0)').ghgsTonneCO2e
+            plot_data.loc[:, 'plotGHG'] = plot_data.query('(ghgsTonneCO2e==0 | ghgsTonneCO2e.isnull()) & ghgsTonneCO2eQ2>0').ghgsTonneCO2eQ2
+            plot_data.dropna(subset=['plotGHG'], axis=0, inplace=True)
+            plot_color = 'plotGHG'
+
+            # plot_args['size'] = plot_data.plotGHG.to_list()
+            markersize = plot_data.plotGHG.to_list()
+
+            # plot_args['size'] = plot_data.plotGHG.to_list()
+            # plot_args['labels'] = {
+            #     'plotGHG': 'Unit GHG Emissions (tonne CO2e)'
+            #     }
+            # plot_args['title'] = f'Location of {unit_type.title()} Units Reporting GHG Data'
+            ids = [f'{x} tonne CO2e' for x in plot_data.plotGHG.values]
+            leg_title = 'Unit GHG Emissions (tonne CO2e)'
+
+        fig = go.Figure(data = go.Scattergeo(
+            locationmode='USA-states', 
+            lat=plot_data['latitude'],
+            lon=plot_data['longitude'],
+            mode='markers',
+            ids=ids,
+            marker=dict(
+                size=markersize,
+                sizeref=max(markersize)/max_size**2,
+                sizemode='area',
+                autocolorscale=False,
+                color=plot_data[plot_color],
+                colorscale='agsunset',
+                colorbar=dict(
+                    title=leg_title,
+                    tickfont=dict(size=18)
+                    )
                 )
-            plot_args['size'] = plot_data.designCapacity.to_list()
-            plot_args['labels'] = {
-                'designCapacity': 'Unit Capacity (MW)'
-                }
-            plot_args['title'] = f'Location of {unit_type.title()} Units Reporting Capacity Data'
+            ))
+        fig.update_layout(
+            title=f'Location of {unit_type.title()} Units Reporting {measure.title()} Data',
+            geo=dict(
+                scope='usa',
+                projection_type='albers usa',
+                showland = True,
+                landcolor = "rgb(255, 255, 255)",
+                subunitcolor = "rgb(150, 150, 150)",
+                subunitwidth = 0.5
+                )
+            )
 
-        # sizeref = plot_args['size'].max()/max_size**2
-
-        fig = px.scatter_geo(plot_data, **plot_args)
-        fig.update_geos(bgcolor='#FFFFFF')
-        fig.update_layout(showlegend=True)
-        fig.update_yaxes(automargin=True)
-        fig.update_xaxes(automargin=True)
+        # fig = px.scatter_geo(plot_data, **plot_args)
+        # fig.update_geos(bgcolor='#FFFFFF')
+        # fig.update_layout(showlegend=True)
+        # fig.update_yaxes(automargin=True)
+        # fig.update_xaxes(automargin=True)
 
         if write_fig:
             pio.write_image(
