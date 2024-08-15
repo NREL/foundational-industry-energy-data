@@ -1,4 +1,4 @@
-# Foundational Industry Energy Data
+# Foundational Industry Energy Dataset (FIED)
 
 ## Summary
 
@@ -42,7 +42,7 @@ Due to the nature of how they are provided, several data sets must be manually d
 * `geopandas=0.12.1=pyhd8ed1ab_1`
 * `openpyxl=3.0.10=py39h2bbff1b_0`
 
-## Compiling the Dataset
+## Compiling the FIED
 
 In addition to manually downloading the above datasets, executing the calulations and data compilation requires two steps after activating the fied environment.
 
@@ -75,9 +75,9 @@ The underlying submodules and data are organized as follows:
 * [tests](/tests/): Testing. Currently very limited.
 * [tools](/tools/): Methods that act as various tools used across submodules.
 
-## Overivew of Foundational Industry Energy Data Fields
+## Overivew of FIED Data Fields
 
-All facilities in the data set are represented by their unique `registryID`, which is their EPA [Facility Registry Service ID](https://www.epa.gov/frs/frs-physical-data-model).
+Data fields are compiled and described in `FIED_datafields.yml`. All facilities in the data set are represented by their unique `registryID`, which is their EPA [Facility Registry Service ID](https://www.epa.gov/frs/frs-physical-data-model).
 
 Many of these data fields were included in original EPA data sources. See the [FRS data dictionary](https://www.epa.gov/frs/frs-data-dictionary) for more information.
 
