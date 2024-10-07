@@ -139,7 +139,8 @@ class FIED_analysis:
 
         Parameters
         ----------
-        final_data : pandas.DataFrame or parquet
+        eis_or_ghgrp_only : Bool
+
 
         Returns
         -------
@@ -159,8 +160,9 @@ class FIED_analysis:
                 ].copy(deep=True)
             
             fname = './analysis/summary_unit_table_eisghgrp_only.csv'
+
         else:
-            fname = './analysis/summary_unit_table_eisghgrp_only.csv'
+            fname = './analysis/summary_unit_table.csv'
 
         desc = ['count', 'sum', 'mean', 'std', 'min', 'median', 'max']
 
@@ -237,7 +239,7 @@ class FIED_analysis:
 
         summary_table = pd.DataFrame(_fac_count).join(summary_table)
 
-        summary_table.to_csv('./analysis/summary_unit_table.csv')
+        summary_table.to_csv(fname)
 
         return summary_table
 

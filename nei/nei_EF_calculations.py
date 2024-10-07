@@ -21,28 +21,32 @@ class NEI ():
     emissions and emissions factors, specifically from: PM, SO2, NOX,
     VOCs, and CO.
 
-    Uses NEI Emissions Factors (EFs) and, if not listed, WebFire EFs
-
-    Returns file: 'NEI_unit_throughput_and_energy.csv'
-
+    Uses NEI Emissions Factors (EFs) and, if not listed, WebFire EFs.
     """
 
-    def __init__(self):
+    def __init__(self, year):
+
+        self._year = year
+        """NEI year"""
 
         logging.basicConfig(level=logging.INFO)
 
-        self._nei_data_path = os.path.abspath('./data/NEI/nei_ind_data.csv')
+        self._nei_data_path = os.path.abspath(f'./data/NEI/{self._year}/nei_{self._year}_ind_data.csv')
+        """Path to processed and formatted NEI data"""
+
         self._webfires_data_path = \
             os.path.abspath('./data/WebFire/webfirefactors.csv')
+        """Path to WebFires emissions factors data """
 
         self._unit_conv_path = os.path.abspath('./nei/unit_conversions.yml')
+        """Path to various unit conversions"""
 
         with open(self._unit_conv_path) as file:
             self._unit_conv = yaml.load(file, Loader=yaml.SafeLoader)
+        """Reads the unit conversions file and creates new attribute for loaded conversion factors"""
 
         self._scc_units_path = os.path.abspath('./scc/iden_scc.csv')
-
-        self._data_source = 'NEI'
+        """Path for processed Source Classification Code information"""
 
         self._cap_conv = {
             'energy': {  # Convert to MJ
@@ -57,6 +61,7 @@ class NEI ():
                 'BHP': 0.0007457  # Assume BHP == brake horsepower
                 }
             }
+        """Additional conversion factors for converting reported energy and power values"""
         
         # from https://www.epa.gov/system/files/documents/2023-03/ghg_emission_factors_hub.pdf
         self._gwp = {
@@ -66,8 +71,10 @@ class NEI ():
                 'CO2': 1
                 }
             }
+        """Additional conversion factors for 100-year global warming potentials"""
         
         self.unit_regex = Tools().unit_regex
+        """Method for extracting unit information from various NEI data fields"""
 
     def find_missing_cap(self, df):
         """
@@ -82,7 +89,6 @@ class NEI ():
         -------
         df : pandas.DataFrame
             Original data frame with updated capacity data.
-
         """
 
         missing_cap = df[df.designCapacity.isnull()]
@@ -171,11 +177,13 @@ class NEI ():
 
         # There's a facility (eisFacilityID == 7622911)
         # that has mis-reported capacity by 6 orders of magnitude
-        f = df.query(
-            'designCapacityUOM=="MW" & designCapacity > 10**6'
-            )
+        # in 2017 NEI
+        if self._year == 2017: 
+            f = df.query(
+                'designCapacityUOM=="MW" & designCapacity > 10**6'
+                )
 
-        df.loc[f.index, 'designCapacity'] = f.designCapacity/10**6
+            df.loc[f.index, 'designCapacity'] = f.designCapacity/10**6
 
         return df
 
@@ -355,14 +363,22 @@ class NEI ():
 
     def load_nei_data(self):
         """
-        Load 2017 NEI data. Zip file needs to be downloaded and
-        unzipped manually from https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip
-        due to error in zipfile library.
+        Load NEI data by specified year. The NEI is developed triannually, with 2014, 2017,
+        2020 being the most recent exampels. 
+        Due to an error in the zipfile library, the zip files for each NEI year must be downloaded
+        manually from https://gaftp.epa.gov/air/nei/. The specific files for 2014, 2017, and 2020 are:
+        
+        * https://gaftp.epa.gov/air/nei/2014/data_summaries/2014v2/2014neiv2_facility_process_byregions.zip
+        * https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip
+        * https://gaftp.epa.gov/air/nei/2020/data_summaries/2020nei_facility_process_byregions.zip
+        * 
+
 
         Returns
         -------
         nei_data : pandas.DataFrame
             Raw NEI data.
+    
         """
 
 
@@ -460,80 +476,276 @@ class NEI ():
 
         else:
 
+            # There are many inconsistencies between 2014, 2017, and 2020 NEI data
+            # Possible solution: create a read_nei_csv method for each year.
+
             logging.info('Reading NEI data from zipfiles')
 
-            nei_data = pd.DataFrame()
+            if self._year == 2014:
+    
+                nei_data = self.load_nei_data_2014()
+    
+            elif self._year == 2017:
 
-            for f in os.listdir(os.path.dirname(self._nei_data_path)):
+                nei_data = self.load_nei_data_2017()
 
-                if '.csv' in f:
+            elif self._year == 2020:
 
-                    if f == 'point_unknown.csv':
-                        continue
+                nei_data = self.load_nei_data_2020()
 
-                    else:
+        return nei_data
 
-                        data = pd.read_csv(
-                                os.path.join(
-                                    os.path.dirname(self._nei_data_path), f
-                                    ),
-                                low_memory=False
-                                )
+    def load_nei_data_2014(self):
+        """
+        Method for loading 2014 NEI data.
+        """
 
-                        data.columns = data.columns.str.strip()
-                        data.columns = data.columns.str.replace(' ', '_')
+        nei_data = pd.DataFrame()
 
-                        # For some reason csvs have different column naming conventions
-                        data.rename(columns={
-                            'stfips': 'fips_state_code',
-                            'fips': 'fips_code',
-                            'pollutant_type(s)': 'pollutant_type',
-                            'region': 'epa_region_code'
-                            }, inplace=True)
+        for f in os.listdir(os.path.dirname(self._nei_data_path)):
 
-                    # unit types & emissions calc methods in point_678910.csv are truncated; 
-                    # match to full unit type names in point_12345.csv
-                    # Also, match to full calculation method names in point_12345.csv
-                    if '12345' in f:
-                        full_unit = list(data.unit_type.unique())
-                        full_method = list(data.calculation_method.unique())
+            if '.csv' in f:
 
-                    elif '6789' in f:
-                        partial_unit = list(data.unit_type.unique())
-                        partial_method = \
-                            list(data.calculation_method.unique())
+                data = pd.read_csv(
+                        os.path.join(
+                            os.path.dirname(self._nei_data_path), f
+                            ),
+                        low_memory=False
+                        )
 
-                    else:
-                        pass
+                data.columns = data.columns.str.strip()
+                data.columns = data.columns.str.replace(' ', '_')
 
-                    nei_data = nei_data.append(data, sort=False)
 
-                else:
+                if all([x in data.columns for x in ['st_usps_cd', 'addr_state_cd']]):
+                    data.st_usps_cd.update(data.addr_state_cd)
+                
+                    data.drop(['addr_state_cd'], axis=1, inplace=True)
+
+                # For some reason files have different column naming conventions
+                data.rename(columns={
+                    'stfips': 'fips_state_code',
+                    'st_usps_cd': 'fips_state_code',
+                    'fips': 'fips_code',
+                    'pollutant_type(s)': 'pollutant_type',
+                    'region_cd': 'epa_region_code',
+                    'naics_cd': 'naics_code',
+                    'eis_emissions_unit_id': 'eis_unit_id',
+                    'eis_facility_site_id': 'eis_facility_id',
+                    'eis_emissions_process_id': 'eis_process_id',
+                    'latitude_msr': 'latitude',
+                    'longitude_msr': 'longitude',
+                    'pollutant_cd': 'pollutant_code',
+                    'program_system_cd': 'program_system_code',
+                    'state_and_county_fips_code': 'fips_code',
+                    'site_longitude': "longitude",
+                    'site_latitude': 'latitude'
+                    }, inplace=True)
+
+                nei_data = nei_data.append(data, sort=False)
+
+            else:
+                continue
+
+        # Drop additional data fields in 2014 NEI that aren't necessary
+        nei_data.drop(['aetc', 'state'], axis=1, inplace=True)
+
+        nei_naics = pd.DataFrame(
+            nei_data.naics_code.unique(), columns=['naics_code']
+            )
+        
+        nei_naics.dropna(how='all', inplace=True)
+
+        nei_naics.loc[:, 'naics_sub'] = \
+            nei_naics.naics_code.astype(str).str[:3].astype(int)
+        nei_naics.loc[:, 'ind'] = [
+            str(x)[0:2] in ['11', '21', '23', '31', '32', '33'] for x in nei_naics.naics_sub
+            ]
+        nei_naics = nei_naics[nei_naics.ind == True]['naics_code']
+
+        # Keep only industrial facilities
+        nei_data = pd.merge(
+            nei_data, nei_naics, on='naics_code',
+            how='inner'
+            )
+
+        
+        return nei_data
+    
+    def load_nei_data_2020(self):
+        """
+        Method for loading 2020 NEI data
+        """
+
+        nei_data = pd.DataFrame()
+
+        for f in os.listdir(os.path.dirname(self._nei_data_path)):
+
+            if '.csv' in f:
+
+                if f == 'point_unknown.csv':
                     continue
 
-            unit_matches = NEI.match_partial(full_unit, partial_unit)
-            meth_matches = NEI.match_partial(full_method, partial_method)
+                else:
 
-            nei_data.replace({'unit_type': unit_matches}, inplace=True)
-            nei_data.replace({'calculation_method': meth_matches}, inplace=True)
+                    data = pd.read_csv(
+                            os.path.join(
+                                os.path.dirname(self._nei_data_path), f
+                                ),
+                            nrows=10,
+                            low_memory=False
+                            )
 
-            nei_naics = pd.DataFrame(
-                nei_data.naics_code.unique(), columns=['naics_code']
-                )
+                    data.columns = data.columns.str.strip()
+                    data.columns = data.columns.str.replace(' ', '_')
 
-            nei_naics.loc[:, 'naics_sub'] = \
-                nei_naics.naics_code.astype(str).str[:3].astype(int)
-            nei_naics.loc[:, 'ind'] = [
-                str(x)[0:2] in ['11', '21', '23', '31', '32', '33'] for x in nei_naics.naics_sub
-                ]
-            nei_naics = nei_naics[nei_naics.ind == True]['naics_code']
+                    logging.info(f"DF columns: {data.columns}")
 
-            # Keep only industrial facilities
-            nei_data = pd.merge(
-                nei_data, nei_naics, on='naics_code',
-                how='inner'
-                )
+                    nei_data = nei_data.append(data)
 
+                    # For some reason csvs have different column naming conventions
+                    data.rename(columns={
+                        'stfips': 'fips_state_code',
+                        'fips': 'fips_code',
+                        'pollutant_type(s)': 'pollutant_type',
+                        'region': 'epa_region_code'
+                        }, inplace=True)
+
+        #         # unit types & emissions calc methods in point_678910.csv are truncated; 
+        #         # match to full unit type names in point_12345.csv
+        #         # Also, match to full calculation method names in point_12345.csv
+        #         if '12345' in f:
+        #             logging.info(f"DF columns: {data.columns}")
+        #             full_unit = list(data.unit_type.unique())
+        #             full_method = list(data.calculation_method.unique())
+
+        #         elif '6789' in f:
+        #             partial_unit = list(data.unit_type.unique())
+        #             partial_method = \
+        #                 list(data.calculation_method.unique())
+
+        #         else:
+        #             pass
+
+        #         nei_data = nei_data.append(data, sort=False)
+
+        #     else:
+        #         continue
+
+        # unit_matches = NEI.match_partial(full_unit, partial_unit)
+        # meth_matches = NEI.match_partial(full_method, partial_method)
+
+        # nei_data.replace({'unit_type': unit_matches}, inplace=True)
+        # nei_data.replace({'calculation_method': meth_matches}, inplace=True)
+
+        # NAICS data field in 2020 NEI is "primary naics code"; this data field was
+        # "naics code" in 2017 NEI. Rename to "naics code"
+        nei_data.rename(columns={'primary_naics_code': 'naics_code'}, inplace=True)
+    
+        nei_naics = pd.DataFrame(
+            nei_data.naics_code.unique(), columns=['naics_code']
+            )
+
+        nei_naics.loc[:, 'naics_sub'] = \
+            nei_naics.naics_code.astype(str).str[:3].astype(int)
+        nei_naics.loc[:, 'ind'] = [
+            str(x)[0:2] in ['11', '21', '23', '31', '32', '33'] for x in nei_naics.naics_sub
+            ]
+        nei_naics = nei_naics[nei_naics.ind == True]['naics_code']
+
+        # Keep only industrial facilities
+        nei_data = pd.merge(
+            nei_data, nei_naics, on='naics_code',
+            how='inner'
+            )
+
+        nei_data.to_csv('nei_2020.csv', index=False)
+
+        return nei_data
+    
+    def load_nei_data_2017(self):
+        """
+        Method for loading 2017 NEI data.
+
+        Return
+        ------
+        nei_data : pandas.DataFrame
+
+        """
+
+        nei_data = pd.DataFrame()
+
+        for f in os.listdir(os.path.dirname(self._nei_data_path)):
+
+            if '.csv' in f:
+
+                if f == 'point_unknown.csv':
+                    continue
+
+                else:
+
+                    data = pd.read_csv(
+                            os.path.join(
+                                os.path.dirname(self._nei_data_path), f
+                                ),
+                            low_memory=False
+                            )
+
+                    data.columns = data.columns.str.strip()
+                    data.columns = data.columns.str.replace(' ', '_')
+
+                    # For some reason csvs have different column naming conventions
+                    data.rename(columns={
+                        'stfips': 'fips_state_code',
+                        'fips': 'fips_code',
+                        'pollutant_type(s)': 'pollutant_type',
+                        'region': 'epa_region_code'
+                        }, inplace=True)
+
+                # unit types & emissions calc methods in point_678910.csv are truncated; 
+                # match to full unit type names in point_12345.csv
+                # Also, match to full calculation method names in point_12345.csv
+                if '12345' in f:
+                    logging.info(f"DF columns: {data.columns}")
+                    full_unit = list(data.unit_type.unique())
+                    full_method = list(data.calculation_method.unique())
+
+                elif '6789' in f:
+                    partial_unit = list(data.unit_type.unique())
+                    partial_method = \
+                        list(data.calculation_method.unique())
+
+                else:
+                    pass
+
+                nei_data = nei_data.append(data, sort=False)
+
+            else:
+                continue
+
+        unit_matches = NEI.match_partial(full_unit, partial_unit)
+        meth_matches = NEI.match_partial(full_method, partial_method)
+
+        nei_data.replace({'unit_type': unit_matches}, inplace=True)
+        nei_data.replace({'calculation_method': meth_matches}, inplace=True)
+
+        nei_naics = pd.DataFrame(
+            nei_data.naics_code.unique(), columns=['naics_code']
+            )
+
+        nei_naics.loc[:, 'naics_sub'] = \
+            nei_naics.naics_code.astype(str).str[:3].astype(int)
+        nei_naics.loc[:, 'ind'] = [
+            str(x)[0:2] in ['11', '21', '23', '31', '32', '33'] for x in nei_naics.naics_sub
+            ]
+        nei_naics = nei_naics[nei_naics.ind == True]['naics_code']
+
+        # Keep only industrial facilities
+        nei_data = pd.merge(
+            nei_data, nei_naics, on='naics_code',
+            how='inner'
+            )
+        
         return nei_data
 
     def load_webfires(self):
@@ -961,7 +1173,7 @@ class NEI ():
         -------
         nei_emiss : pandas.DataFrame
         """
-
+        logging.info(f"NEI head: {nei_data.head()}")
         # remove duplicate EFs for the same pollutant and SCC; keep max EF
         webfr = webfr.sort_values('FACTOR').drop_duplicates(
             subset=['SCC', 'NEI_POLLUTANT_CODE'], keep='last'
@@ -984,7 +1196,71 @@ class NEI ():
         nei_emiss.rename(columns={'SCC': 'SCC_web'}, inplace=True)
 
         return nei_emiss
-    
+
+    #TODO refactor 
+    def unit_type_selection_2014(self, series):
+        """
+        Algorithm specifically for the 2014 NEI for selecting unit type between NEI (unit_type) and  
+        SCC.
+
+        Parameters
+        ----------
+        series : pandas.Series
+            Series containing columns of 'nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std',
+            'nei_unit_type', 'scc_unit_type', 'unit_description'.
+
+        Returns
+        -------
+        ut : str or float
+            Returns selected unit type. May be np.nan (float).
+        
+        """
+        print(series['nei_unit_type_std'])
+        print(series.index)
+
+        if (series['nei_unit_type_std'] == 'other'):
+
+            if (series['scc_unit_type_std'] == 'other'):
+
+                ut = series['nei_unit_type']
+
+            elif type(series['scc_unit_type_std']) is float:
+
+                ut = series['nei_unit_type']
+
+            else:
+
+                ut = series['scc_unit_type']
+
+        elif type(series['nei_unit_type_std']) is float:
+
+            if (series['scc_unit_type_std'] == 'other'):
+
+                ut = series['scc_unit_type']
+
+            elif type(series['scc_unit_type_std']) is float:
+
+                ut = np.nan
+
+        else:
+
+            if (series['scc_unit_type_std'] == 'other'):
+
+                ut = series['nei_unit_type']
+
+            elif type(series['scc_unit_type_std']) is float:
+
+                ut = series['nei_unit_type']
+
+            elif (series['nei_unit_type_std'] == series['scc_unit_type_std']):
+
+                ut = series['nei_unit_type']
+
+            else:
+                ut = series['scc_unit_type']
+
+        return ut
+
     #TODO refactor 
     def unit_type_selection(self, series):
         """
@@ -1162,8 +1438,7 @@ class NEI ():
                         ut = series['unit_description']
 
                 return ut
-        
-        return ut
+    
 
     def assign_types(self, nei, iden_scc):
         """
@@ -1194,10 +1469,11 @@ class NEI ():
         
         nei.rename(columns={'unit_type': 'nei_unit_type'}, inplace=True)
         
-        # Also look for unit types in unit_description
-        nei.loc[:, 'desc_unit_type_std'] = nei.unit_description.dropna().apply(
-            lambda x: self.unit_regex(x)
-            )
+        # Also look for unit types in unit_description, if available (2014 NEI missing data field)
+        if 'unit_description' in nei.columns:
+            nei.loc[:, 'desc_unit_type_std'] = nei.unit_description.dropna().apply(
+                lambda x: self.unit_regex(x)
+                )
 
         # Remove non-combustion, non-electricity unit types
         nei = self.remove_unit_types(nei)
@@ -1211,12 +1487,26 @@ class NEI ():
             unit_map = dict(unit_map.values)
 
             nei.loc[:, f'{c}_std'] = nei[c].dropna().map(unit_map)
-            
-        units = nei[['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std', 'nei_unit_type', 'scc_unit_type', 'unit_description']].copy(deep=True)
+        
+        if self._year == 2014:
+
+              units = nei[['nei_unit_type_std', 'scc_unit_type_std', 'nei_unit_type', 'scc_unit_type']].copy(deep=True)
+
+        else:
+
+            units = nei[['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std', 'nei_unit_type', 'scc_unit_type', 'unit_description']].copy(deep=True)
 
         units.drop_duplicates(inplace=True)  # Accounts for duplicates due to multiple pollutant types per unique eis_unit_id
 
-        units.loc[:, 'unit_type_final'] = units.apply(lambda x: self.unit_type_selection(x), axis=1)
+        if self._year == 2014:
+
+            logging.info(f"units.head() {units.head(20)}")
+
+            units.loc[:, 'unit_type_final'] = units.apply(lambda x: self.unit_type_selection_2014(x), axis=1)
+
+        else:
+
+            units.loc[:, 'unit_type_final'] = units.apply(lambda x: self.unit_type_selection(x), axis=1)
 
         units = pd.merge(units, nei[['eis_unit_id']], how='inner', left_index=True, right_index=True)
 
@@ -1226,10 +1516,14 @@ class NEI ():
 
         units.set_index('eis_unit_id', inplace=True)
 
+        logging.info(f"mult_types: {mult_types.head()}")
+
         for i in mult_types.index:
 
             nei_ut_std = units.xs(i).nei_unit_type_std.drop_duplicates().dropna().values.tolist()  # All units should have only one nei_unit_type
             scc_ut_std = units.xs(i).scc_unit_type_std.drop_duplicates().dropna().values.tolist()
+
+            logging.info(f"nei_ut_std: {nei_ut_std}\nscc_ut_std: {scc_ut_std}")
 
             if (nei_ut_std[0] != 'other'):
 
@@ -1243,7 +1537,11 @@ class NEI ():
 
                 else:
 
-                    fut = units.xs(i).desc_unit_type_std.drop_duplicates().dropna().values[0]
+                    if self._year == 2014:
+                        fut = None
+    
+                    else:
+                        fut = units.xs(i).desc_unit_type_std.drop_duplicates().dropna().values[0]
 
             elif len(scc_ut_std) == 2:
 
@@ -1253,17 +1551,33 @@ class NEI ():
 
                 except ValueError:
 
-                    try:
+                    if self._year != 2014:
 
-                        fut = units.xs(i).desc_unit_type_std.drop_duplicates().dropna().values[0]
+                        try:
 
-                    except IndexError:
+                            fut = units.xs(i).desc_unit_type_std.drop_duplicates().dropna().values[0]
 
-                        fut = units.xs(i).scc_unit_type.drop_duplicates().dropna().values[-1]  # default to last value
+                        except IndexError:
+
+                            fut = units.xs(i).scc_unit_type.drop_duplicates().dropna().values[-1]  # default to last value
+
+                        else:
+                            fut = units.xs(i).scc_unit_type.drop_duplicates().dropna().values[-1]  # default to last value
+
+                    else:
+                        fut = units.xs(i).scc_unit_type.drop_duplicates().dropna().values[-1] 
+
+                else:
+                    fut = scc_ut_std
 
             elif len(scc_ut_std) > 2:
 
-                fut = units.xs(i).desc_unit_type_std.drop_duplicates().dropna().values[0]
+                if self._year != 2014:
+
+                    fut = units.xs(i).desc_unit_type_std.drop_duplicates().dropna().values[0]
+
+                else:
+                    fut = None
 
             units.loc[i, 'unit_type_final'] = fut
 
@@ -1272,11 +1586,23 @@ class NEI ():
 
         nei = pd.merge(nei, units, on='eis_unit_id', how='left')
 
-        nei.drop(['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std'], axis=1, inplace=True)
+        if self._year == 2014:
+
+            nei.drop(['nei_unit_type_std', 'scc_unit_type_std'], axis=1, inplace=True)
+
+        else:
+
+            nei.drop(['nei_unit_type_std', 'scc_unit_type_std', 'desc_unit_type_std'], axis=1, inplace=True)
         
         # get fuel types from NEI text and SCC descriptions
         for c in ['unit_description', 'process_description', 'scc_fuel_type']:
-            nei.loc[:, c] = nei[c].str.lower()
+    
+            # Accounts for 2014 NEI missing unit_description data field
+            try:
+                nei.loc[:, c] = nei[c].str.lower()
+
+            except (AttributeError, KeyError):
+                continue
 
         nei.loc[:, 'fuel_type'] = nei.loc[:, 'scc_fuel_type']
 
@@ -1332,15 +1658,24 @@ class NEI ():
 
         for f in self._unit_conv['fuel_dict'].keys():
 
-            # search for fuel types listed in NEI unit/process descriptions
-            nei_no_scc_ft.loc[(nei_no_scc_ft['unit_description'].str.contains(f, na=False)) |
-                              (nei_no_scc_ft['process_description'].str.contains(f, na=False)),
-                        'fuel_type'] = self._unit_conv['fuel_dict'][f]
+            if self._year == 2014: 
 
-            # search for the same fuel types listed in SCC
-            nei_no_scc_ft.loc[(nei_no_scc_ft['fuel_type'].isnull()) &
+                 # search for the same fuel types listed in SCC
+                nei_no_scc_ft.loc[(nei_no_scc_ft['fuel_type'].isnull()) &
                               (nei_no_scc_ft['scc_fuel_type'].str.contains(f, na=False)),
                     'fuel_type'] = self._unit_conv['fuel_dict'][f]
+                
+            else:
+
+                # search for fuel types listed in NEI unit/process descriptions
+                nei_no_scc_ft.loc[(nei_no_scc_ft['unit_description'].str.contains(f, na=False)) |
+                                (nei_no_scc_ft['process_description'].str.contains(f, na=False)),
+                            'fuel_type'] = self._unit_conv['fuel_dict'][f]
+
+                # search for the same fuel types listed in SCC
+                nei_no_scc_ft.loc[(nei_no_scc_ft['fuel_type'].isnull()) &
+                                (nei_no_scc_ft['scc_fuel_type'].str.contains(f, na=False)),
+                        'fuel_type'] = self._unit_conv['fuel_dict'][f]
 
         nei.fuel_type.update(nei_no_scc_ft.fuel_type)
 
@@ -1838,10 +2173,6 @@ class NEI ():
 
         df.rename(columns=rename_dict, inplace=True)
 
-        # levels = [k for k in self._data_schema.keys() if self._data_schema[k]==True]
-
-        # df.set_index(levels, inplace=True)
-
         df = self.harmonize_fuel_type(df, 'fuelType')
 
         return df
@@ -1900,7 +2231,7 @@ class NEI ():
 
     def main(self):
 
-        nei = NEI()
+        nei = NEI(self._year)
         logging.info("Getting NEI data...")
         nei_data = nei.load_nei_data()
         iden_scc = nei.load_scc_unittypes()
@@ -1920,7 +2251,6 @@ class NEI ():
         # Use median EF from WebFires as alt approach to estimating energy
         nei_char = nei.apply_median_webfr_ef(nei_char, webfr, cutoff=0.75)  
         logging.info("Extracting and aggregating GHG emissions")
-        nei_char.to_pickle('nei_char_pre_med.pkl')
         logging.info("Final NEI data assembly...")
         med_unit = nei.get_median_throughput_and_energy(nei_char)
         missing_unit = nei.separate_missing_units(nei_char)
@@ -1940,5 +2270,7 @@ class NEI ():
 
 if __name__ == '__main__':
 
-    nei_char = NEI().main()
-    nei_char.to_csv('formatted_estimated_nei_updated.csv')
+    year = 2017
+    nei_methods = NEI(year=year)
+    nei_char = nei_methods.main()
+    nei_char.to_csv(nei_methods._nei_data_path)
