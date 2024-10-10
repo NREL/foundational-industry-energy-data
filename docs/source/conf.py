@@ -8,8 +8,13 @@
 
 project = 'The Foundational Industry Energy Dataset (FIED)'
 copyright = '2024, Alliance for Sustainable Energy, LLC.'
-author = 'Alliance for Sustainable Energy, LLC.'
+author = 'NREL: Colin McMillan and Carrie Schoeneberger'
 release = '0.1'
+
+#-- Path setup --------------------------------------------------------------
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../../'))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
