@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+      <title>fied</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <span class="site-name">The Foundational Industry Energy Dataset (FIED)</span>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fied-documentation-and-other-resources-on-u-s-industrial-energy-data">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="ind_data.html" class="reference internal ">Sources of Industrial Energy Data for the United States</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="nrel_data.html" class="reference internal ">NREL Industrial Energy Datasets</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="data_history.html" class="reference internal ">A Brief History of U.S. Industrial Energy Data</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="fied.html" class="reference internal ">fied package</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>fied</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="fied">
+<h1>fied<a class="headerlink" href="#fied" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fied.html">fied package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fied.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.analysis.html">fied.analysis package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#module-fied.analysis.analysis_figures">fied.analysis.analysis_figures module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#module-fied.analysis.boiler_inventory_comparison">fied.analysis.boiler_inventory_comparison module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied-analysis-ghgrp-unit-analysis-module">fied.analysis.ghgrp_unit_analysis module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied-analysis-nei-emissions-calc-methods-module">fied.analysis.nei_emissions_calc_methods module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied-analysis-nei-industrial-sector-module">fied.analysis.nei_industrial_sector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied-analysis-nei-unit-analysis-module">fied.analysis.nei_unit_analysis module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#module-fied.analysis">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fied.frs.html">fied.frs package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#module-fied.frs.frs_extraction">fied.frs.frs_extraction module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#module-fied.frs">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fied.geocoder.html">fied.geocoder package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.geocoder.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.geocoder.html#module-fied.geocoder.geo_tools">fied.geocoder.geo_tools module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.geocoder.html#module-fied.geocoder.geopandas_tools">fied.geocoder.geopandas_tools module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.geocoder.html#module-fied.geocoder">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fied.ghgrp.html">fied.ghgrp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#module-fied.ghgrp.calc_GHGRP_AA">fied.ghgrp.calc_GHGRP_AA module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied-ghgrp-calc-ghgrp-energy-module">fied.ghgrp.calc_GHGRP_energy module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#module-fied.ghgrp.get_GHGRP_data">fied.ghgrp.get_GHGRP_data module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied-ghgrp-ghg-tiers-module">fied.ghgrp.ghg_tiers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#module-fied.ghgrp.ghgrp_fac_unit">fied.ghgrp.ghgrp_fac_unit module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied-ghgrp-heat-rate-uncertainty-module">fied.ghgrp.heat_rate_uncertainty module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied-ghgrp-onsite-food-module">fied.ghgrp.onsite_food module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied-ghgrp-run-ghgrp-module">fied.ghgrp.run_GHGRP module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#module-fied.ghgrp">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fied.nei.html">fied.nei package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.nei.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.nei.html#fied-nei-nei-ef-calculations-module">fied.nei.nei_EF_calculations module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.nei.html#module-fied.nei">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fied.qpc.html">fied.qpc package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.qpc.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.qpc.html#fied-qpc-census-qpc-module">fied.qpc.census_qpc module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.qpc.html#fied-qpc-food-qpc-module">fied.qpc.food_qpc module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.qpc.html#module-fied.qpc">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fied.scc.html">fied.scc package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied-scc-scc-describe-module">fied.scc.scc_describe module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#module-fied.scc.scc_unit_id">fied.scc.scc_unit_id module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#module-fied.scc">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fied.tools.html">fied.tools package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#module-fied.tools.misc_tools">fied.tools.misc_tools module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#module-fied.tools.naics_matcher">fied.tools.naics_matcher module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#module-fied.tools">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.html#fied-fied-compilation-module">fied.fied_compilation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.html#module-fied">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2024, Alliance for Sustainable Energy, LLC..
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.9.1.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+      <title>fied package</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="fied.analysis package" href="fied.analysis.html" />
+  <link rel="prev" title="A Brief History of U.S. Industrial Energy Data" href="data_history.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <span class="site-name">The Foundational Industry Energy Dataset (FIED)</span>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fied-documentation-and-other-resources-on-u-s-industrial-energy-data">Contents:</a></span>
+      </p>
+      <ul class="current">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="ind_data.html" class="reference internal ">Sources of Industrial Energy Data for the United States</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="nrel_data.html" class="reference internal ">NREL Industrial Energy Datasets</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="data_history.html" class="reference internal ">A Brief History of U.S. Industrial Energy Data</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 current">
+            
+              <a href="#" class="reference internal current">fied package</a>
+            
+
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#subpackages" class="reference internal">Subpackages</a></li>
+                
+                  <li class="toctree-l2"><a href="#submodules" class="reference internal">Submodules</a></li>
+                
+                  <li class="toctree-l2"><a href="#fied-fied-compilation-module" class="reference internal">fied.fied_compilation module</a></li>
+                
+                  <li class="toctree-l2"><a href="#module-fied" class="reference internal">Module contents</a></li>
+                
+              </ul>
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>fied package</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="data_history.html"
+       title="previous chapter">← A Brief History of U.S. Industrial Energy Data</a>
+  </li>
+  <li class="next">
+    <a href="fied.analysis.html"
+       title="next chapter">fied.analysis package →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="fied-package">
+<h1>fied package<a class="headerlink" href="#fied-package" title="Link to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fied.analysis.html">fied.analysis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fied.analysis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.analysis.html#module-fied.analysis.analysis_figures">fied.analysis.analysis_figures module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis"><code class="docutils literal notranslate"><span class="pre">FIED_analysis</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.get_cbp_data"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.get_cbp_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.create_core_analysis"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.create_core_analysis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.summary_unit_table"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.summary_unit_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.plot_facility_count"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.plot_facility_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.plot_difference_nei"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.plot_difference_nei()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.id_sectors"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.id_sectors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.summary_unit_bar"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.summary_unit_bar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.set_mecs_data"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.set_mecs_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.get_eia_seds"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.get_eia_seds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.get_state_region"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.get_state_region()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.plot_eia_comparison_maps"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.plot_eia_comparison_maps()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.plot_eia_comparison"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.plot_eia_comparison()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.plot_unit_bubble_map"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.plot_unit_bubble_map()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.plot_rel_bar_missing"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.plot_rel_bar_missing()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.plot_stacked_bar_missing"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.plot_stacked_bar_missing()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.plot_ut_by_naics"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.plot_ut_by_naics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.make_consistent_naics_column"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.make_consistent_naics_column()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.plot_best_characterized"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.plot_best_characterized()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.analysis.html#fied.analysis.analysis_figures.FIED_analysis.summary_table_intensive"><code class="docutils literal notranslate"><span class="pre">FIED_analysis.summary_table_intensive()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.analysis.html#module-fied.analysis.boiler_inventory_comparison">fied.analysis.boiler_inventory_comparison module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.analysis.html#fied.analysis.boiler_inventory_comparison.fix_fips"><code class="docutils literal notranslate"><span class="pre">fix_fips()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.analysis.html#fied.analysis.boiler_inventory_comparison.convert_units"><code class="docutils literal notranslate"><span class="pre">convert_units()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.analysis.html#fied.analysis.boiler_inventory_comparison.get_boiler_data"><code class="docutils literal notranslate"><span class="pre">get_boiler_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.analysis.html#fied.analysis.boiler_inventory_comparison.get_fied_boiler"><code class="docutils literal notranslate"><span class="pre">get_fied_boiler()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.analysis.html#fied.analysis.boiler_inventory_comparison.compare_boilers_aggregate"><code class="docutils literal notranslate"><span class="pre">compare_boilers_aggregate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.analysis.html#fied.analysis.boiler_inventory_comparison.compare_boilers_units"><code class="docutils literal notranslate"><span class="pre">compare_boilers_units()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.analysis.html#fied.analysis.boiler_inventory_comparison.plot_scatter_comparison"><code class="docutils literal notranslate"><span class="pre">plot_scatter_comparison()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.analysis.html#fied-analysis-ghgrp-unit-analysis-module">fied.analysis.ghgrp_unit_analysis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.analysis.html#fied-analysis-nei-emissions-calc-methods-module">fied.analysis.nei_emissions_calc_methods module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.analysis.html#fied-analysis-nei-industrial-sector-module">fied.analysis.nei_industrial_sector module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.analysis.html#fied-analysis-nei-unit-analysis-module">fied.analysis.nei_unit_analysis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.analysis.html#module-fied.analysis">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fied.frs.html">fied.frs package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fied.frs.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.frs.html#module-fied.frs.frs_extraction">fied.frs.frs_extraction module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS"><code class="docutils literal notranslate"><span class="pre">FRS</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.call_all_fips"><code class="docutils literal notranslate"><span class="pre">FRS.call_all_fips()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.download_unzip_frs_data"><code class="docutils literal notranslate"><span class="pre">FRS.download_unzip_frs_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.fix_code"><code class="docutils literal notranslate"><span class="pre">FRS.fix_code()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.format_program_csv"><code class="docutils literal notranslate"><span class="pre">FRS.format_program_csv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.format_naics_csv"><code class="docutils literal notranslate"><span class="pre">FRS.format_naics_csv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.read_frs_csv"><code class="docutils literal notranslate"><span class="pre">FRS.read_frs_csv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.build_frs_json"><code class="docutils literal notranslate"><span class="pre">FRS.build_frs_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.add_frs_columns_json"><code class="docutils literal notranslate"><span class="pre">FRS.add_frs_columns_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.import_format_frs"><code class="docutils literal notranslate"><span class="pre">FRS.import_format_frs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.load_foundational_json"><code class="docutils literal notranslate"><span class="pre">FRS.load_foundational_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.frs.html#fied.frs.frs_extraction.FRS.find_eis"><code class="docutils literal notranslate"><span class="pre">FRS.find_eis()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.frs.html#module-fied.frs">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fied.geocoder.html">fied.geocoder package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fied.geocoder.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.geocoder.html#module-fied.geocoder.geo_tools">fied.geocoder.geo_tools module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.geocoder.html#fied.geocoder.geo_tools.fix_county_fips"><code class="docutils literal notranslate"><span class="pre">fix_county_fips()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.geocoder.html#fied.geocoder.geo_tools.find_missing_congress"><code class="docutils literal notranslate"><span class="pre">find_missing_congress()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.geocoder.html#fied.geocoder.geo_tools.fcc_block_api"><code class="docutils literal notranslate"><span class="pre">fcc_block_api()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.geocoder.html#fied.geocoder.geo_tools.get_blocks_parallelized"><code class="docutils literal notranslate"><span class="pre">get_blocks_parallelized()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.geocoder.html#module-fied.geocoder.geopandas_tools">fied.geocoder.geopandas_tools module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.geocoder.html#fied.geocoder.geopandas_tools.FiedGIS"><code class="docutils literal notranslate"><span class="pre">FiedGIS</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.geocoder.html#fied.geocoder.geopandas_tools.FiedGIS.get_shapefile"><code class="docutils literal notranslate"><span class="pre">FiedGIS.get_shapefile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.geocoder.html#fied.geocoder.geopandas_tools.FiedGIS.merge_coordinates_geom"><code class="docutils literal notranslate"><span class="pre">FiedGIS.merge_coordinates_geom()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.geocoder.html#fied.geocoder.geopandas_tools.FiedGIS.merge_geom"><code class="docutils literal notranslate"><span class="pre">FiedGIS.merge_geom()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.geocoder.html#module-fied.geocoder">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fied.ghgrp.html">fied.ghgrp package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fied.ghgrp.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.ghgrp.html#module-fied.ghgrp.calc_GHGRP_AA">fied.ghgrp.calc_GHGRP_AA module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.calc_GHGRP_AA.subpartAA"><code class="docutils literal notranslate"><span class="pre">subpartAA</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.calc_GHGRP_AA.subpartAA.calc_energy_ff"><code class="docutils literal notranslate"><span class="pre">subpartAA.calc_energy_ff()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.calc_GHGRP_AA.subpartAA.calc_energy_sl"><code class="docutils literal notranslate"><span class="pre">subpartAA.calc_energy_sl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.calc_GHGRP_AA.subpartAA.energy_calc"><code class="docutils literal notranslate"><span class="pre">subpartAA.energy_calc()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.ghgrp.html#fied-ghgrp-calc-ghgrp-energy-module">fied.ghgrp.calc_GHGRP_energy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.ghgrp.html#module-fied.ghgrp.get_GHGRP_data">fied.ghgrp.get_GHGRP_data module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.get_GHGRP_data.requests_retry_session"><code class="docutils literal notranslate"><span class="pre">requests_retry_session()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.get_GHGRP_data.get_count"><code class="docutils literal notranslate"><span class="pre">get_count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.get_GHGRP_data.get_records"><code class="docutils literal notranslate"><span class="pre">get_records()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.get_GHGRP_data.get_GHGRP_records"><code class="docutils literal notranslate"><span class="pre">get_GHGRP_records()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.ghgrp.html#fied-ghgrp-ghg-tiers-module">fied.ghgrp.ghg_tiers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.ghgrp.html#module-fied.ghgrp.ghgrp_fac_unit">fied.ghgrp.ghgrp_fac_unit module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char"><code class="docutils literal notranslate"><span class="pre">GHGRP_unit_char</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.load_fueltype_dict"><code class="docutils literal notranslate"><span class="pre">GHGRP_unit_char.load_fueltype_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.harmonize_fuel_type"><code class="docutils literal notranslate"><span class="pre">GHGRP_unit_char.harmonize_fuel_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.download_unit_data"><code class="docutils literal notranslate"><span class="pre">GHGRP_unit_char.download_unit_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.get_unit_capacity"><code class="docutils literal notranslate"><span class="pre">GHGRP_unit_char.get_unit_capacity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.format_ghgrp_df"><code class="docutils literal notranslate"><span class="pre">GHGRP_unit_char.format_ghgrp_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.get_unit_type"><code class="docutils literal notranslate"><span class="pre">GHGRP_unit_char.get_unit_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.main"><code class="docutils literal notranslate"><span class="pre">GHGRP_unit_char.main()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.ghgrp.html#fied-ghgrp-heat-rate-uncertainty-module">fied.ghgrp.heat_rate_uncertainty module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.ghgrp.html#fied-ghgrp-onsite-food-module">fied.ghgrp.onsite_food module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.ghgrp.html#fied-ghgrp-run-ghgrp-module">fied.ghgrp.run_GHGRP module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.ghgrp.html#module-fied.ghgrp">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fied.nei.html">fied.nei package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fied.nei.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.nei.html#fied-nei-nei-ef-calculations-module">fied.nei.nei_EF_calculations module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.nei.html#module-fied.nei">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fied.qpc.html">fied.qpc package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fied.qpc.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.qpc.html#fied-qpc-census-qpc-module">fied.qpc.census_qpc module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.qpc.html#fied-qpc-food-qpc-module">fied.qpc.food_qpc module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.qpc.html#module-fied.qpc">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fied.scc.html">fied.scc package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fied.scc.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.scc.html#fied-scc-scc-describe-module">fied.scc.scc_describe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.scc.html#module-fied.scc.scc_unit_id">fied.scc.scc_unit_id module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID"><code class="docutils literal notranslate"><span class="pre">SCC_ID</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID.get_complete_scc"><code class="docutils literal notranslate"><span class="pre">SCC_ID.get_complete_scc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID.load_complete_scc"><code class="docutils literal notranslate"><span class="pre">SCC_ID.load_complete_scc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID.scc_query_split"><code class="docutils literal notranslate"><span class="pre">SCC_ID.scc_query_split()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID.build_id"><code class="docutils literal notranslate"><span class="pre">SCC_ID.build_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID.id_external_combustion"><code class="docutils literal notranslate"><span class="pre">SCC_ID.id_external_combustion()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID.id_ice"><code class="docutils literal notranslate"><span class="pre">SCC_ID.id_ice()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID.id_stationary_fuel_combustion"><code class="docutils literal notranslate"><span class="pre">SCC_ID.id_stationary_fuel_combustion()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID.id_chemical_evaporation"><code class="docutils literal notranslate"><span class="pre">SCC_ID.id_chemical_evaporation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID.id_industrial_processes"><code class="docutils literal notranslate"><span class="pre">SCC_ID.id_industrial_processes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.scc.html#fied.scc.scc_unit_id.SCC_ID.main"><code class="docutils literal notranslate"><span class="pre">SCC_ID.main()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.scc.html#module-fied.scc">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fied.tools.html">fied.tools package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fied.tools.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fied.tools.html#module-fied.tools.misc_tools">fied.tools.misc_tools module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.FRS_API"><code class="docutils literal notranslate"><span class="pre">FRS_API</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.FRS_API.find_huc"><code class="docutils literal notranslate"><span class="pre">FRS_API.find_huc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.FRS_API.parallelize_api"><code class="docutils literal notranslate"><span class="pre">FRS_API.parallelize_api()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.FRS_API.find_huc_parallelized"><code class="docutils literal notranslate"><span class="pre">FRS_API.find_huc_parallelized()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.FRS_API.find_facility_program_data"><code class="docutils literal notranslate"><span class="pre">FRS_API.find_facility_program_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.FRS_API.query_program_facility"><code class="docutils literal notranslate"><span class="pre">FRS_API.query_program_facility()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.FRS_API.query_emissions_unit"><code class="docutils literal notranslate"><span class="pre">FRS_API.query_emissions_unit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.FRS_API.find_unit_data"><code class="docutils literal notranslate"><span class="pre">FRS_API.find_unit_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.FRS_API.find_unit_data_parallelized"><code class="docutils literal notranslate"><span class="pre">FRS_API.find_unit_data_parallelized()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.Tools"><code class="docutils literal notranslate"><span class="pre">Tools</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fied.tools.html#fied.tools.misc_tools.Tools.unit_regex"><code class="docutils literal notranslate"><span class="pre">Tools.unit_regex()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.tools.html#module-fied.tools.naics_matcher">fied.tools.naics_matcher module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fied.tools.html#fied.tools.naics_matcher.naics_matcher"><code class="docutils literal notranslate"><span class="pre">naics_matcher()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fied.tools.html#module-fied.tools">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="fied-fied-compilation-module">
+<h2>fied.fied_compilation module<a class="headerlink" href="#fied-fied-compilation-module" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-fied">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fied" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="data_history.html"
+       title="previous chapter">← A Brief History of U.S. Industrial Energy Data</a>
+  </li>
+  <li class="next">
+    <a href="fied.analysis.html"
+       title="next chapter">fied.analysis package →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2024, Alliance for Sustainable Energy, LLC..
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.9.1.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

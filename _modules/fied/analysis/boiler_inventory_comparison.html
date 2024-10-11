@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fied.analysis.boiler_inventory_comparison</title>
+    
+          <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../../_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="../../../_static/documentation_options.js?v=2709fde1"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../../_static/theme-vendors.js"></script> -->
+      <script src="../../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../../index.html" class="home-link">
+    
+      <span class="site-name">The Foundational Industry Energy Dataset (FIED)</span>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../../index.html#fied-documentation-and-other-resources-on-u-s-industrial-energy-data">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../ind_data.html" class="reference internal ">Sources of Industrial Energy Data for the United States</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../nrel_data.html" class="reference internal ">NREL Industrial Energy Datasets</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../data_history.html" class="reference internal ">A Brief History of U.S. Industrial Energy Data</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../fied.html" class="reference internal ">fied package</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../../index.html">Module code</a> &raquo;</li>
+    
+    <li>fied.analysis.boiler_inventory_comparison</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fied.analysis.boiler_inventory_comparison</h1><div class="highlight"><pre>
+<span></span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">urllib.request</span> <span class="kn">import</span> <span class="n">urlopen</span>
+<span class="kn">import</span> <span class="nn">plotly.express</span> <span class="k">as</span> <span class="nn">px</span>
+<span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
+<span class="kn">from</span> <span class="nn">plotly.subplots</span> <span class="kn">import</span> <span class="n">make_subplots</span>
+<span class="kn">import</span> <span class="nn">plotly.io</span> <span class="k">as</span> <span class="nn">pio</span>
+
+
+<div class="viewcode-block" id="fix_fips">
+<a class="viewcode-back" href="../../../fied.analysis.html#fied.analysis.boiler_inventory_comparison.fix_fips">[docs]</a>
+<span class="k">def</span> <span class="nf">fix_fips</span><span class="p">(</span><span class="n">fips</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Correct float formatting for county FIPS.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fips : str</span>
+<span class="sd">        County FIPS in original formatting.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    fips : str</span>
+<span class="sd">        County FIPS, corrected and re-formatted</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">fips</span> <span class="o">=</span> <span class="n">fips</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.0&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">fips</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fips</span><span class="p">)</span>
+        <span class="n">fips</span> <span class="o">=</span> <span class="n">fips</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.0&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">len_missing</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">fips</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">len_missing</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fips</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span><span class="o">*</span><span class="n">len_missing</span><span class="o">+</span><span class="n">fips</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">fips</span></div>
+
+
+<div class="viewcode-block" id="convert_units">
+<a class="viewcode-back" href="../../../fied.analysis.html#fied.analysis.boiler_inventory_comparison.convert_units">[docs]</a>
+<span class="k">def</span> <span class="nf">convert_units</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert energy units from MMBtu to MJ and</span>
+<span class="sd">    power units from MMBtu/hr to MW.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : float</span>
+<span class="sd">        Value to be converted</span>
+
+<span class="sd">    unit : {&#39;power&#39;, &#39;energy&#39;}</span>
+<span class="sd">        Type of unit to convert.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    y : float</span>
+<span class="sd">        Converted unit, or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">units</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;power&#39;</span><span class="p">:</span> <span class="mf">0.29307107</span><span class="p">,</span>  <span class="c1"># convert to MW</span>
+        <span class="s1">&#39;energy&#39;</span><span class="p">:</span> <span class="mf">1054.35</span>  <span class="c1"># convert to MJ</span>
+        <span class="p">}</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">units</span><span class="p">[</span><span class="n">unit</span><span class="p">]</span>
+
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+
+<div class="viewcode-block" id="get_boiler_data">
+<a class="viewcode-back" href="../../../fied.analysis.html#fied.analysis.boiler_inventory_comparison.get_boiler_data">[docs]</a>
+<span class="k">def</span> <span class="nf">get_boiler_data</span><span class="p">(</span><span class="n">boiler_url</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Download Northwestern boiler inventory and return it as a dataframe.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    boiler_url : str</span>
+<span class="sd">        URL for Northwestern boiler inventory</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bdb : pandas.DataFrame</span>
+<span class="sd">        Boiler inventory as a pandas DataFrame</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dtypes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;county&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;company_name&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;site_name&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;naics_code&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;zip_code&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;eis_unit_id&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;naics_sub&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;fuel_type&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;data_source&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;REPORTING_YEAR&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;UNIT_TYPE&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;TIER&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;FUEL_COM&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;FUEL_UNIT&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;Op Hours Per Year&#39;</span><span class="p">:</span> <span class="nb">object</span>
+        <span class="p">}</span>
+    
+    <span class="n">converters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;fips&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">fix_fips</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span>
+        <span class="p">}</span>
+    
+    <span class="n">col_rename</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;ENERGY_COM_MMBtu&#39;</span><span class="p">:</span> <span class="s1">&#39;energyMJ&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;fips&#39;</span><span class="p">:</span> <span class="s1">&#39;countyFIPS&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;naics_code&#39;</span><span class="p">:</span> <span class="s1">&#39;naicsCode&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;eis_unit_id&#39;</span><span class="p">:</span> <span class="s1">&#39;eisUnitID&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;fuel_type&#39;</span><span class="p">:</span> <span class="s1">&#39;fuelType&#39;</span>
+        <span class="p">}</span>
+
+    <span class="c1"># use_cols = [0, 1, 2, 3, 4, 7, 9, 10, 13, 15, 16, 17, 18]</span>
+
+    <span class="n">bdb</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">boiler_url</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                      <span class="n">converters</span><span class="o">=</span><span class="n">converters</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;na&#39;</span><span class="p">])</span>
+    
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;cap_mmbtuhr&#39;</span><span class="p">,</span> <span class="s1">&#39;ENERGY_COM_MMBtu&#39;</span><span class="p">,</span> <span class="s1">&#39;ENERGY_MMBtu_hr&#39;</span><span class="p">]:</span>
+
+        <span class="k">if</span> <span class="n">c</span> <span class="o">==</span><span class="s1">&#39;ENERGY_COM_MMBtu&#39;</span><span class="p">:</span>
+            <span class="n">bdb</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">bdb</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">convert_units</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;energy&#39;</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bdb</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">bdb</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">convert_units</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;power&#39;</span><span class="p">))</span>
+
+    <span class="n">bdb</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">col_rename</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="n">bdb</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;designCapacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">bdb</span><span class="o">.</span><span class="n">designCapacity</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">bdb</span><span class="o">.</span><span class="n">cap_mmbtuhr</span><span class="p">)</span>
+    <span class="n">bdb</span><span class="o">.</span><span class="n">designCapacity</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">bdb</span><span class="o">.</span><span class="n">ENERGY_MMBtu_hr</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">bdb</span></div>
+
+
+<div class="viewcode-block" id="get_fied_boiler">
+<a class="viewcode-back" href="../../../fied.analysis.html#fied.analysis.boiler_inventory_comparison.get_fied_boiler">[docs]</a>
+<span class="k">def</span> <span class="nf">get_fied_boiler</span><span class="p">(</span><span class="n">fied_path</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load FIED and return information only on boilers. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fied_path : str</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    fied_boiler : pandas.DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">fied_boiler</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">fied_path</span><span class="p">,</span> 
+                              <span class="n">converters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fips&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">fix_fips</span><span class="p">(</span><span class="n">x</span><span class="p">))},</span>
+                              <span class="n">low_memory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">fied_boiler</span> <span class="o">=</span> <span class="n">fied_boiler</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;unitTypeStd == &#39;boiler&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">fied_boiler</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;countyFIPS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fied_boiler</span><span class="o">.</span><span class="n">countyFIPS</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">fix_fips</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="c1"># Drop territories</span>
+    <span class="n">fied_boiler</span> <span class="o">=</span> <span class="n">fied_boiler</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">fied_boiler</span><span class="o">.</span><span class="n">stateCode</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s1">&#39;VI&#39;</span><span class="p">,</span> <span class="s1">&#39;PR&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+    
+    <span class="n">naics_sub</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">fied_boiler</span><span class="o">.</span><span class="n">naicsCode</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    <span class="n">naics_sub</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;naicsCode&#39;</span><span class="p">]</span>
+
+    <span class="n">naics_sub</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;naics_sub&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">naics_sub</span><span class="o">.</span><span class="n">naicsCode</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="p">)</span>
+    
+    <span class="n">fied_boiler</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">fied_boiler</span><span class="p">,</span> <span class="n">naics_sub</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;naicsCode&#39;</span><span class="p">,</span>
+        <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fied_boiler</span></div>
+
+
+
+<div class="viewcode-block" id="compare_boilers_aggregate">
+<a class="viewcode-back" href="../../../fied.analysis.html#fied.analysis.boiler_inventory_comparison.compare_boilers_aggregate">[docs]</a>
+<span class="k">def</span> <span class="nf">compare_boilers_aggregate</span><span class="p">(</span><span class="n">bdb</span><span class="p">,</span> <span class="n">fied_boiler</span><span class="p">,</span> <span class="n">compare_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compare either county or NAICS (3-digit) sums of </span>
+<span class="sd">    design capacity and energy estimates.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bdb : pandas.DataFrame</span>
+
+<span class="sd">    fied_boiler : pandas.DataFrame</span>
+
+<span class="sd">    type : str, {&#39;county&#39;, &#39;naics&#39;}</span>
+<span class="sd">        Aggregate data sets at either county- or naics-level.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    comparison : pandas.DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">grouping_column</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;county&#39;</span><span class="p">:</span> <span class="s1">&#39;countyFIPS&#39;</span><span class="p">,</span> <span class="s1">&#39;naics&#39;</span><span class="p">:</span> <span class="s1">&#39;naics_sub&#39;</span><span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">comparison</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">bdb</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">grouping_column</span><span class="p">[</span><span class="n">compare_type</span><span class="p">])</span><span class="o">.</span><span class="n">designCapacity</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+            <span class="n">fied_boiler</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">grouping_column</span><span class="p">[</span><span class="n">compare_type</span><span class="p">])</span><span class="o">.</span><span class="n">designCapacity</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+            <span class="n">bdb</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">grouping_column</span><span class="p">[</span><span class="n">compare_type</span><span class="p">])</span><span class="o">.</span><span class="n">energyMJ</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+            <span class="n">fied_boiler</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">grouping_column</span><span class="p">[</span><span class="n">compare_type</span><span class="p">])[[</span><span class="s1">&#39;energyMJ&#39;</span><span class="p">,</span> <span class="s1">&#39;energyMJq2&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Must specify compare_type&quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">comparison</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;designCapacity_bdb&#39;</span><span class="p">,</span> <span class="s1">&#39;designCapacity_fied&#39;</span><span class="p">,</span> <span class="s1">&#39;energyMJ_bdb&#39;</span><span class="p">,</span> <span class="s1">&#39;energyMJ_fied&#39;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">comparison</span></div>
+
+
+<div class="viewcode-block" id="compare_boilers_units">
+<a class="viewcode-back" href="../../../fied.analysis.html#fied.analysis.boiler_inventory_comparison.compare_boilers_units">[docs]</a>
+<span class="k">def</span> <span class="nf">compare_boilers_units</span><span class="p">(</span><span class="n">bdb</span><span class="p">,</span> <span class="n">fied_boiler</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compare boiler inventory and FIED boilers on an individual unit level. </span>
+<span class="sd">    Includes only </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bdb : pandas.DataFrame</span>
+
+<span class="sd">    fied_boiler : pandas.DataFrame</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    units : pandas.DataFrame</span>
+
+<span class="sd">    units_summary : pandas.DataFrame</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">fied_edit</span> <span class="o">=</span> <span class="n">fied_boiler</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">fied_edit</span><span class="o">.</span><span class="n">fuelType</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span>
+        <span class="s1">&#39;diesel&#39;</span><span class="p">:</span> <span class="s1">&#39;oil products&#39;</span><span class="p">,</span> <span class="s1">&#39;naturalGas&#39;</span><span class="p">:</span> <span class="s1">&#39;natural gas&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;resFuelOil&#39;</span><span class="p">:</span> <span class="s1">&#39;oil products&#39;</span><span class="p">,</span> <span class="s1">&#39;lpgHGL&#39;</span><span class="p">:</span> <span class="s1">&#39;other fuels&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;gasoline&#39;</span><span class="p">:</span> <span class="s1">&#39;oil products&#39;</span><span class="p">,</span> <span class="s1">&#39;other&#39;</span><span class="p">:</span> <span class="s1">&#39;other fuels&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;coke&#39;</span><span class="p">:</span> <span class="s1">&#39;other fuels&#39;</span>
+        <span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">units</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">bdb</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;eisUnitID&#39;</span><span class="p">])[[</span><span class="s1">&#39;eisUnitID&#39;</span><span class="p">,</span> <span class="s1">&#39;energyMJ&#39;</span><span class="p">,</span> <span class="s1">&#39;designCapacity&#39;</span><span class="p">,</span> <span class="s1">&#39;fuelType&#39;</span><span class="p">,</span> <span class="s1">&#39;naics_sub&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;state&#39;</span><span class="p">]],</span> 
+        <span class="n">fied_edit</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;eisUnitID&#39;</span><span class="p">])[[</span><span class="s1">&#39;eisUnitID&#39;</span><span class="p">,</span> <span class="s1">&#39;energyMJ&#39;</span><span class="p">,</span> <span class="s1">&#39;energyMJq2&#39;</span><span class="p">,</span> <span class="s1">&#39;designCapacity&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;fuelType&#39;</span><span class="p">,</span> <span class="s1">&#39;stateCode&#39;</span><span class="p">,</span> <span class="s1">&#39;naicsCode&#39;</span><span class="p">]],</span> 
+        <span class="n">on</span><span class="o">=</span><span class="s1">&#39;eisUnitID&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span>
+        <span class="n">suffixes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;_bdb&#39;</span><span class="p">,</span> <span class="s1">&#39;_fied&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="n">units</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;capCompare&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">designCapacity_fied</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span>
+        <span class="n">units</span><span class="o">.</span><span class="n">designCapacity_bdb</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">))</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">designCapacity_bdb</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+ 
+    <span class="n">units</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;energyCompare&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">units</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">energyMJ_fied</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">energyMJ_fied</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span>
+        <span class="n">units</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">energyMJ_fied</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">energyMJ_bdb</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">))</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">units</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">energyMJ_fied</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">energyMJ_bdb</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    
+    <span class="n">units</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;energyCompare&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">units</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">energyMJq2</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">energyMJq2</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span>
+        <span class="n">units</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">energyMJq2</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">energyMJ_bdb</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">))</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">units</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">energyMJq2</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">energyMJ_bdb</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+
+    <span class="n">units</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;fuelCompare&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">fuelType_fied</span> <span class="o">==</span> <span class="n">units</span><span class="o">.</span><span class="n">fuelType_bdb</span>
+
+    <span class="c1"># There can be multiple combustion units reported under a single EIS unit ID.</span>
+    <span class="c1"># dups = units[units.eisUnitID.duplicated(keep=False)]</span>
+
+    <span class="n">units_summary</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">units</span><span class="p">[[</span><span class="s1">&#39;capCompare&#39;</span><span class="p">,</span> <span class="s1">&#39;energyCompare&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">describe</span><span class="p">())</span>
+    <span class="n">units_summary</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;% matching&#39;</span><span class="p">,</span> <span class="s1">&#39;fuelCompare&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">fuelCompare</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">fuelCompare</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+    
+    <span class="c1"># for s in [&#39;bdb&#39;, &#39;fied&#39;]:</span>
+
+    <span class="c1">#     for t in [&#39;cap&#39;, &#39;energy&#39;]:</span>
+
+    <span class="c1">#         units_summary.loc[&#39;% /reported_{s}&#39;, f&#39;{t}Compare&#39;] = </span>
+
+
+    <span class="k">return</span> <span class="n">units</span><span class="p">,</span> <span class="n">units_summary</span></div>
+
+
+
+<div class="viewcode-block" id="plot_scatter_comparison">
+<a class="viewcode-back" href="../../../fied.analysis.html#fied.analysis.boiler_inventory_comparison.plot_scatter_comparison">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_scatter_comparison</span><span class="p">(</span><span class="n">comparison</span><span class="p">,</span> <span class="n">compare_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_fig</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates two subplots that compare county sums of design capacity (MW)</span>
+<span class="sd">    and energy (MJ) for the boiler inventory and the foundational dataset.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    comparison : pandas.DataFrame</span>
+
+<span class="sd">    write_fig : Bool, default=True</span>
+
+<span class="sd">    compare_type : str; {&#39;county&#39;, &#39;naics&#39;}</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">plot_data</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plot_data</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plot_data</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">make_subplots</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> 
+                        <span class="n">subplot_titles</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Design Capacity (MW)&#39;</span><span class="p">,</span> <span class="s1">&#39;Energy (MJ)&#39;</span><span class="p">))</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">plot_data</span><span class="o">.</span><span class="n">designCapacity_bdb</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">plot_data</span><span class="o">.</span><span class="n">designCapacity_fied</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span>
+            <span class="p">),</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">plot_data</span><span class="o">.</span><span class="n">energyMJ_bdb</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">plot_data</span><span class="o">.</span><span class="n">energyMJ_fied</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span>
+            <span class="p">),</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Hardcoded coordinates for diagonal lines.</span>
+    <span class="n">line_xy</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;county&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;capacity_x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.001</span><span class="p">,</span> <span class="mf">1E6</span><span class="p">],</span>
+            <span class="s1">&#39;capacity_y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.001</span><span class="p">,</span> <span class="mf">1E6</span><span class="p">],</span>
+            <span class="s1">&#39;energy_x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mf">1E12</span><span class="p">],</span>
+            <span class="s1">&#39;energy_y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mf">1E12</span><span class="p">],</span>
+            <span class="p">},</span>
+        <span class="s1">&#39;naics&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;capacity_x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mf">1E6</span><span class="p">],</span>
+            <span class="s1">&#39;capacity_y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mf">1E6</span><span class="p">],</span>
+            <span class="s1">&#39;energy_x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1E4</span><span class="p">,</span> <span class="mf">1E12</span><span class="p">],</span>
+            <span class="s1">&#39;energy_y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1E4</span><span class="p">,</span> <span class="mf">1E12</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">line_xy</span><span class="p">[</span><span class="n">compare_type</span><span class="p">][</span><span class="s1">&#39;capacity_x&#39;</span><span class="p">],</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">line_xy</span><span class="p">[</span><span class="n">compare_type</span><span class="p">][</span><span class="s1">&#39;capacity_y&#39;</span><span class="p">],</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dash</span><span class="o">=</span><span class="s1">&#39;dash&#39;</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
+    
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">line_xy</span><span class="p">[</span><span class="n">compare_type</span><span class="p">][</span><span class="s1">&#39;energy_x&#39;</span><span class="p">],</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">line_xy</span><span class="p">[</span><span class="n">compare_type</span><span class="p">][</span><span class="s1">&#39;energy_y&#39;</span><span class="p">],</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dash</span><span class="o">=</span><span class="s1">&#39;dash&#39;</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span>
+            <span class="n">title_text</span><span class="o">=</span><span class="s1">&#39;NW Boiler Inventory&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+            <span class="n">showexponent</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span>
+            <span class="n">exponentformat</span><span class="o">=</span><span class="s1">&#39;power&#39;</span><span class="p">,</span>
+            <span class="n">showgrid</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span>
+            <span class="n">title_text</span><span class="o">=</span><span class="s1">&#39;Foundational Data&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+            <span class="n">showexponent</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span>
+            <span class="n">exponentformat</span><span class="o">=</span><span class="s1">&#39;power&#39;</span><span class="p">,</span>
+            <span class="n">showgrid</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+        <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">template</span><span class="o">=</span><span class="s1">&#39;presentation&#39;</span>
+        <span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">write_fig</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">pio</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span>
+            <span class="n">fig</span><span class="p">,</span>
+            <span class="n">file</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;./analysis/figures/boiler_compare_scatter_</span><span class="si">{</span><span class="n">compare_type</span><span class="si">}</span><span class="s1">.svg&#39;</span>
+            <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">boiler_url</span> <span class="o">=</span> <span class="s1">&#39;https://raw.githubusercontent.com/carriescho/Electrification-of-Boilers/master/total_boiler_inventory.csv&#39;</span>
+    <span class="n">fied_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;foundational_industry_data_2017.csv.gz&#39;</span><span class="p">)</span>
+
+    <span class="n">bdb</span> <span class="o">=</span> <span class="n">get_boiler_data</span><span class="p">(</span><span class="n">boiler_url</span><span class="p">)</span>
+    <span class="n">fied_boiler</span> <span class="o">=</span> <span class="n">get_fied_boiler</span><span class="p">(</span><span class="n">fied_path</span><span class="p">)</span>
+
+    <span class="n">agg_comparison</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Note that FIED is for 2017; the boiler inventory uses multiple reporting years.</span>
+    <span class="c1"># This is more of an issue for energy than design capacity, as it&#39;s expected that</span>
+    <span class="c1"># energy use is more likely to change by year than design capacity.</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;county&#39;</span><span class="p">,</span> <span class="s1">&#39;naics&#39;</span><span class="p">]:</span>
+
+    <span class="c1">#     comparison = compare_boilers_aggregate(bdb, fied_boiler, compare_type=t)</span>
+    <span class="c1">#     plot_scatter_comparison(comparison, compare_type=t, write_fig=True)</span>
+
+        <span class="n">agg_comparison</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">compare_boilers_aggregate</span><span class="p">(</span><span class="n">bdb</span><span class="p">,</span> <span class="n">fied_boiler</span><span class="p">,</span> <span class="n">compare_type</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="n">units</span><span class="p">,</span> <span class="n">units_summary</span> <span class="o">=</span> <span class="n">compare_boilers_units</span><span class="p">(</span><span class="n">bdb</span><span class="p">,</span> <span class="n">fied_boiler</span><span class="p">)</span>
+
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2024, Alliance for Sustainable Energy, LLC..
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.9.1.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

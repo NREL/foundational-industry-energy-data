@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+      <title>fied.scc package</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="fied.tools package" href="fied.tools.html" />
+  <link rel="prev" title="fied.qpc package" href="fied.qpc.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <span class="site-name">The Foundational Industry Energy Dataset (FIED)</span>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fied-documentation-and-other-resources-on-u-s-industrial-energy-data">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="ind_data.html" class="reference internal ">Sources of Industrial Energy Data for the United States</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="nrel_data.html" class="reference internal ">NREL Industrial Energy Datasets</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="data_history.html" class="reference internal ">A Brief History of U.S. Industrial Energy Data</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="fied.html" class="reference internal ">fied package</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="fied.html">fied package</a> &raquo;</li>
+    
+    <li>fied.scc package</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="fied.qpc.html"
+       title="previous chapter">← fied.qpc package</a>
+  </li>
+  <li class="next">
+    <a href="fied.tools.html"
+       title="next chapter">fied.tools package →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="fied-scc-package">
+<h1>fied.scc package<a class="headerlink" href="#fied-scc-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="fied-scc-scc-describe-module">
+<h2>fied.scc.scc_describe module<a class="headerlink" href="#fied-scc-scc-describe-module" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-fied.scc.scc_unit_id">
+<span id="fied-scc-scc-unit-id-module"></span><h2>fied.scc.scc_unit_id module<a class="headerlink" href="#module-fied.scc.scc_unit_id" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SCC_ID</span></span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Use descriptions of SCC code levels to identify unit type and fuel type
+indicated by a complete SCC code (e.g., 30190003).
+The U.S. EPA uses Source Classification Codes (SCCs) to
+classify different types of activities that generate emissions.
+Each SCC represents a unique source category-specific process or
+function that emits air pollutants. The SCCs are used as a primary
+identifying data element in EPA’s WebFIRE (where SCCs are
+used to link emissions factors to an emission process),
+the National Emissions Inventory (NEI), and other EPA databases.</p>
+<p>Eight digit SCC codes, such as ABBCCCDD, are structured as follows:</p>
+<p>A: Level 1
+BB: Level 2
+CCC: Level 3
+DD: Level 4</p>
+<p>See SCC documentation for additional information:
+<a class="reference external" href="https://sor-scc-api.epa.gov/sccwebservices/sccsearch/docs/SCC-IntroToSCCs_2021.pdf">https://sor-scc-api.epa.gov/sccwebservices/sccsearch/docs/SCC-IntroToSCCs_2021.pdf</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID.get_complete_scc">
+<span class="sig-name descname"><span class="pre">get_complete_scc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID.get_complete_scc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID.get_complete_scc" title="Link to this definition">¶</a></dt>
+<dd><p>Download full set of SCC codes from EPA and save to
+<cite>self._complete_scc_filepath</cite>.
+Note that downloading directly from website assignes filename for csv
+based as ‘SCCDownload-{y}-{md}-{t}.csv’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID.load_complete_scc">
+<span class="sig-name descname"><span class="pre">load_complete_scc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID.load_complete_scc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID.load_complete_scc" title="Link to this definition">¶</a></dt>
+<dd><p>Complete list of SCC codes (available from
+<a class="reference external" href="https://sor-scc-api.epa.gov/sccwebservices/sccsearch/">https://sor-scc-api.epa.gov/sccwebservices/sccsearch/</a>) have
+been manually downloaded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>all_scc</strong></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID.scc_query_split">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scc_query_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID.scc_query_split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID.scc_query_split" title="Link to this definition">¶</a></dt>
+<dd><p>Uses EPA SCC Web Services to get level information for an 8- or
+10-digit SCC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Eight or 10-digit Source Classification Code.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>scc_levels</strong> – Dictionary of all four level names</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID.build_id">
+<span class="sig-name descname"><span class="pre">build_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID.build_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID.build_id" title="Link to this definition">¶</a></dt>
+<dd><p>Identify all relevant unit types and fuel
+types in SCCs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>all_scc</strong> – Complete SCC codes with added columns
+of unit types and fuel types.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID.id_external_combustion">
+<span class="sig-name descname"><span class="pre">id_external_combustion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_scc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID.id_external_combustion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID.id_external_combustion" title="Link to this definition">¶</a></dt>
+<dd><p>Method for identifying relevant unit and fuel types under
+SCC Level 1 External Combustion (1)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>all_scc</strong> (<em>pandas.DataFrame</em>) – Complete list of SCCs.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>scc_exc</strong> – SCC for external combustion (SCC Level 1 == 1) with
+unit type and fuel type descriptions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID.id_ice">
+<span class="sig-name descname"><span class="pre">id_ice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_scc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID.id_ice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID.id_ice" title="Link to this definition">¶</a></dt>
+<dd><p>Method for identifying relevant unit and fuel types under
+SCC Level 1 Internal Combustion Engines (2)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>all_scc</strong> (<em>pandas.DataFrame</em>) – Complete list of SCCs.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>scc_ice</strong> – SCC for external combustion (SCC Level 1 == 2) with
+unit type and fuel type descriptions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID.id_stationary_fuel_combustion">
+<span class="sig-name descname"><span class="pre">id_stationary_fuel_combustion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_scc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID.id_stationary_fuel_combustion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID.id_stationary_fuel_combustion" title="Link to this definition">¶</a></dt>
+<dd><p>Method for identifying relevant unit and fuel types under
+SCC Level 1 Stationary Source Fuel Combustion (21; note this is
+a 10-digit SCC code)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>all_scc</strong> (<em>pandas.DataFrame</em>) – Complete list of SCCs.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>scc_ice</strong> – SCC for external combustion (SCC Level 1 == 2) with
+unit type and fuel type descriptions</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID.id_chemical_evaporation">
+<span class="sig-name descname"><span class="pre">id_chemical_evaporation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_scc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID.id_chemical_evaporation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID.id_chemical_evaporation" title="Link to this definition">¶</a></dt>
+<dd><p>Method for identifying relevant unit and fuel types under
+SCC Level 1 Chemical Evaporation (4)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>all_scc</strong> (<em>pandas.DataFrame</em>) – Complete list of SCCs.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>scc_chee</strong> – SCC for Chemical Evaporation (SCC Level 1 == 4) with
+unit type and fuel type descriptions</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID.id_industrial_processes">
+<span class="sig-name descname"><span class="pre">id_industrial_processes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_scc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID.id_industrial_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID.id_industrial_processes" title="Link to this definition">¶</a></dt>
+<dd><p>Method for identifying relevant unit and fuel types under
+SCC Level 1 Industrial Processes (3)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>all_scc</strong> (<em>pandas.DataFrame</em>) – Complete list of SCCs.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>scc_ind</strong> – SCC for Industrial Processes (SCC Level 1 == 3) with
+unit type and fuel type descriptions</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fied.scc.scc_unit_id.SCC_ID.main">
+<span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fied/scc/scc_unit_id.html#SCC_ID.main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fied.scc.scc_unit_id.SCC_ID.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-fied.scc">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fied.scc" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="fied.qpc.html"
+       title="previous chapter">← fied.qpc package</a>
+  </li>
+  <li class="next">
+    <a href="fied.tools.html"
+       title="next chapter">fied.tools package →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2024, Alliance for Sustainable Energy, LLC..
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.9.1.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>
