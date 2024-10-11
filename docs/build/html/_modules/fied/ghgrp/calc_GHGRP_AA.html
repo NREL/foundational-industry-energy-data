@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fied.ghgrp.calc_GHGRP_AA</title>
+    
+          <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../../_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="../../../_static/documentation_options.js?v=2709fde1"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../../_static/theme-vendors.js"></script> -->
+      <script src="../../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../../index.html" class="home-link">
+    
+      <span class="site-name">The Foundational Industry Energy Dataset (FIED)</span>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../../index.html#welcome-to-fied-s-documentation-and-other-resources-on-u-s-industrial-energy-data">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../ind_data.html" class="reference internal ">Sources of Industrial Energy Data for the United States</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../nrel_data.html" class="reference internal ">NREL Industrial Energy Datasets</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../data_history.html" class="reference internal ">A Brief History of U.S. Industrial Energy Data</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../fied.html" class="reference internal ">fied package</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../../index.html">Module code</a> &raquo;</li>
+    
+    <li>fied.ghgrp.calc_GHGRP_AA</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fied.ghgrp.calc_GHGRP_AA</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed Aug 30 09:52:53 2017</span>
+
+<span class="sd">@author: cmcmilla</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+
+<div class="viewcode-block" id="subpartAA">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.calc_GHGRP_AA.subpartAA">[docs]</a>
+<span class="k">class</span> <span class="nc">subpartAA</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aa_ff</span><span class="p">,</span> <span class="n">aa_sl</span><span class="p">,</span> <span class="n">std_efs</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">aa_df</span> <span class="ow">in</span> <span class="p">[</span><span class="n">aa_ff</span><span class="p">,</span> <span class="n">aa_sl</span><span class="p">]:</span>
+
+            <span class="n">aa_df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;FACILITY_ID&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;FACILITY_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;REPORTING_YEAR&#39;</span><span class="p">]:</span>
+
+                <span class="n">aa_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">aa_df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">aa_ff</span> <span class="o">=</span> <span class="n">aa_ff</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">aa_sl</span> <span class="o">=</span> <span class="n">aa_sl</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">std_efs</span> <span class="o">=</span> <span class="n">std_efs</span>
+
+        <span class="c1"># Default CH4 emissions factor (kg CH4/MMBtu) for wood and wood</span>
+        <span class="c1"># residuals. Note that this value changed from 0.0072 kg CH4/MMBtu,</span>
+        <span class="c1"># used in 2010 - 2013 to 0.0019 kg CH4/MMBtu for 2014 onwards. An</span>
+        <span class="c1"># adjustment to reported CH4 emissions is made when the data are</span>
+        <span class="c1"># imported.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std_ch4</span> <span class="o">=</span> <span class="mf">0.0019</span>
+
+<div class="viewcode-block" id="subpartAA.calc_energy_ff">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.calc_GHGRP_AA.subpartAA.calc_energy_ff">[docs]</a>
+    <span class="k">def</span> <span class="nf">calc_energy_ff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate MMBtu value based on reported CO2 emissions.</span>
+<span class="sd">        Does not capture emissions and energy from facilities using Tier 4</span>
+<span class="sd">        calculation methodology.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Drop facilities that do not report a fuel type.</span>
+        <span class="n">energy_aa_ff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aa_ff</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">energy_aa_ff</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;FUEL_TYPE&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">energy_aa_ff</span><span class="p">[</span><span class="s1">&#39;TOTAL_CO2_EMISSIONS&#39;</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">energy_aa_ff</span><span class="p">[[</span><span class="s1">&#39;TIER_1_CO2_EMISSIONS&#39;</span><span class="p">,</span> <span class="s1">&#39;TIER_2_CO2_EMISSIONS&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TIER_3_CO2_EMISSIONS&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">energy_aa_ff</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">energy_aa_ff</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">std_efs</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()[[</span><span class="s1">&#39;FUEL_TYPE&#39;</span><span class="p">,</span> <span class="s1">&#39;CO2_kgCO2_per_mmBtu&#39;</span><span class="p">]],</span>
+            <span class="n">on</span><span class="o">=</span><span class="s1">&#39;FUEL_TYPE&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span>
+            <span class="p">)</span>
+
+        <span class="n">energy_aa_ff</span><span class="p">[</span><span class="s1">&#39;MMBtu_TOTAL&#39;</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">energy_aa_ff</span><span class="o">.</span><span class="n">TOTAL_CO2_EMISSIONS</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span>
+                    <span class="n">energy_aa_ff</span><span class="o">.</span><span class="n">CO2_kgCO2_per_mmBtu</span>
+                    <span class="p">)</span><span class="o">*</span><span class="mi">1000</span>
+
+        <span class="n">co2e_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="n">c</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;TIER_1&#39;</span><span class="p">,</span> <span class="s1">&#39;TIER_2&#39;</span><span class="p">,</span> <span class="s1">&#39;TIER_3&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span>
+            <span class="p">[</span><span class="s1">&#39;_CO2_EMISSIONS&#39;</span><span class="p">,</span><span class="s1">&#39;_CH4_EMISSIONS_CO2E&#39;</span><span class="p">,</span> <span class="s1">&#39;_N2O_EMISSIONS_CO2E&#39;</span><span class="p">]]</span>
+
+        <span class="n">energy_aa_ff</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;MTCO2e_TOTAL&#39;</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">energy_aa_ff</span><span class="p">[</span><span class="n">co2e_columns</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">energy_aa_ff</span></div>
+
+
+
+<div class="viewcode-block" id="subpartAA.calc_energy_sl">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.calc_GHGRP_AA.subpartAA.calc_energy_sl">[docs]</a>
+    <span class="k">def</span> <span class="nf">calc_energy_sl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate MMBtu value of spent liquor combustion based on CH4</span>
+<span class="sd">        emissions reported under Tier 4.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">energy_aa_sl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aa_sl</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">energy_aa_sl</span><span class="o">.</span><span class="n">BIOMASS_CH4_EMISSIONS_FACTOR</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span>
+                <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">std_ch4</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Some tables as strings (from API changes?)</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;SPENT_LIQUOR_CH4_EMISSIONS&#39;</span><span class="p">,</span> <span class="s1">&#39;BIOMASS_CH4_EMISSIONS_FACTOR&#39;</span><span class="p">]:</span>
+            <span class="n">energy_aa_sl</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">energy_aa_sl</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">energy_aa_sl</span><span class="p">[</span><span class="s1">&#39;MMBtu_TOTAL&#39;</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">energy_aa_sl</span><span class="o">.</span><span class="n">SPENT_LIQUOR_CH4_EMISSIONS</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span>
+                <span class="n">energy_aa_sl</span><span class="o">.</span><span class="n">BIOMASS_CH4_EMISSIONS_FACTOR</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Calculate CO2e emissions using 100-year GWP from IPCC AR4</span>
+        <span class="c1"># CH4 and N2O reported in same units as CO2 (metric tons?)</span>
+        <span class="n">energy_aa_sl</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;CH4_CO2E&#39;</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">energy_aa_sl</span><span class="o">.</span><span class="n">SPENT_LIQUOR_CH4_EMISSIONS</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
+
+        <span class="n">energy_aa_sl</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;N2O_CO2E&#39;</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">energy_aa_sl</span><span class="o">.</span><span class="n">SPENT_LIQUOR_N2O_EMISSIONS</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mi">298</span><span class="p">)</span>
+
+        <span class="c1"># Calculate total CO2e emissions in metric tons</span>
+        <span class="n">energy_aa_sl</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;MTCO2e_TOTAL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">energy_aa_sl</span><span class="p">[</span>
+                <span class="p">[</span><span class="s1">&#39;SPENT_LIQUOR_CO2_EMISSIONS&#39;</span><span class="p">,</span> <span class="s1">&#39;CH4_CO2E&#39;</span><span class="p">,</span> <span class="s1">&#39;N2O_CO2E&#39;</span><span class="p">]</span>
+                <span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">energy_aa_sl</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span>
+            <span class="s1">&#39;SPENT_LIQUOR_CO2_EMISSIONS&#39;</span><span class="p">,</span> <span class="s1">&#39;SPENT_LIQUOR_CH4_EMISSIONS&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SPENT_LIQUOR_N2O_EMISSIONS&#39;</span><span class="p">,</span> <span class="s1">&#39;BIOMASS_CH4_EMISSIONS_FACTOR&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;BIOMASS_N2O_EMISSIONS_FACTOR&#39;</span>
+            <span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">energy_aa_sl</span><span class="p">[</span><span class="s1">&#39;FUEL_TYPE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Wood and Wood Residuals&#39;</span>
+
+        <span class="k">return</span> <span class="n">energy_aa_sl</span></div>
+
+
+
+<div class="viewcode-block" id="subpartAA.energy_calc">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.calc_GHGRP_AA.subpartAA.energy_calc">[docs]</a>
+    <span class="k">def</span> <span class="nf">energy_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Merge resuts of Subpart AA energy calculations into a single dataframe.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">energy_AA</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_energy_ff</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_energy_sl</span><span class="p">()],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+            <span class="p">)</span>
+
+        <span class="n">energy_AA</span><span class="p">[</span><span class="s1">&#39;GWh_TOTAL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">energy_AA</span><span class="p">[</span><span class="s1">&#39;MMBtu_TOTAL&#39;</span><span class="p">]</span><span class="o">/</span><span class="mf">3412.14</span>
+
+        <span class="n">energy_AA</span><span class="p">[</span><span class="s1">&#39;TJ_TOTAL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">energy_AA</span><span class="p">[</span><span class="s1">&#39;GWh_TOTAL&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">3.6</span>
+
+        <span class="k">return</span> <span class="n">energy_AA</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2024, Alliance for Sustainable Energy, LLC..
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.9.1.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

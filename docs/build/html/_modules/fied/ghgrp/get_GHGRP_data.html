@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fied.ghgrp.get_GHGRP_data</title>
+    
+          <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../../_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="../../../_static/documentation_options.js?v=2709fde1"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../../_static/theme-vendors.js"></script> -->
+      <script src="../../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../../index.html" class="home-link">
+    
+      <span class="site-name">The Foundational Industry Energy Dataset (FIED)</span>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../../index.html#welcome-to-fied-s-documentation-and-other-resources-on-u-s-industrial-energy-data">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../ind_data.html" class="reference internal ">Sources of Industrial Energy Data for the United States</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../nrel_data.html" class="reference internal ">NREL Industrial Energy Datasets</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../data_history.html" class="reference internal ">A Brief History of U.S. Industrial Energy Data</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../fied.html" class="reference internal ">fied package</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../../index.html">Module code</a> &raquo;</li>
+    
+    <li>fied.ghgrp.get_GHGRP_data</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fied.ghgrp.get_GHGRP_data</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">requests.adapters</span> <span class="kn">import</span> <span class="n">HTTPAdapter</span><span class="p">,</span> <span class="n">Retry</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="requests_retry_session">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.get_GHGRP_data.requests_retry_session">[docs]</a>
+<span class="k">def</span> <span class="nf">requests_retry_session</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">backoff_factor</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    retries : int</span>
+<span class="sd">        Number of retries to allow.</span>
+
+<span class="sd">    backoff_factor : float</span>
+<span class="sd">        Backoff factor to apply between attempts.</span>
+
+<span class="sd">    status_forcelist : list</span>
+<span class="sd">        List of HTTP status codes to force a retry on.</span>
+
+<span class="sd">    session : None</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    session : </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">session</span> <span class="o">=</span> <span class="n">session</span> <span class="ow">or</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+
+    <span class="n">retry</span> <span class="o">=</span> <span class="n">Retry</span><span class="p">(</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span>
+        <span class="n">read</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span>
+        <span class="n">connect</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span>
+        <span class="n">backoff_factor</span><span class="o">=</span><span class="n">backoff_factor</span><span class="p">,</span>
+        <span class="n">status_forcelist</span><span class="o">=</span><span class="n">status_forcelist</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">adapter</span> <span class="o">=</span> <span class="n">HTTPAdapter</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="n">retry</span><span class="p">)</span>
+
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">session</span></div>
+
+
+
+<div class="viewcode-block" id="get_count">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.get_GHGRP_data.get_count">[docs]</a>
+<span class="k">def</span> <span class="nf">get_count</span><span class="p">(</span><span class="n">table_url</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the number of rows for a specified GHGRP table (via url)</span>
+<span class="sd">    from EPA Envirofacts.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    table_url : str</span>
+<span class="sd">        URL for Envirofacts API</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    row_count : int</span>
+<span class="sd">        Count of table rows. </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">table_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">table_url</span><span class="si">}</span><span class="s1">/count/json&#39;</span>
+
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>  
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests_retry_session</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">table_url</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="c1"># r = requests.get(table_url)</span>
+
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="s1">Table url: </span><span class="si">{</span><span class="n">table_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">row_count</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;TOTALQUERYRESULTS&#39;</span><span class="p">]</span>
+
+    <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Check API respose: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;That took </span><span class="si">{</span><span class="n">t1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">row_count</span></div>
+
+
+
+<div class="viewcode-block" id="get_records">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.get_GHGRP_data.get_records">[docs]</a>
+<span class="k">def</span> <span class="nf">get_records</span><span class="p">(</span><span class="n">table_url</span><span class="p">,</span> <span class="n">start_end</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get specified rows for a specified GHGRP table (via url)</span>
+<span class="sd">    from EPA Envirofacts.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    table_url : str</span>
+<span class="sd">        URL for Envirofacts API</span>
+
+<span class="sd">    start_end : list of integers</span>
+<span class="sd">        List indicating the starting and ending row to get</span>
+<span class="sd">    (e.g., [0, 1000])</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    records_df : pandas.DataFrame</span>
+<span class="sd">        DataFrame of records from Envirofacts API.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">table_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">table_url</span><span class="si">}</span><span class="s1">/rows/</span><span class="si">{</span><span class="n">start_end</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">start_end</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">/json&#39;</span>
+
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">r_records</span> <span class="o">=</span> <span class="n">requests_retry_session</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">table_url</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">r_records</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="c1"># r_records = requests.get(table_url)</span>
+
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">table_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+
+        <span class="n">json_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">r_records</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="s1">Table URL: </span><span class="si">{</span><span class="n">table_url</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">r_records</span><span class="o">.</span><span class="n">content</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;That took </span><span class="si">{</span><span class="n">t1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">json_data</span></div>
+
+
+
+<div class="viewcode-block" id="get_GHGRP_records">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.get_GHGRP_data.get_GHGRP_records">[docs]</a>
+<span class="k">def</span> <span class="nf">get_GHGRP_records</span><span class="p">(</span><span class="n">reporting_year</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">api_row_max</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return GHGRP data using EPA RESTful API based on specified reporting year</span>
+<span class="sd">    and table. Tables of interest are C_FUEL_LEVEL_INFORMATION,</span>
+<span class="sd">    D_FUEL_LEVEL_INFORMATION, c_configuration_level_info, and</span>
+<span class="sd">    V_GHG_EMITTER_FACILITIES.</span>
+<span class="sd">    Optional argument to specify number of table rows.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reporting_year : int</span>
+<span class="sd">        Reporting year of GHGRP data</span>
+
+<span class="sd">    table : str</span>
+<span class="sd">        Name of GHGRP Envirofacts table to retrieve records from</span>
+
+<span class="sd">    rows : int; default=None</span>
+<span class="sd">        Number of table rows to retrieve, beginning at row 0.</span>
+
+<span class="sd">    api_row_max : int; default={1000}</span>
+<span class="sd">        Maximum number of table rows to return at a time. </span>
+<span class="sd">        Envirofacts API for the GHGRP seems to be overwhelmed by &gt; 1000 rows.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ghgrp : pandas.DataFrame</span>
+<span class="sd">        DataFrame of GHGRP Envirofacts data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;V_GHG_EMITTER_&#39;</span><span class="p">:</span>
+
+        <span class="c1"># EPA changed their table names</span>
+        <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s1">&#39;V_GHG_EMITTER_FACILITIES&#39;</span><span class="p">:</span>
+
+            <span class="n">table</span> <span class="o">=</span> <span class="s1">&#39;RLPS_GHG_EMITTER_FACILITIES&#39;</span>
+
+        <span class="k">elif</span> <span class="n">table</span> <span class="o">==</span> <span class="s1">&#39;V_GHG_EMITTER_SUBPART&#39;</span><span class="p">:</span>
+
+            <span class="n">table</span> <span class="o">=</span> <span class="s1">&#39;RLPS_GHG_EMITTER_SUBPART&#39;</span>
+
+        <span class="n">table_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;https://enviro.epa.gov/enviro/efservice/</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s1">/YEAR/</span><span class="si">{</span><span class="n">reporting_year</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="n">table_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;https://enviro.epa.gov/enviro/efservice/</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s1">/REPORTING_YEAR/</span><span class="si">{</span><span class="n">reporting_year</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="n">ghgrp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">rows</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">nrecords</span> <span class="o">=</span> <span class="n">get_count</span><span class="p">(</span><span class="n">table_url</span><span class="p">)</span>
+
+        <span class="c1"># API doesn&#39;t seem to be able to handle calls for more than 1000 rows at a time. </span>
+
+        <span class="k">if</span> <span class="n">nrecords</span> <span class="o">&gt;</span> <span class="n">api_row_max</span><span class="p">:</span>
+
+            <span class="n">rrange</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nrecords</span><span class="p">,</span> <span class="n">api_row_max</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rrange</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+
+                <span class="n">json_data</span> <span class="o">=</span> <span class="n">get_records</span><span class="p">(</span><span class="n">table_url</span><span class="p">,</span> <span class="p">[</span><span class="n">rrange</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">rrange</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]])</span>
+
+                <span class="n">ghgrp</span> <span class="o">=</span> <span class="n">ghgrp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+
+            <span class="n">records_last</span> <span class="o">=</span> <span class="n">get_records</span><span class="p">(</span><span class="n">table_url</span><span class="p">,</span> <span class="p">[</span><span class="n">rrange</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">nrecords</span><span class="p">])</span>
+
+            <span class="n">ghgrp</span> <span class="o">=</span> <span class="n">ghgrp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">records_last</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">json_data</span> <span class="o">=</span> <span class="n">get_records</span><span class="p">(</span><span class="n">table_url</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">nrecords</span><span class="p">])</span>
+
+            <span class="n">ghgrp</span> <span class="o">=</span> <span class="n">ghgrp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">r_records</span> <span class="o">=</span> \
+                    <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">table_url</span><span class="si">}</span><span class="s1">/rows/0:</span><span class="si">{</span><span class="n">nrecords</span><span class="si">}</span><span class="s1">/json&#39;</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">table_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+
+                <span class="n">json_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">r_records</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">r_records</span><span class="o">.</span><span class="n">content</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="n">ghgrp</span> <span class="o">=</span> <span class="n">ghgrp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">rows</span> <span class="o">&gt;</span> <span class="n">api_row_max</span><span class="p">:</span>
+
+            <span class="n">rrange</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">api_row_max</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rrange</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+
+                <span class="n">json_data</span> <span class="o">=</span> <span class="n">get_records</span><span class="p">(</span><span class="n">table_url</span><span class="p">,</span> <span class="p">[</span><span class="n">rrange</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">rrange</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]])</span>
+
+                <span class="n">ghgrp</span> <span class="o">=</span> <span class="n">ghgrp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+
+            <span class="n">records_last</span> <span class="o">=</span> <span class="n">get_records</span><span class="p">(</span><span class="n">table_url</span><span class="p">,</span> <span class="p">[</span><span class="n">rrange</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">nrecords</span><span class="p">])</span>
+
+            <span class="n">ghgrp</span> <span class="o">=</span> <span class="n">ghgrp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">records_last</span><span class="p">)</span>
+
+        <span class="c1"># json_data = get_records(table_url, [0, rows])</span>
+
+        <span class="c1"># ghgrp = ghgrp.append(json_data)</span>
+
+    <span class="n">ghgrp</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">ghgrp</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ghgrp</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">ghgrp</span></div>
+
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2024, Alliance for Sustainable Energy, LLC..
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.9.1.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

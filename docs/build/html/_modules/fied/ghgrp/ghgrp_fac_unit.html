@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fied.ghgrp.ghgrp_fac_unit</title>
+    
+          <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../../_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="../../../_static/documentation_options.js?v=2709fde1"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../../_static/theme-vendors.js"></script> -->
+      <script src="../../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../../index.html" class="home-link">
+    
+      <span class="site-name">The Foundational Industry Energy Dataset (FIED)</span>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../../index.html#welcome-to-fied-s-documentation-and-other-resources-on-u-s-industrial-energy-data">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../ind_data.html" class="reference internal ">Sources of Industrial Energy Data for the United States</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../nrel_data.html" class="reference internal ">NREL Industrial Energy Datasets</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../data_history.html" class="reference internal ">A Brief History of U.S. Industrial Energy Data</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../fied.html" class="reference internal ">fied package</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../../index.html">Module code</a> &raquo;</li>
+    
+    <li>fied.ghgrp.ghgrp_fac_unit</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fied.ghgrp.ghgrp_fac_unit</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="kn">from</span> <span class="nn">pyxlsb</span> <span class="kn">import</span> <span class="n">open_workbook</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+
+<div class="viewcode-block" id="GHGRP_unit_char">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char">[docs]</a>
+<span class="k">class</span> <span class="nc">GHGRP_unit_char</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ghgrp_energy_file</span><span class="p">,</span> <span class="n">reporting_year</span><span class="p">):</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ghgrp_unit_url</span> <span class="o">=</span> <span class="s1">&#39;https://www.epa.gov/system/files/other-files/2022-10/emissions_by_unit_and_fuel_type_c_d_aa_10_2022.zip&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s1">&#39;./data/GHGRP/&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ghgrp_energy_file</span> <span class="o">=</span> <span class="n">ghgrp_energy_file</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_source</span> <span class="o">=</span> <span class="s1">&#39;GHGRP&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reporting_year</span> <span class="o">=</span> <span class="n">reporting_year</span>
+
+<div class="viewcode-block" id="GHGRP_unit_char.load_fueltype_dict">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.load_fueltype_dict">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_fueltype_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Opens and loads a yaml that specifies the mapping of</span>
+<span class="sd">        GHGRP fuel types to standard fuel types that have</span>
+<span class="sd">        aready been applied to NEI data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fuel_dict : dictionary</span>
+<span class="sd">            Dictionary of mappings between GHGRP fuel types and</span>
+<span class="sd">            generic fuel types that have been applied to NEI data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;./tools/type_standardization.yml&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">docs</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load_all</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">docs</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">fuel_dict</span> <span class="o">=</span> <span class="n">d</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+        <span class="k">return</span> <span class="n">fuel_dict</span></div>
+
+
+    <span class="c1"># #TODO make into a tools method</span>
+<div class="viewcode-block" id="GHGRP_unit_char.harmonize_fuel_type">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.harmonize_fuel_type">[docs]</a>
+    <span class="k">def</span> <span class="nf">harmonize_fuel_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ghgrp_unit_data</span><span class="p">,</span> <span class="n">fuel_type_column</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies fuel type mapping to fuel types reported under GHGRP.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ghgrp_unit_data : pandas.DataFrame</span>
+
+<span class="sd">        fuel_type_column : str</span>
+<span class="sd">            Name of column containing fuel types.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ghgrp_unit_data : pandas.DataFrame</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">fuel_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_fueltype_dict</span><span class="p">()</span>
+
+        <span class="n">ghgrp_unit_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;fuelTypeStd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ghgrp_unit_data</span><span class="p">[</span><span class="n">fuel_type_column</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">fuel_dict</span><span class="p">)</span>
+
+        <span class="c1"># drop any fuelTypes that are null</span>
+        <span class="n">ghgrp_unit_data</span> <span class="o">=</span> <span class="n">ghgrp_unit_data</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">ghgrp_unit_data</span><span class="p">[</span><span class="n">fuel_type_column</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ghgrp_unit_data</span></div>
+
+
+<div class="viewcode-block" id="GHGRP_unit_char.download_unit_data">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.download_unit_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">download_unit_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Download and unzip GHGRP unit data. </span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        file_path : str</span>
+<span class="sd">            File path of unit data spreadsheet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">zipfile_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ghgrp_unit_url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dir</span><span class="p">,</span> <span class="n">zipfile_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+
+            <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">zf</span><span class="p">:</span>
+
+                <span class="n">xlsbpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dir</span><span class="p">,</span> <span class="n">zf</span><span class="o">.</span><span class="n">namelist</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">xlsbpath</span><span class="p">):</span>
+
+                    <span class="k">pass</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">zf</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dir</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghgrp_unit_url</span><span class="p">)</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Try downloading zipfile from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghgrp_unit_url</span><span class="si">}</span><span class="s2"> and saving to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dir</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+
+            <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">))</span> <span class="k">as</span> <span class="n">zf</span><span class="p">:</span>
+
+                <span class="n">zf</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">zf</span><span class="o">.</span><span class="n">namelist</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_dir</span><span class="p">)</span>
+
+                <span class="n">xlsbpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dir</span><span class="p">,</span> <span class="n">zf</span><span class="o">.</span><span class="n">namelist</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">xlsbpath</span></div>
+
+
+    <span class="c1"># TODO fix up code for getting capacity data</span>
+<div class="viewcode-block" id="GHGRP_unit_char.get_unit_capacity">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.get_unit_capacity">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_unit_capacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ghgrp_df</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve unit capacity data from EPA GHGRP data file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ghgrp_df : pandas.DataFrame</span>
+<span class="sd">            Dataframe from GHGRP energy calculations with</span>
+<span class="sd">            UNIT_TYPE column updated from OCS to a specific</span>
+<span class="sd">            unit type.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        unit_capacity : pandas.DataFrame</span>
+<span class="sd">            Dataframe with unit capacity information by Facility ID and</span>
+<span class="sd">            unit name.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">unit_data_file_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">download_unit_data</span><span class="p">()</span>
+
+        <span class="c1"># engine=&#39;pyxlsb&#39; not working with python 3.6.5.final.0 and pandas 0.24.2</span>
+        <span class="c1"># XLRDError: Excel 2007 xlsb file; not supported</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ghgrp_ind</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span>
+                <span class="n">unit_data_file_path</span><span class="p">,</span>
+                <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;pyxlsb&#39;</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;UNIT_DATA&#39;</span><span class="p">,</span>
+                <span class="n">skiprows</span><span class="o">=</span><span class="mi">6</span>
+                <span class="p">)</span>
+            
+        <span class="k">except</span> <span class="n">XLRDError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">df</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">with</span> <span class="n">open_workbook</span><span class="p">(</span><span class="n">unit_data_file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">wb</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">wb</span><span class="o">.</span><span class="n">get_sheet</span><span class="p">(</span><span class="s1">&#39;UNIT_DATA&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">sheet</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">sheet</span><span class="o">.</span><span class="n">rows</span><span class="p">():</span>
+                        <span class="n">df</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">item</span><span class="o">.</span><span class="n">v</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">row</span><span class="p">])</span>
+
+            <span class="c1"># Make sure to catch column row (first few rows of spreadsheet has</span>
+            <span class="c1"># values only in first column)</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="nb">all</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">n</span><span class="o">+=</span><span class="mi">1</span>
+
+            <span class="n">ghgrp_ind</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">:],</span> <span class="n">columns</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>
+
+
+        <span class="n">ghgrp_ind</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ghgrp_ind</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+
+        <span class="n">ghgrp_ind</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="n">ghgrp_ind</span><span class="p">[</span><span class="s1">&#39;Primary NAICS Code&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span>
+            <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Industrial facilities aleady selected in FRS data.</span>
+        <span class="n">ghgrp_ind</span> <span class="o">=</span> <span class="n">ghgrp_ind</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">ghgrp_ind</span><span class="p">[</span><span class="s1">&#39;Reporting Year&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">ghgrp_df</span><span class="o">.</span><span class="n">REPORTING_YEAR</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+
+        <span class="n">ghgrp_ind</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="n">ghgrp_ind</span><span class="p">[</span><span class="s1">&#39;Unit Maximum Rated Heat Input (mmBTU/hr)&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                <span class="p">{</span><span class="s1">&#39;&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">ghgrp_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">ghgrp_df</span><span class="p">,</span>
+            <span class="n">ghgrp_ind</span><span class="p">[[</span>
+                <span class="s1">&#39;Reporting Year&#39;</span><span class="p">,</span> <span class="s1">&#39;Facility Id&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Unit Maximum Rated Heat Input (mmBTU/hr)&#39;</span><span class="p">,</span> <span class="s1">&#39;Unit Name&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;FRS Id&#39;</span><span class="p">]],</span>
+            <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;REPORTING_YEAR&#39;</span><span class="p">,</span> <span class="s1">&#39;FACILITY_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;UNIT_NAME&#39;</span><span class="p">],</span>
+            <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Reporting Year&#39;</span><span class="p">,</span> <span class="s1">&#39;Facility Id&#39;</span><span class="p">,</span> <span class="s1">&#39;Unit Name&#39;</span><span class="p">],</span>
+            <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">indicator</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;Reporting Year&#39;</span><span class="p">,</span> <span class="s1">&#39;Facility Id&#39;</span><span class="p">,</span> <span class="s1">&#39;Unit Name&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+            <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;Unit Maximum Rated Heat Input (mmBTU/hr)&#39;</span><span class="p">:</span> <span class="s1">&#39;MAX_CAP_MMBTU_per_HOUR&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;FRS Id&#39;</span><span class="p">:</span> <span class="s1">&#39;FRS_REGISTRY_ID&#39;</span>
+            <span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">ghgrp_df</span></div>
+
+    
+    <span class="c1"># GHG emissions in the GHGRP unit file are aggregated to unit and not fuel type and unit, which is what is</span>
+    <span class="c1"># needed.</span>
+
+<div class="viewcode-block" id="GHGRP_unit_char.format_ghgrp_df">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.format_ghgrp_df">[docs]</a>
+    <span class="k">def</span> <span class="nf">format_ghgrp_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ghgrp_df</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Formatting (e.g., dropping columns, aggregating fuel types)</span>
+<span class="sd">        for GHGRP energy estimates, which now include unit capacity data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;FUEL_TYPE_FINAL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">ghgrp_df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;FUEL_TYPE&#39;</span><span class="p">,</span> <span class="s1">&#39;FUEL_TYPE_BLEND&#39;</span><span class="p">,</span> <span class="s1">&#39;FUEL_TYPE_OTHER&#39;</span><span class="p">]],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+
+        <span class="n">ghgrp_df</span> <span class="o">=</span> <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;REPORTING_YEAR==@self._reporting_year&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Harmonize fuel types for GHGRP data</span>
+        <span class="n">ghgrp_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">harmonize_fuel_type</span><span class="p">(</span><span class="n">ghgrp_df</span><span class="p">,</span> <span class="s1">&#39;FUEL_TYPE_FINAL&#39;</span><span class="p">)</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;ghgrp_emissions.csv&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Aggregate. Units may combust multiple types of </span>
+        <span class="c1"># fuels and have multiple observations (estimates)</span>
+        <span class="c1"># of energy use.</span>
+        <span class="c1"># NOTE that the GHG emissions total here when summed to</span>
+        <span class="c1"># unit type may not match the GHG emissions by unit type </span>
+        <span class="c1"># found in the GHGRP unit data xlsb file.</span>
+        <span class="n">ghgrp_df</span> <span class="o">=</span> <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;FACILITY_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;FRS_REGISTRY_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;REPORTING_YEAR&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;FUEL_TYPE_FINAL&#39;</span><span class="p">,</span> <span class="s1">&#39;fuelTypeStd&#39;</span><span class="p">,</span> <span class="s1">&#39;UNIT_NAME&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;UNIT_TYPE&#39;</span><span class="p">,</span> <span class="s1">&#39;MAX_CAP_MMBTU_per_HOUR&#39;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span>
+             <span class="p">)[[</span><span class="s1">&#39;TJ_TOTAL&#39;</span><span class="p">,</span> <span class="s1">&#39;MTCO2e_TOTAL&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">&quot;energyMJ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">TJ_TOTAL</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="mi">6</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;designCapacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">MAX_CAP_MMBTU_per_HOUR</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;designCapacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">0.2931</span>  <span class="c1"># Convert to MW</span>
+
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;designCapacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+        <span class="c1"># ghgrp_df.loc[:, &#39;designCapacity&#39;] = \</span>
+        <span class="c1">#     ghgrp_df.MAX_CAP_MMBTU_per_HOUR * 0.2931  # Convert to MW</span>
+        <span class="n">ghgrp_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">ghgrp_df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="s1">&#39;MW&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">ghgrp_df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;designCapacityUOM&#39;</span><span class="p">)],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s2">&quot;REPORTING_YEAR&quot;</span><span class="p">,</span> <span class="s2">&quot;TJ_TOTAL&quot;</span><span class="p">,</span> <span class="s1">&#39;MAX_CAP_MMBTU_per_HOUR&#39;</span><span class="p">],</span>
+                      <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;FACILITY_ID&#39;</span><span class="p">:</span> <span class="s1">&#39;ghgrpID&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;FUEL_TYPE_FINAL&#39;</span><span class="p">:</span> <span class="s1">&#39;fuelType&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;UNIT_NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;unitName&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;FRS_REGISTRY_ID&#39;</span><span class="p">:</span> <span class="s1">&#39;registryID&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;UNIT_TYPE&#39;</span><span class="p">:</span> <span class="s1">&#39;unitType&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MTCO2e_TOTAL&#39;</span><span class="p">:</span> <span class="s1">&#39;ghgsTonneCO2e&#39;</span>
+            <span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">registryID</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ghgrp_df</span><span class="o">.</span><span class="n">registryID</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">ghgrp_df</span></div>
+
+
+<div class="viewcode-block" id="GHGRP_unit_char.get_unit_type">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.get_unit_type">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_unit_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use unit name to deterimine unit type for</span>
+<span class="sd">        unit types that are defined as OCS (Other combustion source).</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ghgrp_df : pandas.DataFrame</span>
+<span class="sd">            Dataframe from GHGRP energy calculations with</span>
+<span class="sd">            UNIT_TYPE column updated from OCS to a specific</span>
+<span class="sd">            unit type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">ghgrp_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ghgrp_energy_file</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">types</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;furnace&#39;</span><span class="p">,</span> <span class="s1">&#39;kiln&#39;</span><span class="p">,</span> <span class="s1">&#39;dryer&#39;</span><span class="p">,</span> <span class="s1">&#39;heater&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;oven&#39;</span><span class="p">,</span> <span class="s1">&#39;calciner&#39;</span><span class="p">,</span> <span class="s1">&#39;stove&#39;</span><span class="p">,</span> <span class="s1">&#39;htr&#39;</span><span class="p">,</span> <span class="s1">&#39;furn&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cupola&#39;</span><span class="p">,</span> <span class="s1">&#39;boiler&#39;</span><span class="p">,</span> <span class="s1">&#39;turbine&#39;</span><span class="p">,</span> <span class="s1">&#39;building heat&#39;</span><span class="p">,</span> <span class="s1">&#39;space heater&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;engine&#39;</span><span class="p">,</span> <span class="s1">&#39;compressor&#39;</span><span class="p">,</span> <span class="s1">&#39;pump&#39;</span><span class="p">,</span> <span class="s1">&#39;rice&#39;</span><span class="p">,</span> <span class="s1">&#39;generator&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;hot water&#39;</span><span class="p">,</span> <span class="s1">&#39;crane&#39;</span><span class="p">,</span> <span class="s1">&#39;water heater&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;comfort heater&#39;</span><span class="p">,</span> <span class="s1">&#39;RTO&#39;</span><span class="p">,</span> <span class="s1">&#39;TODF&#39;</span><span class="p">,</span> <span class="s1">&#39;oxidizer&#39;</span><span class="p">,</span> <span class="s1">&#39;RCO&#39;</span>
+            <span class="p">]</span>
+
+        <span class="n">ocs_units</span> <span class="o">=</span> <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="s2">&quot;UNIT_TYPE == &#39;OCS (Other combustion source)&#39;&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">UNIT_NAME</span>
+
+        <span class="n">ocs_units</span> <span class="o">=</span> <span class="n">ocs_units</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;There are </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ocs_units</span><span class="p">)</span><span class="si">}</span><span class="s1"> units &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;or </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ocs_units</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">ghgrp_df</span><span class="p">)</span><span class="si">:</span><span class="s1">.1%</span><span class="si">}</span><span class="s1"> labelled as OCS&#39;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Assume boilers will be the most typical combustion unit type</span>
+        <span class="c1"># pd.Series.str.find returns -1 where a string is not found</span>
+        <span class="c1"># Not perfect, as approach assigns &quot;boiler&quot; to units that are </span>
+        <span class="c1"># aggregations, e.g., &quot;GP-1 Boilers / Afterburners&quot;</span>
+        <span class="n">named_units</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">ocs_units</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">types</span><span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Matched will show as NaN</span>
+        <span class="n">named_units</span> <span class="o">=</span> <span class="n">named_units</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">named_units</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">named_units</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">named_units</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">named_units</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;furn&#39;</span><span class="p">:</span> <span class="s1">&#39;furnace&#39;</span><span class="p">,</span> <span class="s1">&#39;htr&#39;</span><span class="p">:</span> <span class="s1">&#39;heater&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;hot water&#39;</span><span class="p">:</span> <span class="s1">&#39;water heater&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;rice&#39;</span><span class="p">:</span> <span class="s1">&#39;engine&#39;</span><span class="p">,</span> <span class="s1">&#39;comfort heater&#39;</span><span class="p">:</span> <span class="s1">&#39;space heater&#39;</span>
+            <span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+        <span class="n">named_units</span> <span class="o">=</span> <span class="n">named_units</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">named_units</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">named_units</span> <span class="o">=</span> <span class="n">named_units</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">dropna</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">sing_types</span> <span class="o">=</span> <span class="n">named_units</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">sing_types</span> <span class="o">=</span> <span class="n">sing_types</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sing_types</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        <span class="n">sing_types</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">named_units</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sing_types</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="p">)</span>
+
+        <span class="n">mult_types</span> <span class="o">=</span> <span class="n">named_units</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">mult_types</span> <span class="o">=</span> <span class="n">mult_types</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mult_types</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        <span class="n">mult_types</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">named_units</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mult_types</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="p">)</span>
+        <span class="n">mult_types</span><span class="p">[</span><span class="s1">&#39;unit_type_iden&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">ocs_units</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">ocs_units</span><span class="p">,</span>
+             <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">ocs_units</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;unit_type_iden&#39;</span><span class="p">)],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">)</span>
+
+        <span class="c1"># TODO why isn&#39;t sing_types.apply(lambda x: x.dropna()), result_type=&#39;reduce&#39;)</span>
+        <span class="c1"># returning a series? Should be a faster approach than this loop</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sing_types</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">ocs_units</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;unit_type_iden&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">sing_types</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;boiler&#39;</span><span class="p">,</span> <span class="s1">&#39;furnace&#39;</span><span class="p">,</span> <span class="s1">&#39;kiln&#39;</span><span class="p">,</span> <span class="s1">&#39;calciner&#39;</span><span class="p">,</span> <span class="s1">&#39;dryer&#39;</span><span class="p">,</span> <span class="s1">&#39;stove&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;space heater&#39;</span><span class="p">,</span> <span class="s1">&#39;water heater&#39;</span><span class="p">,</span> <span class="s1">&#39;turbine&#39;</span><span class="p">,</span> <span class="s1">&#39;generator&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;engine&#39;</span><span class="p">,</span> <span class="s1">&#39;cupola&#39;</span><span class="p">,</span> <span class="s1">&#39;compressor&#39;</span><span class="p">,</span> <span class="s1">&#39;pump&#39;</span><span class="p">,</span> <span class="s1">&#39;building heat&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;space heater&#39;</span><span class="p">,</span> <span class="s1">&#39;oxidizer&#39;</span><span class="p">]:</span>
+
+            <span class="n">mult_types</span><span class="o">.</span><span class="n">unit_type_iden</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="n">mult_types</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                <span class="p">)</span>
+
+            <span class="n">ocs_units</span><span class="o">.</span><span class="n">unit_type_iden</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="n">mult_types</span><span class="o">.</span><span class="n">unit_type_iden</span>
+                <span class="p">)</span>
+
+            <span class="n">mult_types</span> <span class="o">=</span> <span class="n">mult_types</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                <span class="n">mult_types</span><span class="o">.</span><span class="n">unit_type_iden</span> <span class="o">!=</span> <span class="n">t</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;unit_type_iden&#39;</span><span class="p">])</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">UNIT_TYPE</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ocs_units</span><span class="o">.</span><span class="n">unit_type_iden</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ghgrp_df</span></div>
+
+
+<div class="viewcode-block" id="GHGRP_unit_char.main">
+<a class="viewcode-back" href="../../../fied.ghgrp.html#fied.ghgrp.ghgrp_fac_unit.GHGRP_unit_char.main">[docs]</a>
+    <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">ghgrp_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_unit_type</span><span class="p">()</span>
+        <span class="n">ghgrp_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_unit_capacity</span><span class="p">(</span><span class="n">ghgrp_df</span><span class="p">)</span>
+        <span class="n">ghgrp_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_ghgrp_df</span><span class="p">(</span><span class="n">ghgrp_df</span><span class="p">)</span>
+
+        <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dir</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">_ghgrp_energy_file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                         <span class="p">)</span><span class="o">+</span><span class="s1">&#39;_unittype_final.csv&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ghgrp_df</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># ghgrp_energy_file = &#39;ghgrp_energy_20240110-1837.parquet&#39;</span>
+    <span class="n">ghgrp_energy_file</span> <span class="o">=</span> <span class="s1">&#39;all_ghgrp_energy.parquet&#39;</span>
+    <span class="n">reporting_year</span> <span class="o">=</span> <span class="mi">2018</span>
+    <span class="n">ghgrp_df</span> <span class="o">=</span> <span class="n">GHGRP_unit_char</span><span class="p">(</span><span class="n">ghgrp_energy_file</span><span class="p">,</span> <span class="n">reporting_year</span><span class="p">)</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+    <span class="n">ghgrp_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;formatted_ghgrp_unit_data_2018_DECARB.csv&#39;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2024, Alliance for Sustainable Energy, LLC..
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.9.1.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>
