@@ -19,12 +19,12 @@ The **Foundational Industry Energy Dataset (FIED)** provides unit-level energy e
 
 
 .. autosummary::
-:toctree _autosummary
-:caption: API Reference
-:template: methods.rst
-:recursive:
+   :toctree: _autosummary
+   :caption: API Reference
+   :template: methods.rst
+   :recursive:
 
-fied
+   fied
 
 Indices and Tables
 ==================
