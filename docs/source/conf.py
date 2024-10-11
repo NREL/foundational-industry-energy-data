@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'The Foundational Industry Energy Dataset (FIED)'
-copyright = '2024, Alliance for Sustainable Energy, LLC.'
+copyright = '2024, Alliance for Sustainable Energy, LLC'
 author = 'NREL: Colin McMillan and Carrie Schoeneberger'
 release = '0.1'
 
@@ -30,8 +30,9 @@ extensions = [
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
-    'pandas': ('https://pandas.pydata.org/pandas-docs/version/1.2.0/', None),
-    'numpy': ('https://numpy.org/doc/1.23/reference/index.html', None)
+    'pandas': ('https://pandas.pydata.org/pandas-docs/stable', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'plotly': ('https://plot.ly/python/', None)
 }
 
 templates_path = ['_templates']
