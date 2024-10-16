@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fied.scc.scc_unit_id</title>
+    
+          <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../../_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="../../../_static/documentation_options.js?v=2709fde1"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../../_static/theme-vendors.js"></script> -->
+      <script src="../../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../../index.html" class="home-link">
+    
+      <span class="site-name">The Foundational Industry Energy Dataset (FIED)</span>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../../index.html#fied-documentation-and-other-resources-on-u-s-industrial-energy-data">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../ind_data.html" class="reference internal ">Sources of Industrial Energy Data for the United States</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../nrel_data.html" class="reference internal ">NREL Industrial Energy Datasets</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../data_history.html" class="reference internal ">A Brief History of U.S. Industrial Energy Data</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../fied.html" class="reference internal ">fied package</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../../index.html">Module code</a> &raquo;</li>
+    
+    <li>fied.scc.scc_unit_id</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fied.scc.scc_unit_id</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+
+
+<div class="viewcode-block" id="SCC_ID">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID">[docs]</a>
+<span class="k">class</span> <span class="nc">SCC_ID</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use descriptions of SCC code levels to identify unit type and fuel type </span>
+<span class="sd">    indicated by a complete SCC code (e.g., 30190003). </span>
+<span class="sd">    The U.S. EPA uses Source Classification Codes (SCCs) to </span>
+<span class="sd">    classify different types of activities that generate emissions. </span>
+<span class="sd">    Each SCC represents a unique source category-specific process or</span>
+<span class="sd">    function that emits air pollutants. The SCCs are used as a primary</span>
+<span class="sd">    identifying data element in EPA’s WebFIRE (where SCCs are</span>
+<span class="sd">    used to link emissions factors to an emission process),</span>
+<span class="sd">    the National Emissions Inventory (NEI), and other EPA databases.</span>
+
+<span class="sd">    Eight digit SCC codes, such as ABBCCCDD, are structured as follows:</span>
+
+<span class="sd">    A: Level 1</span>
+<span class="sd">    BB: Level 2</span>
+<span class="sd">    CCC: Level 3</span>
+<span class="sd">    DD: Level 4</span>
+
+<span class="sd">    See SCC documentation for additional information:</span>
+<span class="sd">    https://sor-scc-api.epa.gov/sccwebservices/sccsearch/docs/SCC-IntroToSCCs_2021.pdf</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_complete_scc_filepath</span> <span class="o">=</span> <span class="s1">&#39;./data/SCC/SCCDownload.csv&#39;</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SCC_ID.get_complete_scc">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID.get_complete_scc">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_complete_scc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Download full set of SCC codes from EPA and save to</span>
+<span class="sd">        `self._complete_scc_filepath`.</span>
+<span class="sd">        Note that downloading directly from website assignes filename for csv</span>
+<span class="sd">        based as &#39;SCCDownload-{y}-{md}-{t}.csv&#39;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;CSV&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;sortFacet&#39;</span><span class="p">:</span> <span class="s1">&#39;scc level one&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="s1">&#39;SCCDownload.csv&#39;</span>
+            <span class="p">}</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://sor-scc-api.epa.gov/sccwebservices/v1/SCC?&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">all_scc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+                <span class="n">BytesIO</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="n">all_scc</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_scc_filepath</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">all_scc</span></div>
+
+
+<div class="viewcode-block" id="SCC_ID.load_complete_scc">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID.load_complete_scc">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_complete_scc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Complete list of SCC codes (available from</span>
+<span class="sd">        https://sor-scc-api.epa.gov/sccwebservices/sccsearch/) have</span>
+<span class="sd">        been manually downloaded.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        all_scc : pandas.DataFrame</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="n">all_scc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_scc_filepath</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+
+            <span class="n">all_scc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_complete_scc</span><span class="p">()</span>
+
+        <span class="n">all_scc</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">all_scc</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">all_scc</span></div>
+
+
+<div class="viewcode-block" id="SCC_ID.scc_query_split">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID.scc_query_split">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">scc_query_split</span><span class="p">(</span><span class="n">scc</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uses EPA SCC Web Services to get level information for an 8- or</span>
+<span class="sd">        10-digit SCC.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        scc : int</span>
+<span class="sd">            Eight or 10-digit Source Classification Code.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        scc_levels : dict</span>
+<span class="sd">            Dictionary of all four level names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;http://sor-scc-api.epa.gov:80/sccwebservices/v1/SCC/&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">base_url</span><span class="o">+</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">scc</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">levels</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;scc level </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;one&#39;</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">,</span> <span class="s1">&#39;three&#39;</span><span class="p">,</span> <span class="s1">&#39;four&#39;</span><span class="p">]]</span>
+
+        <span class="n">scc_levels</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">levels</span><span class="p">:</span>
+                <span class="n">scc_levels</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;attributes&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span>
+
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;SCC </span><span class="si">{</span><span class="n">scc</span><span class="si">}</span><span class="s1"> cannot be found&#39;</span><span class="p">)</span>
+            <span class="n">scc_levels</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">scc_levels</span></div>
+
+
+<div class="viewcode-block" id="SCC_ID.build_id">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID.build_id">[docs]</a>
+    <span class="k">def</span> <span class="nf">build_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Identify all relevant unit types and fuel</span>
+<span class="sd">        types in SCCs.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        all_scc : pandas.DataFrame</span>
+<span class="sd">            Complete SCC codes with added columns</span>
+<span class="sd">            of unit types and fuel types.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">all_scc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_complete_scc</span><span class="p">()</span>
+        <span class="n">all_scc</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;unit_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">all_scc</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;fuel_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="n">id_meth</span> <span class="o">=</span> <span class="p">[</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">id_external_combustion</span><span class="p">,</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">id_stationary_fuel_combustion</span><span class="p">,</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">id_ice</span><span class="p">,</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">id_chemical_evaporation</span><span class="p">,</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">id_industrial_processes</span><span class="p">,</span>
+            <span class="p">]</span>
+
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">all_scc</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">id_meth</span><span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">sort</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+        <span class="n">all_scc</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+
+        <span class="n">all_scc</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;unit_type&#39;</span><span class="p">,</span> <span class="s1">&#39;fuel_type&#39;</span><span class="p">],</span>
+                       <span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># all_scc = self.ft_clean_up(all_scc)</span>
+
+        <span class="k">return</span> <span class="n">all_scc</span></div>
+
+
+<div class="viewcode-block" id="SCC_ID.id_external_combustion">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID.id_external_combustion">[docs]</a>
+    <span class="k">def</span> <span class="nf">id_external_combustion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_scc</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method for identifying relevant unit and fuel types under</span>
+<span class="sd">        SCC Level 1 External Combustion (1)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        all_scc : pandas.DataFrame</span>
+<span class="sd">            Complete list of SCCs.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        scc_exc : pandas.DataFrame</span>
+<span class="sd">            SCC for external combustion (SCC Level 1 == 1) with</span>
+<span class="sd">            unit type and fuel type descriptions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">scc_exc</span> <span class="o">=</span> <span class="n">all_scc</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;scc_level_one==&#39;External Combustion&#39;&quot;</span><span class="p">)</span>
+
+        <span class="n">unit_types_detail</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fuel_types</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">other_fuels</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;Shredded&#39;</span><span class="p">,</span> <span class="s1">&#39;Specify Percent Butane in Comments&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Specify in Comments&#39;</span><span class="p">,</span> <span class="s1">&#39;Specify Waste Material in Comments&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Refuse Derived Fuel&#39;</span><span class="p">,</span> <span class="s1">&#39;Sewage Grease Skimmings&#39;</span><span class="p">,</span> <span class="s1">&#39;Waste Oil&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Sludge Waste&#39;</span><span class="p">,</span> <span class="s1">&#39;Digester Gas&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Agricultural Byproducts (rice or peanut hulls, shells, cow manure, etc)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Paper Pellets&#39;</span><span class="p">,</span> <span class="s1">&#39;Black Liquor&#39;</span><span class="p">,</span> <span class="s1">&#39;Red Liquor&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Spent Sulfite Liquor&#39;</span><span class="p">,</span> <span class="s1">&#39;Tall Oil&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Wood/Wood Waste Liquid&#39;</span><span class="p">,</span> <span class="s1">&#39;Off-gas Ejectors&#39;</span><span class="p">,</span> <span class="s1">&#39;Pulverized Coal&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Salable Animal Fat&#39;</span><span class="p">,</span> <span class="s1">&#39;Natural Gas&#39;</span><span class="p">,</span> <span class="s1">&#39;Process Gas&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Wet Slurry&#39;</span><span class="p">,</span> <span class="s1">&#39;Distillate Oil&#39;</span><span class="p">,</span> <span class="s1">&#39;Residual Oil&#39;</span><span class="p">,</span> <span class="s1">&#39;Petroleum Refinery Gas&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Grade 4 Oil&#39;</span><span class="p">,</span> <span class="s1">&#39;Grade 5 Oil&#39;</span><span class="p">,</span> <span class="s1">&#39;Grade 6 Oil&#39;</span><span class="p">,</span> <span class="s1">&#39;Blast Furnace Gas&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Coke Oven Gas&#39;</span><span class="p">,</span> <span class="s1">&#39;Landfill Gas&#39;</span><span class="p">,</span> <span class="s1">&#39;Biomass i[2]Solids&#39;</span>
+            <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">scc_exc</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+
+            <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_two&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Space Heaters&#39;</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]:</span>
+                    <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Space heater&#39;</span><span class="p">)</span>
+                    <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">elif</span> <span class="s1">&#39;boiler&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_two&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+
+                <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="s1">&#39;boiler&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">ut</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ut</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Boiler, </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">scc_level_four</span><span class="si">}</span><span class="s1">&#39;</span>
+
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="p">)</span>
+
+                <span class="c1"># split_ut = r[&#39;scc_level_four&#39;].split(&#39;: &#39;)</span>
+
+                <span class="c1"># if len(split_ut) == 2:</span>
+                <span class="c1">#     ut = split_ut[-1]</span>
+
+                <span class="c1">#     if ut in other_fuels:</span>
+                <span class="c1">#         unit_types_detail.append(&#39;Boiler&#39;)</span>
+
+                <span class="c1">#     else:</span>
+                <span class="c1">#         unit_types_detail.append(ut)</span>
+
+                <span class="c1"># elif len(split_ut) &gt; 2:</span>
+                <span class="c1">#     unit_types_detail.append((&#39; &#39;.join(split_ut[1:])))</span>
+
+                <span class="c1"># else:</span>
+                <span class="c1">#     if &#39;boiler&#39; in r[&#39;scc_level_four&#39;].lower():</span>
+                <span class="c1">#         unit_types_detail.append(r[&#39;scc_level_four&#39;])</span>
+
+                <span class="c1">#     else:</span>
+                <span class="c1">#         unit_types_detail.append(&#39;Boiler&#39;)</span>
+
+        <span class="n">scc_exc</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;unit_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit_types_detail</span>
+        <span class="n">scc_exc</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;fuel_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fuel_types</span>
+
+        <span class="k">return</span> <span class="n">scc_exc</span></div>
+
+
+<div class="viewcode-block" id="SCC_ID.id_ice">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID.id_ice">[docs]</a>
+    <span class="k">def</span> <span class="nf">id_ice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_scc</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method for identifying relevant unit and fuel types under </span>
+<span class="sd">        SCC Level 1 Internal Combustion Engines (2)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        all_scc : pandas.DataFrame</span>
+<span class="sd">            Complete list of SCCs.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        scc_ice : pandas.DataFrame</span>
+<span class="sd">            SCC for external combustion (SCC Level 1 == 2) with</span>
+<span class="sd">            unit type and fuel type descriptions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">scc_ice</span> <span class="o">=</span> <span class="n">all_scc</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;scc_level_one==&#39;Internal Combustion Engines&#39;&quot;</span><span class="p">)</span>
+        <span class="n">scc_ice</span> <span class="o">=</span> <span class="n">scc_ice</span><span class="p">[</span><span class="n">scc_ice</span><span class="o">.</span><span class="n">scc_level_two</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;Electric Generation&#39;</span><span class="p">,</span> <span class="s1">&#39;Industrial&#39;</span><span class="p">,</span> <span class="s1">&#39;Commercial/Institutional&#39;</span><span class="p">]</span>
+            <span class="p">)]</span>
+
+        <span class="n">unit_types_detail</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fuel_types</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">other</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Geysers/Geothermal&#39;</span><span class="p">,</span> <span class="s1">&#39;Equipment Leaks&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;Wastewater, Aggregate&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;Wastewater, Points of Generation&#39;</span><span class="p">,</span> <span class="s1">&#39;Flares&#39;</span><span class="p">]</span>
+
+        <span class="n">types</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;Turbine&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Reciprocating&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Turbine: Cogeneration&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Reciprocating: Cogeneration&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Refinery Gas: Turbine&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Refinery Gas: Reciprocating Engine&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Propane: Reciprocating&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Butane: Reciprocating&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Reciprocating Engine&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Reciprocating Engine: Cogeneration&#39;</span>
+            <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">scc_ice</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+
+            <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">other</span><span class="p">:</span>
+                <span class="n">ut</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">ft</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">elif</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">types</span><span class="p">:</span>
+                <span class="n">ft</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span>
+                <span class="n">ut</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span>
+
+            <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="p">)</span>
+            <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ft</span><span class="p">)</span>
+
+        <span class="n">scc_ice</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;unit_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit_types_detail</span>
+        <span class="n">scc_ice</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;fuel_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fuel_types</span>
+
+        <span class="k">return</span> <span class="n">scc_ice</span></div>
+
+
+<div class="viewcode-block" id="SCC_ID.id_stationary_fuel_combustion">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID.id_stationary_fuel_combustion">[docs]</a>
+    <span class="k">def</span> <span class="nf">id_stationary_fuel_combustion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_scc</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method for identifying relevant unit and fuel types under </span>
+<span class="sd">        SCC Level 1 Stationary Source Fuel Combustion (21; note this is</span>
+<span class="sd">        a 10-digit SCC code)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        all_scc : pandas.DataFrame</span>
+<span class="sd">            Complete list of SCCs.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        scc_ice : pandas.DataFrame</span>
+<span class="sd">            SCC for external combustion (SCC Level 1 == 2) with</span>
+<span class="sd">            unit type and fuel type descriptions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">scc_sta</span> <span class="o">=</span> <span class="n">all_scc</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;scc_level_one == &#39;Stationary Source Fuel Combustion&#39;&quot;</span><span class="p">)</span>
+        <span class="n">scc_sta</span> <span class="o">=</span> <span class="n">scc_sta</span><span class="p">[</span><span class="o">~</span><span class="n">scc_sta</span><span class="o">.</span><span class="n">scc_level_two</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;Residential&#39;</span><span class="p">]</span>
+            <span class="p">)]</span>
+
+        <span class="n">unit_types_detail</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fuel_types</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">scc_sta</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="s1">&#39;All Boiler Types&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]:</span>
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Boiler&#39;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="s1">&#39;Boilers and IC Engines&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]:</span>
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Boilers and IC Engines&#39;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="s1">&#39;All IC Engine Types&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]:</span>
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;IC Engine&#39;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="s1">&#39;All Heater Types&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]:</span>
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Heater&#39;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">])</span>
+
+        <span class="n">scc_sta</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;unit_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit_types_detail</span>
+        <span class="n">scc_sta</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;fuel_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fuel_types</span>
+
+        <span class="k">return</span> <span class="n">scc_sta</span></div>
+
+
+<div class="viewcode-block" id="SCC_ID.id_chemical_evaporation">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID.id_chemical_evaporation">[docs]</a>
+    <span class="k">def</span> <span class="nf">id_chemical_evaporation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_scc</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method for identifying relevant unit and fuel types under </span>
+<span class="sd">        SCC Level 1 Chemical Evaporation (4)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        all_scc : pandas.DataFrame</span>
+<span class="sd">            Complete list of SCCs.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        scc_chee : pandas.DataFrame</span>
+<span class="sd">            SCC for Chemical Evaporation (SCC Level 1 == 4) with</span>
+<span class="sd">            unit type and fuel type descriptions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">scc_chee</span> <span class="o">=</span> <span class="n">all_scc</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;scc_level_one == &#39;Chemical Evaporation&#39;&quot;</span><span class="p">)</span>
+
+        <span class="n">fuel_types</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">unit_types_detail</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">scc_chee</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_two&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Surface Coating Operations&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+                <span class="p">((</span><span class="s1">&#39;dryer&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="o">|</span> \
+                 <span class="p">(</span><span class="s1">&#39;drying&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())):</span>
+
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">])</span>
+                <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Coating Oven - General&#39;</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;&lt;&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">])</span> <span class="o">|</span> <span class="p">(</span><span class="s1">&#39;&gt;&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]):</span>
+                    <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Coating Oven&#39;</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">])</span>
+
+                <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Coating Oven Heater&#39;</span><span class="p">:</span>
+
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Coating Oven Heater&#39;</span><span class="p">)</span>
+                <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">])</span>
+
+            <span class="k">elif</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Fuel Fired Equipment&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+                    <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_two&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Surface Coating Operations&#39;</span><span class="p">):</span>
+
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">elif</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Fuel Fired Equipment&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+                    <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_two&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;Organic Solvent Evaporation&#39;</span><span class="p">):</span>
+
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">elif</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Drying&#39;</span><span class="p">:</span>
+
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">])</span>
+                <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;Drying&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+                    <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Dryer&#39;</span><span class="p">,</span> <span class="s1">&#39;Drying&#39;</span><span class="p">,</span> <span class="s1">&#39;Drying/Curing&#39;</span><span class="p">]):</span>
+
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">])</span>
+                <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># Skipping dry cleaning operations. Unsure whether &quot;drying&quot;</span>
+            <span class="c1"># includes application of heat</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">scc_chee</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;unit_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit_types_detail</span>
+        <span class="n">scc_chee</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;fuel_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fuel_types</span>
+
+        <span class="k">return</span> <span class="n">scc_chee</span></div>
+
+
+<div class="viewcode-block" id="SCC_ID.id_industrial_processes">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID.id_industrial_processes">[docs]</a>
+    <span class="k">def</span> <span class="nf">id_industrial_processes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_scc</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method for identifying relevant unit and fuel types under </span>
+<span class="sd">        SCC Level 1 Industrial Processes (3)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        all_scc : pandas.DataFrame</span>
+<span class="sd">            Complete list of SCCs.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        scc_ind : pandas.DataFrame</span>
+<span class="sd">            SCC for Industrial Processes (SCC Level 1 == 3) with</span>
+<span class="sd">            unit type and fuel type descriptions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">scc_ind</span> <span class="o">=</span> <span class="n">all_scc</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;scc_level_one == &#39;Industrial Processes&#39;&quot;</span><span class="p">)</span>
+
+        <span class="n">unit_types_detail</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fuel_types</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">other_counter</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">scc_ind</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+
+            <span class="n">ft</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">ut</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="s1">&#39;Commercial Cooking&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]:</span>
+                <span class="n">ut</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span>
+                <span class="n">ft</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">elif</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_two&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;In-process Fuel Use&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+                <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;Total&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+                <span class="p">(</span><span class="s1">&#39;Fuel Storage&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]):</span>
+
+                <span class="n">ut</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span>
+                <span class="n">ft</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span>
+                <span class="n">other_counter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Ammonia Production&#39;</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]:</span>
+                    <span class="n">ut</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">ft</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="n">ft</span> <span class="o">==</span> <span class="s1">&#39;Natural Gas Fired&#39;</span><span class="p">:</span>
+                        <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;natural gas&#39;</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ut</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span>
+                    <span class="n">ft</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">elif</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_two&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;In-process Fuel Use&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+                <span class="p">(</span><span class="nb">any</span><span class="p">([</span><span class="n">x</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span>
+                    <span class="s1">&#39;calciner&#39;</span><span class="p">,</span> <span class="s1">&#39;evaporator&#39;</span><span class="p">,</span> <span class="s1">&#39;furnace&#39;</span><span class="p">,</span> <span class="s1">&#39;dryer&#39;</span><span class="p">,</span> <span class="s1">&#39;kiln&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;oven&#39;</span><span class="p">,</span> <span class="s1">&#39;flares&#39;</span><span class="p">,</span> <span class="s1">&#39;incinerators&#39;</span><span class="p">,</span> <span class="s1">&#39;turbines&#39;</span><span class="p">,</span> <span class="s1">&#39;turbine&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;engines&#39;</span><span class="p">,</span> <span class="s1">&#39;engine&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;incinerator&#39;</span><span class="p">,</span> <span class="s1">&#39;distillation&#39;</span><span class="p">,</span> <span class="s1">&#39;heater&#39;</span><span class="p">,</span> <span class="s1">&#39;broil&#39;</span><span class="p">,</span> <span class="s1">&#39;flare&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;stove&#39;</span><span class="p">,</span> <span class="s1">&#39;steam&#39;</span>
+                    <span class="p">]])):</span>
+
+                <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Fuel Fired Equipment&#39;</span><span class="p">:</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">z</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Distillate&#39;</span><span class="p">,</span> <span class="s1">&#39;Residual&#39;</span><span class="p">,</span> <span class="s1">&#39;Gas&#39;</span><span class="p">,</span>
+                                             <span class="s1">&#39;Liquid&#39;</span><span class="p">,</span> <span class="s1">&#39;Propane&#39;</span><span class="p">]]):</span>
+                        <span class="n">ft</span> <span class="o">=</span> <span class="n">x</span>
+                        <span class="n">ut</span> <span class="o">=</span> <span class="n">y</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ft</span> <span class="o">=</span> <span class="n">y</span>
+                        <span class="n">ut</span> <span class="o">=</span> <span class="n">x</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ut</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="s1">&#39;fired&#39;</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">ft</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                                <span class="sa">r</span><span class="s1">&#39;(\w+ \w+)(?=-fired)|(\w+)(?=-fired)|(\w+ \w+ \w+)(?=-fired)&#39;</span><span class="p">,</span> 
+                                <span class="n">ut</span>
+                                <span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+
+                        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">ft</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                                    <span class="sa">r</span><span class="s1">&#39;cbm|nat gas|natural gas|distillate oil|residual oil|#2 oil|#6 oil|propane|coal|process gas&#39;</span><span class="p">,</span> 
+                                    <span class="n">ut</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                                    <span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+
+                            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                                <span class="n">ft</span> <span class="o">=</span> <span class="kc">None</span>
+
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;nat gas&#39;</span><span class="p">:</span>
+                                    <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;Natural Gas&#39;</span>
+
+                                <span class="k">elif</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;cbm&#39;</span><span class="p">:</span>
+                                    <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;Natural Gas&#39;</span>
+
+                                <span class="k">elif</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;#2 oil&quot;</span><span class="p">:</span>
+                                    <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;Diesel&#39;</span>
+
+                                <span class="k">elif</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;#6 oil&quot;</span><span class="p">:</span>
+                                    <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;Residual Fuel Oil&#39;</span>
+
+                                <span class="k">elif</span> <span class="n">ft</span> <span class="o">==</span> <span class="s1">&#39;natural gas&#39;</span><span class="p">:</span>
+                                    <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;Natural Gas&#39;</span>
+
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="s1">&#39;fired&#39;</span> <span class="ow">in</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                                <span class="n">ft</span> <span class="o">=</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; fired&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+                            <span class="k">elif</span> <span class="s1">&#39;direct&#39;</span> <span class="ow">in</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                                <span class="k">try</span><span class="p">:</span>
+                                    <span class="n">ft</span> <span class="o">=</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;direct &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+                                <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                                    <span class="n">ft</span> <span class="o">=</span> <span class="kc">None</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="k">if</span> <span class="n">ft</span> <span class="o">==</span> <span class="s1">&#39;ng&#39;</span><span class="p">:</span>
+                                        <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;Natural Gas&#39;</span>
+
+                                    <span class="k">else</span><span class="p">:</span>
+                                        <span class="k">pass</span>
+
+                            <span class="k">elif</span> <span class="p">(</span><span class="s1">&#39;and&#39;</span> <span class="ow">in</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="o">|</span> <span class="p">(</span><span class="s1">&#39;or&#39;</span> <span class="ow">in</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+                                <span class="n">ft</span> <span class="o">=</span> <span class="n">ft</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+                            <span class="c1"># Assume that &quot;...Gas-Fired...&quot; equipment refers to natural gas.</span>
+                            <span class="k">elif</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;gas&#39;</span><span class="p">:</span>
+                                <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;Natural Gas&#39;</span>
+
+                            <span class="k">elif</span> <span class="n">ft</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;oil&#39;</span><span class="p">:</span>
+                                <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;Residual Fuel Oil&#39;</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="s1">&#39;diesel&#39;</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                            <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;Diesel&#39;</span>
+
+                        <span class="k">elif</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">ut</span><span class="p">:</span> 
+
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+
+                            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                                <span class="n">ft</span> <span class="o">=</span> <span class="kc">None</span>
+
+                            <span class="k">else</span><span class="p">:</span>
+
+                                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">z</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Distillate&#39;</span><span class="p">,</span> <span class="s1">&#39;Residual&#39;</span><span class="p">,</span> <span class="s1">&#39;Gas&#39;</span><span class="p">,</span>
+                                                        <span class="s1">&#39;Liquid&#39;</span><span class="p">,</span> <span class="s1">&#39;Propane&#39;</span><span class="p">]]):</span>
+                                    <span class="n">ft</span> <span class="o">=</span> <span class="n">x</span>
+                                    <span class="n">ut</span> <span class="o">=</span> <span class="n">y</span>
+
+                                <span class="k">elif</span> <span class="nb">any</span><span class="p">([</span><span class="n">z</span> <span class="ow">in</span> <span class="n">y</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Distillate&#39;</span><span class="p">,</span> <span class="s1">&#39;Residual&#39;</span><span class="p">,</span> <span class="s1">&#39;Gas&#39;</span><span class="p">,</span>
+                                                        <span class="s1">&#39;Liquid&#39;</span><span class="p">,</span> <span class="s1">&#39;Propane&#39;</span><span class="p">]]):</span>
+                                    <span class="n">ft</span> <span class="o">=</span> <span class="n">y</span>
+                                    <span class="n">ut</span> <span class="o">=</span> <span class="n">x</span>
+
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">ft</span> <span class="o">=</span> <span class="kc">None</span>
+
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">ft</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">elif</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_three&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Fuel Fired Equipment&#39;</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;sector&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Industrial Processes - Chemical Manuf&#39;</span><span class="p">:</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">ft</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="n">ut</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+                    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                        <span class="n">ft</span> <span class="o">=</span> <span class="kc">None</span> 
+                        <span class="n">ut</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span>
+
+                <span class="k">else</span><span class="p">:</span>
+
+                    <span class="n">ft</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">ut</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;scc_level_four&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Last fuel type is </span><span class="si">{</span><span class="n">fuel_types</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s1">Last unit type is </span><span class="si">{</span><span class="n">unit_types_detail</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1"> &#39;</span><span class="p">)</span>
+
+            <span class="c1"># elif r[&#39;tier_1_description&#39;] == &#39;Fuel Comb. Industrial&#39;:</span>
+            <span class="c1">#     ft = f&#39;{r[&quot;tier_3_description&quot;]} {&quot;tier_2_description&quot;}&#39;</span>
+            
+            <span class="c1"># Cludge for catching technologies that use electricity</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">fte</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(elec)&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fte</span><span class="p">:</span>
+                    <span class="n">ft</span> <span class="o">=</span> <span class="s1">&#39;electricity&#39;</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="n">fuel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ft</span><span class="p">)</span>
+            <span class="n">unit_types_detail</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="p">)</span>
+
+        <span class="n">scc_ind</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;unit_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit_types_detail</span>
+        <span class="n">scc_ind</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;fuel_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fuel_types</span>
+
+        <span class="k">return</span> <span class="n">scc_ind</span></div>
+
+
+
+<div class="viewcode-block" id="SCC_ID.main">
+<a class="viewcode-back" href="../../../fied.scc.html#fied.scc.scc_unit_id.SCC_ID.main">[docs]</a>
+    <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">id_scc</span> <span class="o">=</span> <span class="n">SCC_ID</span><span class="p">()</span>
+        <span class="n">id_scc_df</span> <span class="o">=</span> <span class="n">id_scc</span><span class="o">.</span><span class="n">build_id</span><span class="p">()</span>
+        <span class="n">id_scc_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;./scc/iden_scc.csv&#39;</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">id_scc</span> <span class="o">=</span> <span class="n">SCC_ID</span><span class="p">()</span>
+    <span class="n">id_scc_df</span> <span class="o">=</span> <span class="n">id_scc</span><span class="o">.</span><span class="n">build_id</span><span class="p">()</span>
+    <span class="n">id_scc_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;./scc/iden_scc.csv&#39;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2024, Alliance for Sustainable Energy, LLC.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.9.1.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>
