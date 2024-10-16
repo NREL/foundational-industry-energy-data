@@ -44,7 +44,10 @@ Although EIA is responsible for collecting much of the nation's industrial energ
 U.S. Census Bureau
 ******************
 
+Most data collected by the Census Bureau relate to the economic characteristics of industry. The Economic Census does report electricity use in kWh, in addition to fuel purchases (in $). The Economic Census also provides individual tables for materials and fuels consumed by industries.  
+
 * `Economic Census <https://www.census.gov/programs-surveys/economic-census.html>`_: Survey conducted every five years on economic characteristics of industrial establishments.
+  * Example 2017 tables (link to zip folder) for materials consumed by `mining <https://www2.census.gov/programs-surveys/economic-census/data/2017/sector21/EC1721MATFUEL.zip>`_ and `manufacturing <https://www2.census.gov/programs-surveys/economic-census/data/2017/sector31/EC1731MATFUEL.zip>`_.
 * `Annual Integrated Economic Survey (AIES) <https://www.census.gov/programs-surveys/aies.html>`_: Annual survey that includes economic characteristics of manufacturing establishments. 
 * `Quarterly Survey of Plant Capacity Utilization (QPC) <https://www.census.gov/programs-surveys/qpc.html>`_: Quarterly survey that provides statistics on the rates of industrial capacity utilization and average weekly operating hours.
 
@@ -58,11 +61,13 @@ Several EPA datasets provide detailed information about facilities and their ind
 Other Federal agencies
 **********************
 
-Several other federal agencies collect industrial energy information. 
+Several other federal agencies collect industrial energy information, including the U.S. Geological Survey (USGS) and the U.S. Department of Agriculture (USDA). 
 
 
 U.S. Geological Survey (USGS)
 =============================
+
+The USGS may collect additional industrial energy data, but only the Cement Minerals Yearbook is known to include estimates of energy consumption.
 
 * `Minerals Yearbook: Cement <https://www.usgs.gov/centers/national-minerals-information-center/cement-statistics-and-information>`_: Includes estimates of fuels used by cement district.
 
@@ -70,7 +75,12 @@ U.S. Geological Survey (USGS)
 U.S. Department of Agriculture (USDA)
 =====================================
 
-Like the The USDA also maintains the `Federal Life Cycle Assessment (LCA) Commons <https://www.lcacommons.gov>`_, a data repository to support LCA.
+The USDA collects a limited amount of energy consumption data for farming operations. Known sources are:
+
+* `USDA Economic Research Service Farm Income and Wealth Statistics <https://data.ers.usda.gov/reports.aspx?ID=17842#P474eafd3e12544e19338a00227af3001_2_252iT0R0x17>`_: Electricity and petroleum fuel and oil expenses (in $) by state.
+* `USDA National Agricultural Statistics Service <https://quickstats.nass.usda.gov>`_: Expenses from Ag Census (conducted every 5 years) and various surveys. 
+
+The USDA also maintains the `Federal Life Cycle Assessment (LCA) Commons <https://www.lcacommons.gov>`_, a data repository to support LCA.
 
 
 Justice-Focused
@@ -98,4 +108,4 @@ Other Publicly-Avaialable Data
 Private (Proprietary) Sources
 *****************************
 
-A mix of industry trade groups and other private sources collect data and may offer access for a fee. 
+A mix of industry trade groups and other private sources collect data and may offer access for a fee. Notable examples include the `Portland Cement Association <https://www.cement.org/intelligence-resources/market-intelligence/industry-information/>`_ and the `American Iron and Steel Institute <https://www.steel.org/industry-data/>`_.
