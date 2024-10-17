@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import get_GHGRP_data
 import sys
-sys.path.append(f"{os.path.expanduser('~')}/foundational-industry-energy-data")
+sys.path.append(f"{os.path.expanduser('~')}/foundational-industry-energy-data/fied")
 from geocoder.geopandas_tools import FiedGIS
 from ghg_tiers import TierEnergy
 
@@ -82,7 +82,21 @@ class GHGRP(FiedGIS, TierEnergy):
 
     gis = FiedGIS()
 
-    def __init__(self, years, calc_uncertainty):
+    def __init__(self, years, calc_uncertainty, fix_county_fips):
+        """
+        
+        Parameters
+        ----------
+        years : tuple or range of int
+            Indicates for which reporting years to derive energy estimates.
+
+        calc_uncertainty : bool
+            Indicates wether to run uncertainty calculations.
+
+        fix_county_fips : bool
+            Indicates whether to fill missing county FIPS codes. Significantly increases
+            run time. 
+        """
 
         if type(years) == tuple:
             self.years = range(years[0], years[1]+1)
@@ -94,10 +108,22 @@ class GHGRP(FiedGIS, TierEnergy):
 
         self.tier_calcs = TierEnergy(years=self.years, std_efs=self.std_efs)
 
+        self.fix_county_fips = fix_county_fips
 
     def format_emissions(self, GHGs):
         """
         Format and correct for odd issues with reported data in subpart C.
+
+        Parameters
+        ----------
+        GHGs : pandas.DataFrame
+            DataFrame of GHGRP data. 
+
+
+        Returns
+        -------
+        GHGs : pandas.DataFrame
+            DataFrame of corrected GHGRP data.
         """
 
         GHGs.dropna(axis=0, subset=['FACILITY_ID'], inplace=True)
@@ -116,12 +142,15 @@ class GHGRP(FiedGIS, TierEnergy):
         if 2014 in self.years:
             # This facility CH4 combustion emissions off by factor of 1000
             GHGs.loc[:, 'T4CH4COMBUSTIONEMISSIONS'] = GHGs['T4CH4COMBUSTIONEMISSIONS'].astype(float)
+
             i1 = GHGs[(GHGs.FACILITY_ID == 1001143) &
                       (GHGs.REPORTING_YEAR == 2014)].dropna(
                         subset=['T4CH4COMBUSTIONEMISSIONS']
                         ).index
+
             GHGs.loc[i1, 'T4CH4COMBUSTIONEMISSIONS'] = \
                 GHGs.loc[i1, 'T4CH4COMBUSTIONEMISSIONS']/1000
+
             GHGs.loc[i1, 'ANNUAL_HEAT_INPUT'] = np.nan
 
             for i in list(GHGs[(GHGs.FACILITY_ID == 1005675) &
@@ -187,7 +216,6 @@ class GHGRP(FiedGIS, TierEnergy):
         ffile : pandas.DataFrame or str
             DataFrame or path string of 2010 faciliy data to format
         and correct.
-
 
         Returns
         -------
@@ -284,29 +312,29 @@ class GHGRP(FiedGIS, TierEnergy):
 
         all_fac = all_fac.append(self.fac_read_fix(oth_facfile))
 
-        # Drop duplicated facility IDs, keeping first instance (i.e., year).
-        all_fac = pd.DataFrame(all_fac[~all_fac.index.duplicated(keep='first')])
+    #     # Drop duplicated facility IDs, keeping first instance (i.e., year).
+    #     all_fac = pd.DataFrame(all_fac[~all_fac.index.duplicated(keep='first')])
 
-        # Fill in missing county FIPS codes        
-        all_fac = self.gis.merge_geom(
-            all_fac.reset_index(), year=2017, ftypes=['COUNTY'],
-            data_source='ghgrp'
-            )
+    #     # Fill in missing county FIPS codes        
+    #     all_fac = self.gis.merge_geom(
+    #         all_fac.reset_index(), year=2017, ftypes=['COUNTY'],
+    #         data_source='ghgrp'
+    #         )
 
-        all_fac.drop('COUNTY_FIPS_x', axis=1, inplace=True)
+    #     all_fac.drop('COUNTY_FIPS_x', axis=1, inplace=True)
 
-        all_fac.rename(columns={'COUNTY_FIPS_y': 'COUNTY_FIPS'}, inplace=True)
+    #     all_fac.rename(columns={'COUNTY_FIPS_y': 'COUNTY_FIPS'}, inplace=True)
 
-        all_fac['COUNTY_FIPS'].fillna(0, inplace=True)
+    #     all_fac['COUNTY_FIPS'].fillna(0, inplace=True)
 
-    #    Assign MECS regions and NAICS codes to facilities and merge location
-    #    data with GHGs dataframe.
-    #    EPA data for some facilities are missing county fips info
-        all_fac.COUNTY_FIPS = all_fac.COUNTY_FIPS.apply(np.int)
+    # #    Assign MECS regions and NAICS codes to facilities and merge location
+    # #    data with GHGs dataframe.
+    # #    EPA data for some facilities are missing county fips info
+    #     all_fac.COUNTY_FIPS = all_fac.COUNTY_FIPS.apply(np.int)
 
-        all_fac.set_index('COUNTY_FIPS', inplace=True)
+    #     all_fac.set_index('COUNTY_FIPS', inplace=True)
 
-        all_fac.MECS_Region.update(self.MECS_regions.MECS_Region)
+    #     all_fac.MECS_Region.update(self.MECS_regions.MECS_Region)
 
         all_fac.rename(columns={'YEAR': 'FIRST_YEAR_REPORTED'}, inplace=True)
 
