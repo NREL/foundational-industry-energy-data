@@ -4,6 +4,8 @@
 
 This is an effort by the National Renewable Energy Laboratory (NREL) and Argonne National Laboratory (ANL) to create an experimental foundational industry dataset for energy and emissions analysis and modeling. The code draws from various publicly-available data, primarily from the U.S. EPA, to compile a data set on unit-level energy use and characterization for U.S. industrial facilities in 2017.
 
+The FIED, and the accompanying technical report, can be downloaded from its [Open Energy Data Initiative submission](https://doi.org/10.25984/2437657).
+
 ## Getting Started
 
 ### Manual Data Downloads
