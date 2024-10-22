@@ -9,8 +9,9 @@ import zipfile
 import sys
 from io import BytesIO
 from pathlib import Path
-sys.path.append(Path(__file__).parents[1]/"tools")
-from tools.misc_tools import Tools
+TOOLSPATH = str(Path(__file__).parents[1]/"tools")
+sys.path.append(TOOLSPATH)
+from misc_tools import Tools
 
 
 logging.basicConfig(level=logging.INFO)
@@ -31,16 +32,23 @@ class NEI ():
 
         logging.basicConfig(level=logging.INFO)
 
-        self._nei_data_path = os.path.abspath('./data/NEI/nei_ind_data.csv')
-        self._webfires_data_path = \
-            os.path.abspath('./data/WebFire/webfirefactors.csv')
+        self._FIEDPATH = Path(__file__).parents[1]
 
-        self._unit_conv_path = os.path.abspath('./nei/unit_conversions.yml')
+        self._nei_data_path = Path(self._FIEDPATH, "data/NEI/nei_ind_data.csv")
+        # self._nei_data_path = os.path.abspath('./data/NEI/nei_ind_data.csv')
+        
+        self._webfires_data_path = Path(self._FIEDPATH, "data/WebFire/webfirefactors.csv")
+        # self._webfires_data_path = \
+        #     os.path.abspath('./data/WebFire/webfirefactors.csv')
+
+        self._unit_conv_path = Path(self._FIEDPATH, "nei/unit_conversions.yml")
+        # self._unit_conv_path = os.path.abspath('./nei/unit_conversions.yml')
 
         with open(self._unit_conv_path) as file:
             self._unit_conv = yaml.load(file, Loader=yaml.SafeLoader)
 
-        self._scc_units_path = os.path.abspath('./scc/iden_scc.csv')
+        self._scc_units_path = Path(self._FIEDPATH, "scc/iden_scc.csv")
+        # self._scc_units_path = os.path.abspath('./scc/iden_scc.csv')
 
         self._data_source = 'NEI'
 
@@ -366,7 +374,7 @@ class NEI ():
         """
 
 
-        if os.path.exists(self._nei_data_path):
+        if self._nei_data_path.exists():
 
             logging.info('Reading NEI data from csv')
 
@@ -548,7 +556,7 @@ class NEI ():
             EPA WebFire emissions factors. 
         """
 
-        if os.path.exists(self._webfires_data_path):
+        if self._webfires_data_path.exists():
 
             logging.info('Reading WebFire data from csv')
 
@@ -559,6 +567,8 @@ class NEI ():
             logging.info(
                 'Downloading WebFire data; writing webfirefactors.csv'
                 )
+                
+            Path.mkdir(self._webfires_data_path.parents[0])
 
             r = requests.get(
                 'https://cfpub.epa.gov/webfire/download/webfirefactors.zip'
@@ -567,6 +577,7 @@ class NEI ():
             with zipfile.ZipFile(BytesIO(r.content)) as zf:
                 with zf.open(zf.namelist()[0]) as f:
                     webfr = pd.read_csv(f, low_memory=False)
+
                     webfr.to_csv(self._webfires_data_path)
 
         return webfr
