@@ -9,8 +9,8 @@ import zipfile
 import sys
 from io import BytesIO
 from pathlib import Path
-TOOLSPATH = str(Path(__file__).parents[1]/"tools")
-sys.path.append(TOOLSPATH)
+#toolspath = str(Path(__file__).parents[1]/"tools")
+sys.path.append(str(Path(__file__).parents[1]/"tools"))
 from misc_tools import Tools
 
 
@@ -33,8 +33,9 @@ class NEI ():
         logging.basicConfig(level=logging.INFO)
 
         self._FIEDPATH = Path(__file__).parents[1]
-
+        
         self._nei_data_path = Path(self._FIEDPATH, "data/NEI/nei_ind_data.csv")
+        
         # self._nei_data_path = os.path.abspath('./data/NEI/nei_ind_data.csv')
         
         self._webfires_data_path = Path(self._FIEDPATH, "data/WebFire/webfirefactors.csv")
@@ -51,6 +52,8 @@ class NEI ():
         # self._scc_units_path = os.path.abspath('./scc/iden_scc.csv')
 
         self._data_source = 'NEI'
+
+        self.year = 2017
 
         self._cap_conv = {
             'energy': {  # Convert to MJ
@@ -471,76 +474,151 @@ class NEI ():
             logging.info('Reading NEI data from zipfiles')
 
             nei_data = pd.DataFrame()
+           
 
             for f in os.listdir(os.path.dirname(self._nei_data_path)):
 
                 if '.csv' in f:
 
-                    if f == 'point_unknown.csv':
-                        continue
+                    if self.year == 2017:
+                        
+                        if f == 'point_unknown_2017.csv':
+                            continue
+
+                        else:
+
+                            data = pd.read_csv(
+                                    os.path.join(
+                                        os.path.dirname(self._nei_data_path), f
+                                        ),
+                                    low_memory=False
+                                    )
+
+                            data.columns = data.columns.str.strip()
+                            data.columns = data.columns.str.replace(' ', '_')
+
+                            # For some reason csvs have different column naming conventions
+                            data.rename(columns={
+                                'stfips': 'fips_state_code',
+                                'fips': 'fips_code',
+                                'pollutant_type(s)': 'pollutant_type',
+                                'region': 'epa_region_code'
+                                }, inplace=True)
+
+                        # unit types & emissions calc methods in point_678910.csv are truncated; 
+                        # match to full unit type names in point_12345.csv
+                        # Also, match to full calculation method names in point_12345.csv
+                        if '12345' in f:
+                            full_unit = list(data.unit_type.unique())
+                            full_method = list(data.calculation_method.unique())
+
+                        elif '6789' in f:
+                            partial_unit = list(data.unit_type.unique())
+                            partial_method = \
+                                list(data.calculation_method.unique())
+
+                        else:
+                            pass
+                        nei_data = nei_data.append(data, sort=False)
+                    
+                        unit_matches = NEI.match_partial(full_unit, partial_unit)
+                        meth_matches = NEI.match_partial(full_method, partial_method)
+
+                        nei_data.replace({'unit_type': unit_matches}, inplace=True)
+                        nei_data.replace({'calculation_method': meth_matches}, inplace=True)
+
+
+                        nei_naics = pd.DataFrame(
+                            nei_data.naics_code.unique(), columns=['naics_code']
+                        )
+
+                        nei_naics.loc[:, 'naics_sub'] = \
+                            nei_naics.naics_code.astype(str).str[:3].astype(int)
+                        nei_naics.loc[:, 'ind'] = [
+                            str(x)[0:2] in ['11', '21', '23', '31', '32', '33'] for x in nei_naics.naics_sub
+                            ]
+                        nei_naics = nei_naics[nei_naics.ind == True]['naics_code']
+
+                        # Keep only industrial facilities
+                        nei_data = pd.merge(
+                            nei_data, nei_naics, on='naics_code',
+                            how='inner'
+                            )                        
 
                     else:
+                        if f == 'point_unknown_2020.csv':
+                            continue
+                        
+                        else:
 
-                        data = pd.read_csv(
-                                os.path.join(
-                                    os.path.dirname(self._nei_data_path), f
-                                    ),
-                                low_memory=False
-                                )
+                            data = pd.read_csv(
+                                    os.path.join(
+                                        os.path.dirname(self._nei_data_path), f
+                                        ),
+                                    low_memory=False
+                                    )
 
-                        data.columns = data.columns.str.strip()
-                        data.columns = data.columns.str.replace(' ', '_')
+                            data.columns = data.columns.str.strip()
+                            data.columns = data.columns.str.replace(' ', '_')
 
-                        # For some reason csvs have different column naming conventions
-                        data.rename(columns={
-                            'stfips': 'fips_state_code',
-                            'fips': 'fips_code',
-                            'pollutant_type(s)': 'pollutant_type',
-                            'region': 'epa_region_code'
-                            }, inplace=True)
+                             # For some reason csvs have different column naming conventions
+                            data.rename(columns={
+                                'stfips': 'fips_state_code',
+                                'fips': 'fips_code',
+                                'pollutant_type(s)': 'pollutant_type',
+                                'region': 'epa_region_code'
+                                }, inplace=True)
+                            
+                            if 'point_1' in f:
+                                full_unit = list(data.unit_type.unique())
+                                full_method = list(data.calculation_method.unique())
+                            elif 'point_2' in f:
+                                full_unit = list(data.unit_type.unique())
+                                full_method = list(data.calculation_method.unique())
+                            elif 'point_3' in f:
+                                full_unit = list(data.unit_type.unique())
+                                full_method = list(data.calculation_method.unique())
+                            elif 'point_4' in f:
+                                full_unit = list(data.unit_type.unique())
+                                full_method = list(data.calculation_method.unique())                                                                
+                            elif 'point_5' in f:
+                                full_unit = list(data.unit_type.unique())
+                                full_method = list(data.calculation_method.unique())
+                            elif 'point_6' in f:
+                                full_unit = list(data.unit_type.unique())
+                                full_method = list(data.calculation_method.unique())        
+                            elif 'point_7' in f:
+                                full_unit = list(data.unit_type.unique())
+                                full_method = list(data.calculation_method.unique())
+                            elif 'point_8' in f:
+                                full_unit = list(data.unit_type.unique())
+                                full_method = list(data.calculation_method.unique())
+                            elif 'point_9' in f:
+                                full_unit = list(data.unit_type.unique())
+                                full_method = list(data.calculation_method.unique())
+                            elif 'point_10' in f:
+                                full_unit = list(data.unit_type.unique())
+                                full_method = list(data.calculation_method.unique())
+                            else:
+                                pass
+                            
+                        nei_data = nei_data.append(data, sort=False)
+                        nei_naics = pd.DataFrame(
+                            nei_data.primary_naics_code.unique(), columns=['primary_naics_code']
+                        )
 
-                    # unit types & emissions calc methods in point_678910.csv are truncated; 
-                    # match to full unit type names in point_12345.csv
-                    # Also, match to full calculation method names in point_12345.csv
-                    if '12345' in f:
-                        full_unit = list(data.unit_type.unique())
-                        full_method = list(data.calculation_method.unique())
+                        nei_naics.loc[:, 'naics_sub'] = \
+                            nei_naics.primary_naics_code.astype(str).str[:3].astype(int)
+                        nei_naics.loc[:, 'ind'] = [
+                            str(x)[0:2] in ['11', '21', '23', '31', '32', '33'] for x in nei_naics.naics_sub
+                            ]
+                        nei_naics = nei_naics[nei_naics.ind == True]['primary_naics_code']
 
-                    elif '6789' in f:
-                        partial_unit = list(data.unit_type.unique())
-                        partial_method = \
-                            list(data.calculation_method.unique())
-
-                    else:
-                        pass
-
-                    nei_data = nei_data.append(data, sort=False)
-
-                else:
-                    continue
-
-            unit_matches = NEI.match_partial(full_unit, partial_unit)
-            meth_matches = NEI.match_partial(full_method, partial_method)
-
-            nei_data.replace({'unit_type': unit_matches}, inplace=True)
-            nei_data.replace({'calculation_method': meth_matches}, inplace=True)
-
-            nei_naics = pd.DataFrame(
-                nei_data.naics_code.unique(), columns=['naics_code']
-                )
-
-            nei_naics.loc[:, 'naics_sub'] = \
-                nei_naics.naics_code.astype(str).str[:3].astype(int)
-            nei_naics.loc[:, 'ind'] = [
-                str(x)[0:2] in ['11', '21', '23', '31', '32', '33'] for x in nei_naics.naics_sub
-                ]
-            nei_naics = nei_naics[nei_naics.ind == True]['naics_code']
-
-            # Keep only industrial facilities
-            nei_data = pd.merge(
-                nei_data, nei_naics, on='naics_code',
-                how='inner'
-                )
+                        # Keep only industrial facilities
+                        nei_data = pd.merge(
+                            nei_data, nei_naics, on='primary_naics_code',
+                            how='inner'
+                            )
 
         return nei_data
 
@@ -1720,7 +1798,7 @@ class NEI ():
             generic fuel types that have been applied to NEI data.
         """
 
-        with open('./tools/type_standardization.yml', 'r') as file:
+        with open(r'C:\Users\cskangos\Documents\GitHub\foundational-industry-energy-data\fied\tools\type_standardization.yml') as file:
             docs = yaml.safe_load_all(file)
 
             for i, d in enumerate(docs):
@@ -1914,6 +1992,7 @@ class NEI ():
         nei = NEI()
         logging.info("Getting NEI data...")
         nei_data = nei.load_nei_data()
+        print('columns',nei_data.columns)
         iden_scc = nei.load_scc_unittypes()
         webfr = nei.load_webfires()
         logging.info("Merging WebFires data...")

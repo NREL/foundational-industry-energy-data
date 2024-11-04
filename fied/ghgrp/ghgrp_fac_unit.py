@@ -419,6 +419,6 @@ class GHGRP_unit_char():
 if __name__ == '__main__':
     # ghgrp_energy_file = 'ghgrp_energy_20240110-1837.parquet'
     ghgrp_energy_file = 'all_ghgrp_energy.parquet'
-    reporting_year = 2018
+    reporting_year = 2022
     ghgrp_df = GHGRP_unit_char(ghgrp_energy_file, reporting_year).main()
-    ghgrp_df.to_csv('formatted_ghgrp_unit_data_2018_DECARB.csv')
+    ghgrp_df.to_csv('formatted_ghgrp_unit_data_2022_DECARB.csv')
