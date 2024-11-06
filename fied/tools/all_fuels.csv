@@ -1,0 +1,228 @@
+ft,lvl_1,lvl_2,fied_2017
+Propane Gas,Petroleum products,Propane gas,lpgHGL
+Natural Gas (Weighted U.S. Average),Natural gas,natural gas,naturalGas
+Wood and Wood Residuals (dry basis),Biomass,Wood and wood residuals,biomass
+Distillate Fuel Oil No. 2,Petroleum products,Distillate Fuel Oil No. 2,diesel
+Liquefied petroleum gases (LPG),Petroleum products,Liquefied petroleum gases,lpgHGL
+Propane,Petroleum products,Propane,lpgHGL
+Motor Gasoline,Petroleum products,Gasoline,gasoline
+Other Oil (>401 deg F),Petroleum products,Other oil (>401 deg F),other
+Other Biomass Gases,Bioimass,Other biomass gases,biomass
+Used Oil,Petroleum products,Used oil,other
+Agricultural Byproducts,Biomass,Agricultural byproducts,biomass
+All Direct,Other,Other,other
+All Indirect,Other,Other,other
+Anthracite,Coal,Anthracite coal,coal
+Anthracite Coal,Coal,Anthracite coal,coal
+Asphalt and Road Oil,Petroleum products,Asphalt and road oil,other
+Bagasse,Biomass,Bagasse,biomass
+Biodiesel (100%),Biomass,Biodiesel,other
+Biogenic Process Derived Fuel (PDF),Biomass,Biogenic process derived fuel,other
+Biomass,Biomass,Biomass,biomass
+Bituminous,Coal and coke,Bituminous coal,coal
+Bituminous Coal,Coal and coke,Bituminous coal,coal
+Bituminous/Subbituminous Coal,Coal and coke,Bituminous and subituminous coal,coal
+Blast Furnace Gas,Other,Blast furnace gas,other
+Blend (bituminous/subituminous),Coal and coke,Bituminous and subituminous coal,coal
+Butane,Petroleum products,Butane,lpgHGL
+Butane (gaseous),Petroleum products,Butane gas,lpgHGL
+CO Boiler,Other,Other,other
+Carbon Monoxide,Other,Carbon monoxide,other
+Coal,Coal and coke,Coal,coal
+Coal Coke,Coal and coke,Coal coke,coke
+Coal-based Synfuel,Coal and coke,Coal-based synfuel,other
+Coke,Coal and coke,Coke,coke
+Coke Oven Gas,Other,Coke oven gas,other
+Combined Purge and Cold Box Fuel,Other,Combined purge and cold box fuel,other
+Digester Gas,Biomass,Digester gas,other
+Direct,Other,Other,other
+Direct Natural Gas,Natural gas,Natural gas,naturalGas
+Direct Wood,Biomass,Wood,biomass
+Distillate Fuel Oil No. 1,Petroleum products,Distillate fuel oil No. 1,other
+Distillate Fuel Oil No. 4,Petroleu products,Distillate fuel oil No. 4,other
+Distillate Oil,Petroleum products,Diesel,diesel
+Distillate Oil (Diesel),Petroleum products,Deisel,diesel
+Distillate Oil (No. 2),Petroleum products,Distillate fuel oil No. 2,diesel
+Dual Fuel,Other,Other,other
+Ethane,Petroelum products,Ethane,lpgHGL
+Ethanol (100%),Biomass,Ethanol,other
+Ethylene,Petroleum products,Ethylene,other
+Exhaust From Sawdust,Biomass,Sawdust,biomass
+Fuel Gas,Other,Fuel gas,other
+Fuel Oil,Petroleum products,Residual fuel oil,resFuelOil
+Gas,Natural gas,Natrual gas,naturalGas
+Gasified Coal,Coal and coke,Gasified coal,coal
+Gasoline,Petroleum products,Gasoline,gasoline
+Geothermal Power Plants,Other,Geothermal,other
+HYD-01,Other,Hydrogen,other
+Heavy Gas Oils,Petroleum products,Heavy gas oils,other
+Heavy Residue,Petroleum products,Heavy gas oils,other
+Hydrogen,Other,Hydrogen,other
+Indirect,Other,Other,other
+Kerosene,Petroleum products,Kerosene,kerosene
+Kerosene-Type Jet Fuel,Petroleum products,Jet A,jetA
+Kerosene/Naphtha (Jet Fuel),Petroleum products,Jet A,kerosene
+Kiln-dried biomass,Biomass,Biomass,biomass
+LPG,Petroleum products,Liquified petroleum gases,lpgHGL
+Landfill Gas,Biomass,Landfill gas,other
+Lignite,Coal and coke,Lignite coal,coal
+Lignite Coal,Coal and coke,Lignite coal,coal
+Liquid Waste,Other,Liquid waste,other
+Liquified Petroleum Gas,Petroleum products,Liquified petroleum gases,lpgHGL
+Liquified Petroleum Gas (LPG),Petroleum products,Liquified petroleum gases,lpgHGL
+Lubricants,Petroleum products,Lubricants,other
+Methanol,Other,Methanol,other
+Mixed (Industrial sector),Coal and coke,Mixed industrial sector coal,coal
+Mixed Fuel Gas,Other,Fuel gas,other
+Municipal Solid Waste,Other,Municipal solid waste,other
+NG,Natural gas,Natural gas,naturalGas
+Naphtha (<401 deg F),Petroleum products,Naphtha (<401 deg F),other
+Natural Gas,Natural gas,Natural gas,naturalGas
+Natural Gas Fired,Natural gas,Natural gas,naturalGas
+Natural Gasoline,Petroleum products,Natural gasoline,other
+No6 Fuel Oil Blend,Petroleum products,Residual Fuel Oil No. 6,other
+None,,,
+OCC Rejects,Other,Other,other
+OffGas,Other,Other,other
+Oil,Petroleum products,Residual fuel oil No. 6,other
+Oil Fired,Petroleum products,Residual fuel oil No. 6,resFuelOil
+Oilfield Gas,Other,Oilfield gas,other
+Other Gaseous Fuel,Other,Other,other
+Other Oil,Petroleum products,Other,other
+PSA Off-gas,Other,Other,other
+PSA Tail Gas,Other,Other,other
+Pentanes Plus,Petroleum products,Pentanes plus,lpgHGL
+Petrochemical Feedstocks,Petroleum products,Petrochemical feedstocks,other
+Petroleum Coke,Other,Plastics,other
+Plastics,Other,Plastics,other
+Process,Other,Process gas,other
+Process Gas,Other,Process gas,other
+Propylene,Petroleum products,Propylene,lpgHGL
+Raw Hydrogen,Other,Hydrogen,other
+Recovered Solvents,Petroleum products,Solvents,other
+Refinery Fuel Gas,Other,Fuel gas,other
+Refinery Fuel Gas 1,Other,Fuel gas,other
+Refinery Fuel Gas 2,Other,Fuel gas,other
+Refuse,Other,Municipal solid waste,other
+Rendered Animal Fat,Biomass,Rendered animal fat,other
+Residual Fuel Oil No. 5,Petroleum products,Residual Fuel Oil No. 5,other
+Residual Fuel Oil No. 6,Petroleum products,Residual Fuel Oil No. 6,resFuelOil
+Residual Oil,Petroleum products,Residual Fuel Oil No. 6,resFuelOil
+Residual/Crude Oil,Petroleum products,Residual Fuel Oil No. 6,other
+Sawdust,Biomass,Wood and wood residuals,biomass
+Solid Byproducts,Other,Waste,biomass
+Solid Waste,Other,Municipal solid waste,other
+Solid waste,Other,Municipal solid waste,other
+Special Naphtha,Petroleum products,Special naptha,other
+Steam,Other,Steam,other
+Subbituminous,Coal and coke,Subbituminous coal,coal
+Tail Gas,Other,Tail gas,other
+Tire-derived Fuel,Other,Tires,oather
+Tires,Other,Tires,other
+Vacuum,Other,Other,other
+Vegetable Oil,Biomass,Vegetable oil,other
+Waste 1,Other,Waste,other
+Waste 2,Other,Waste,other
+Waste Coal,Coal and coke,Waste coal,coal
+Waste Oil,Petroleum products,Waste oil,other
+Waste Supplemental Fuel,Other,Other,other
+Wood,Biomass,Wood and wood residuals,biomass
+Wood Residuals,Biomass,Wood and wood residuals,biomass
+Wood and Wood Residuals,Biomass,Wood and wood residuals,biomass
+Wood/Bark Waste,Biomass,Wood and wood residuals,biomass
+\#2 oil,Petroleum products,Distillate fuel oil No. 2,diesel
+\#6 oil,Petroleum products,Distillate fuel oil No. 6,resFuelOil
+all indirect,,,other
+and Coke,,,coke
+and Gas,,,other
+and coke,,,other
+anthracite coal,Coal,Anthracite coal,coal
+bagasse,Biomass,Bagasse,biomass
+bituminous coal,Coal and coke,Bituminous coal,coal
+bituminous/subbituminous coal,Coal and coke,Bituminous and subituminous coal,coal
+carbon monoxide,Other,Carbon monoxide,other
+co boiler,Other,Other,other
+coal,Coal and coke,Coal,coal
+coke,Coal and coke,Coke,coke
+diesel,Petroleum products,Diesel,diesel
+digester gas,Biomass,Digester gas,other
+direct NG,Natural gas,Natural gas,naturalGas
+direct natural gas,Natural gas,Natural gas,naturalGas
+direct wood,Biomass,Wood and wood residuals,biomass
+distillate oil,Petroleum products,Distillate fuel oil No. 2,diesel
+distillate oil (diesel),Petroleum products,Diesel,diesel
+distillate oil (no. 2),Petroleum products,Distillate fuel oil No. 2,diesel
+distillate_oil,Petroleum products,Diesel,diesel
+dual fuel,Other,Other,other
+exhaust from sawdust,Biomass,Wood and wood residuals,biomass
+gas,Natural gas,Natural gas,other
+gas furnace process,Natural gas,Natural gas,naturalGas
+gasoline,Petroleum products,Gasoline,gasoline
+gassified coal,Coal and coke,Gassified coal,other
+heat,Other,Other,other
+heated with waste heat and supplemental gas burners,Natural gas,Natural gas,naturalGas
+jet a fuel,Petroleum products,Jet A,jetA
+jet_a,Petroleum products,Jet A,jetA
+kerosene/naphtha (jet fuel),Petroleum products,Jet A,kerosene
+landfill gas,Biomass,Landfill gas,other
+lignite,Coal and coke,Lignite coal,coal
+liquid waste,Other,Liquid waste,other
+liquified petroleum gas,Petroleum products,Liquified petroleum gases,lpgHGL
+liquified petroleum gas (lpg),Petroleum products,Liquified petroleum gases,lpgHGL
+methanol,Other,Methanol,other
+nan,,,None
+natural gas,Natural gas,Natural gas,naturalGas
+natural gas fired,Natural gas,Natural gas,naturalGas
+natural_gas,Natural gas,Natural gas,naturalGas
+none,,,
+oil,Petroleum products,Residual fuel oil,other
+or Oil,Petroleum products,Residual fuel oil,resFuelOil
+other biomass,Biomass,Other,biomass
+pet_coke,Petroleum products,Petcoke,other
+petroleum coke,Petroleum products,Petcoke,other
+process gas,Other,Process gas,other
+process_gas,Other,Process gas,other
+propane,Petroleum products,Propane,lpgHGL
+recovered solvents,Petroleum products,Other,other
+residual fuel oil,Petroleum products,Residual fuel oil,resFuelOil
+residual oil,Petroleum products,Residual fuel oil,other
+residual/crude oil,Petroleum products,Other,other
+residual_oil,Petroleum products,Residual fuel oil,resFuelOil
+"rotary drum dryer / mixer, natural gas, counterflow",Natural gas,Natural gas,naturalGas
+"rotary drum dryer / mixer, natural gas, parallel flow",Natural gas,Natural gas,naturalGas
+sawdust,Biomass,Wood and wood residuals,biomass
+solid waste,Other,Municipal solid waste,other
+tire-derived fuel,Waste,Tires,other
+vent gas (Oxo Propane Recycle),Other,Vent gas (oxo propane recycle),other
+waste oil,Petroleum products,Waste oil,other
+wood,Biomass,Wood and wood residuals,biomass
+wood residuals,Biomass,Wood and wood residuals,biomass
+wood/bark waste,Biomass,Wood and wood residuals,biomass
+Butane/Propane Mixture: Specify Percent Butane in Comments,Petroleum products,Liquified petroleum gases,
+Specify Waste Material in Comments,Other,Other,
+Refuse Derived Fuel,Other,Municipal solid waste,
+Tire Derived Fuel : Shredded,Other,Tires,
+Sludge Waste,Other ,Sludge waste,
+"Agricultural Byproducts (rice or peanut hulls, shells, cow manure, etc",Biomass,Agricultural byproducts,
+Paper Pellets,Other,Paper pellets,
+Black Liquor,Biomass,Black liquor,
+Red Liquor,Biomass,Red liquor,
+Spent Sulfite Liquor,Biomass,Spent sulfite liquor,
+Tall Oil,Biomass,Tall oil,
+Wood/Wood Waste Liquid,Biomass,Wood and wood residuals,
+Grade 6 oil,Petroleum products,Residual fuel oil No. 6,
+Grade 5 Oil,Petroleum products,Residual fuel oil No. 5,
+Grade 4 Oil,Petroleum products,Residual fuel oil No. 4,
+Petroleum Refinery Gas,Petroleum products,Petroleum refinery gas,
+Other: Specify in Comments,Other,Other,
+Butane,Petroleum products,Butane,
+Salable Animal Fat,Biomass,Salable animal fat,
+WWTP Sludge,Biomass,WWTP sludge,
+High Volume Low Concentration System Gases,Other,System gases,
+Low Volume High Concentration System Gases,Other,System gases,
+Non-Condensable Gases,Other,System gases,
+Stripper Off-Gases,Other,Stripper off-gases,
+Other Not Classified,Other,Other,
+Sewage Grease Skimmings,Biomass,Sewage grease skimmings,
+Anthracite Coal,Coal,Anthracite coal,coal
+Hazardous Waste,Other,Hazardous waste,
