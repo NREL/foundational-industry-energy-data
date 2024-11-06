@@ -524,12 +524,19 @@ class NEI ():
                         else:
                             pass
                         nei_data = nei_data.append(data, sort=False)
-                    
-                        unit_matches = NEI.match_partial(full_unit, partial_unit)
-                        meth_matches = NEI.match_partial(full_method, partial_method)
+                        if partial_unit and full_unit:
+                            unit_matches = NEI.match_partial(full_unit, partial_unit)
+                            nei_data.replace({'unit_type': unit_matches}, inplace=True)
 
-                        nei_data.replace({'unit_type': unit_matches}, inplace=True)
-                        nei_data.replace({'calculation_method': meth_matches}, inplace=True)
+                        if partial_method and full_method:
+                            meth_matches = NEI.match_partial(full_method, partial_method)
+                            nei_data.replace({'calculation_method': meth_matches}, inplace=True)
+
+                        #unit_matches = NEI.match_partial(full_unit, partial_unit)
+                        #meth_matches = NEI.match_partial(full_method, partial_method)
+
+                        #nei_data.replace({'unit_type': unit_matches}, inplace=True)
+                        #nei_data.replace({'calculation_method': meth_matches}, inplace=True)
 
             elif self.year == 2020:
                 for f in os.listdir(os.path.join(self._nei_folder_path,"2020")):
