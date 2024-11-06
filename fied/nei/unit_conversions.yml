@@ -28,6 +28,8 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     LB_to_MJ: 27.64    # 0.0005 ton/lb * 52.4 MMBtu/ton *  1055 MJ/MMBtu
     THERM_to_MJ: 105.5  # 0.1 MMBtu/therm * 1055 MJ/MMBtu
     MJ_to_KGCO2e: 0.05034
+  methane:
+    MJ_to_KGCO2e: 0.05034
   coal:
     TON_to_MJ: 23579     # 22.35 MMBTU/TON * 1055 MJ/MMBTU
     E6FT3_to_MJ: 2308    # 0.0979 TON/E6FT3 * 22.35 MMBTU/TON * 1055 MJ/MMBTU
@@ -130,7 +132,7 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     MJ_to_KGCO2e: 0.09044
   diesel:
     GAL_to_MJ: 145.59  # 0.138 MMBtu/gal * 1055 MJ/MMBtu
-    MJ_to_KGCO2e:  
+    MJ_to_KGCO2e: 0.0701  # 73.96 kg CO2/MMBtu
   bfg: 
     FT3_to_MJ:
     MJ_to_KGCO2e: 
@@ -158,6 +160,9 @@ energy_units: # HHV from https://www.epa.gov/climateleadership/ghg-emission-fact
     MJ_to_KGCO2e: 0.09009  # wood and wood residuals
     TON_to_MJ: 18441 # wood and wood residuals 17.48 MMBtu/Ton * 1055 MJ/MMBtu
   solid waste:
+    MJ_to_KGCO2e: 0.08791  # municipal solid waste
+    TON_to_MJ: 10497.25  # 9.95 MMBtu/ton * 1055 MJ/MMBtu
+  waste:
     MJ_to_KGCO2e: 0.08791  # municipal solid waste
     TON_to_MJ: 10497.25  # 9.95 MMBtu/ton * 1055 MJ/MMBtu
   tire-derived fuel:
