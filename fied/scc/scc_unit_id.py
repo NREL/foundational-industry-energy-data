@@ -297,8 +297,6 @@ class SCC_ID:
             pd.DataFrame(all_types, index=scc_exc.index)
             )
 
-        # scc_exc.loc[:, 'fuel_type'] = fuel_types
-
         return scc_exc
 
     def id_ice(self, all_scc):
@@ -320,16 +318,16 @@ class SCC_ID:
 
         scc_ice = all_scc.query("scc_level_one=='Internal Combustion Engines'")
         scc_ice = scc_ice[scc_ice.scc_level_two.isin(
-            ['Electric Generation', 'Industrial', 'Commercial/Institutional']
+            ['Electric Generation', 'Industrial', 'Commercial/Institutional',
+             'Engine Testing']
             )]
 
-        # unit_types_detail = []
-        # fuel_types = []
-
-        unit_types_lvl1 = []
-        unit_types_lvl2 = []
-        fuel_types_lvl1 = []
-        fuel_types_lvl2 = []
+        all_types = {
+            'unit_types_lvl1': [],
+            'unit_types_lvl2': [],
+            'fuel_types_lvl1': [],
+            'fuel_types_lvl2': []
+            }
 
         other = ['Geysers/Geothermal', 'Equipment Leaks',
                  'Wastewater, Aggregate',
@@ -338,31 +336,58 @@ class SCC_ID:
         types = [
             'Turbine',
             'Reciprocating',
-            'Turbine: Cogeneration',
-            'Reciprocating: Cogeneration',
-            'Refinery Gas: Turbine',
-            'Refinery Gas: Reciprocating Engine',
-            'Propane: Reciprocating',
-            'Butane: Reciprocating',
-            'Reciprocating Engine',
-            'Reciprocating Engine: Cogeneration'
+            '2-cycle',
+            '4-cycle'
+            # 'Turbine: Cogeneration',
+            # 'Reciprocating: Cogeneration',
+            # 'Refinery Gas: Turbine',
+            # 'Refinery Gas: Reciprocating Engine',
+            # 'Propane: Reciprocating',
+            # 'Butane: Reciprocating',
+            # 'Reciprocating Engine',
+            # 'Reciprocating Engine: Cogeneration'
             ]
 
         for i, r in scc_ice.iterrows():
 
             if r['scc_level_three'] in other:
-                ut = None
-                ft = None
 
-            elif r['scc_level_four'] in types:
-                ft = r['scc_level_three']
-                ut = r['scc_level_four']
+                ut1, ut2 = None, None
+                ft1, ft2 = None, None
 
-            unit_types_detail.append(ut)
-            fuel_types.append(ft)
+            else:
 
-        scc_ice.loc[:, 'unit_type'] = unit_types_detail
-        scc_ice.loc[:, 'fuel_type'] = fuel_types
+                ut1 = 'Internal combustion engine'
+
+                if any([t in r['scc_level_four'] for t in types]):
+
+                    ft1, ft2 = self.match_fuel_type(r['scc_level_three'])
+
+                    ut2 = r['scc_level_four']
+
+                else: 
+    
+                    if r['scc_level_four'] in self._all_fuel_types.keys():
+
+                        ft1, ft2 = self.match_fuel_type(r['scc_level_four'])
+
+                    else:
+
+                        ft1, ft2 = self.match_fuel_type('Jet A Fuel')
+
+                    ut2 = r['scc_level_three'.split('Testing')][0]
+
+            all_types['unit_types_lvl1'].append(ut1)
+            all_types['unit_types_lvl2'].append(ut2)
+            all_types['fuel_types_lvl1'].append(ft1)
+            all_types['fuel_types_lvl2'].append(ft2)
+
+        scc_ice = scc_ice.join(
+            pd.DataFrame(all_types, index=scc_ice.index)
+            )
+
+        scc_ice.dropna(subset=[f"{t}_types_lvl{l}" for t in ['unit', 'fuel'] for l in [1, 2]],
+                       inplace=True)
 
         return scc_ice
 
@@ -389,29 +414,53 @@ class SCC_ID:
             ['Residential']
             )]
 
-        unit_types_detail = []
-        fuel_types = []
+        # unit_types_detail = []
+        # fuel_types = []
+
+        all_types = {
+            'unit_types_lvl1': [],
+            'unit_types_lvl2': [],
+            'fuel_types_lvl1': [],
+            'fuel_types_lvl2': []
+            }
 
         for i, r in scc_sta.iterrows():
-            fuel_types.append(r['scc_level_three'])
+            ft1, ft2 = self.match_fuel_type(r['scc_level_three'])
 
             if 'All Boiler Types' in r['scc_level_four']:
-                unit_types_detail.append('Boiler')
+                ut1 = 'Boiler'
+                ut2 = 'Boiler'
+                # unit_types_detail.append('Boiler')
 
             elif 'Boilers and IC Engines' in r['scc_level_four']:
-                unit_types_detail.append('Boilers and IC Engines')
+                ut1 = 'Other combustion'
+                ut2 = 'Boilers and internal combustion engines'
+                # unit_types_detail.append('Boilers and IC Engines')
 
             elif 'All IC Engine Types' in r['scc_level_four']:
-                unit_types_detail.append('IC Engine')
+                ut1 = 'Internal combustion engine'
+                ut2 = 'Internal combustion engine'
+                # unit_types_detail.append('IC Engine')
 
             elif 'All Heater Types' in r['scc_level_four']:
-                unit_types_detail.append('Heater')
+                ut1 = 'Heater'
+                ut2 = 'Heater'
+                # unit_types_detail.append('Heater')
 
             else:
-                unit_types_detail.append(r['scc_level_four'])
+                
+                ut1 = 'Other combustion'
+                ut2 = r['scc_level_four']
 
-        scc_sta.loc[:, 'unit_type'] = unit_types_detail
-        scc_sta.loc[:, 'fuel_type'] = fuel_types
+            all_types['unit_types_lvl1'].append(ut1)
+            all_types['unit_types_lvl2'].append(ut2)
+            all_types['fuel_types_lvl1'].append(ft1)
+            all_types['fuel_types_lvl2'].append(ft2)
+
+
+        scc_sta = scc_sta.join(
+            pd.DataFrame(all_types, index=scc_sta.index)
+            )
 
         return scc_sta
 
@@ -724,5 +773,7 @@ if __name__ == '__main__':
     id_scc = SCC_ID()
     all_scc = id_scc.load_complete_scc()
     exc = id_scc.id_external_combustion(all_scc)
+    ice = id_scc.id_ice(all_scc)
+    sta = id_scc.id_stationary_fuel_combustion(all_scc)
     # id_scc_df = id_scc.build_id()
     # id_scc_df.to_csv('./scc/iden_scc.csv')
