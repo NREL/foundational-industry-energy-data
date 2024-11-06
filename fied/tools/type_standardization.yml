@@ -1,217 +1,800 @@
 --- # Fuel Types
-Propane Gas: lpgHGL
-Natural Gas (Weighted U.S. Average): naturalGas
-Wood and Wood Residuals (dry basis): biomass
-Distillate Fuel Oil No. 2: diesel
-Liquefied petroleum gases (LPG): lpgHGL
-Propane: lpgHGL
-Motor Gasoline: gasoline
-Other Oil (>401 deg F): other
-Other Biomass Gases: biomass
-Used Oil: other
-Fuel Gas: other
-Landfill Gas: other
-Solid Byproducts: biomass
-Kerosene: kerosene
-Residual Fuel Oil No. 6: resFuelOil 
-residual fuel oil: resFuelOil
-digester gas: other
-Heavy Gas Oils: other
-Distillate Fuel Oil No. 1: other 
-Bituminous: coal
-Kerosene-Type Jet Fuel: jetA
-Coal Coke: coke 
-Pentanes Plus: lpgHGL
-Butane: lpgHGL
-Subbituminous: coal 
-Natural Gasoline: other 
-Biodiesel (100%): other
-Municipal Solid Waste: other
-Plastics: other
-Agricultural Byproducts: biomass
-Distillate Fuel Oil No. 4: other
-Tires: other
-Naphtha (<401 deg F): other
-Coke Oven Gas: other
-Lignite: coal
-Lubricants: other
-Rendered Animal Fat: other
-Residual Fuel Oil No. 5: other
-Petroleum Coke: other 
-Propylene: lpgHGL
-Special Naphtha: other
-Anthracite: coal
-Ethane: lpgHGL
-\#2 oil: diesel
-\#6 oil: resFuelOil
-NG: naturalGas
-Vegetable Oil: other
-Ethanol (100%): other
-Ethylene: other 
-Blast Furnace Gas: other
-Petrochemical Feedstocks: other 
-OffGas: other
-Mixed (Industrial sector): coal
-nan: None
-Asphalt and Road Oil: other 
-Wood and Wood Residuals: biomass
-Biogenic Process Derived Fuel (PDF): other 
-HYD-01: other 
-Process Gas: other
-Refinery Fuel Gas: other
-Refinery Fuel Gas 1: other 
-Refinery Fuel Gas 2: other 
-gas furnace process: naturalGas
-rotary drum dryer / mixer, natural gas, counterflow: naturalGas
-rotary drum dryer / mixer, natural gas, parallel flow: naturalGas
-heated with waste heat and supplemental gas burners: naturalGas
-Carbon Monoxide: other
-Combined Purge and Cold Box Fuel: other 
-Hydrogen: other 
-Mixed Fuel Gas: other
-OCC Rejects: other 
-Oilfield Gas: other 
-Other Gaseous Fuel: other 
-PSA Off-gas: other
-PSA Tail Gas: other 
-Process: other  
-Raw Hydrogen: other 
-Tail Gas: other  
-Vacuum: other
-Waste 1: other 
-Waste 2: other 
-carbon monoxide: other
-vent gas (Oxo Propane Recycle): other 
-Butane (gaseous): lpgHGL
-Natural Gas: naturalGas
-Distillate Oil: diesel
-Residual Oil: resFuelOil
-Liquified Petroleum Gas (LPG): lpgHGL
-Distillate Oil (No. 2): diesel
-Recovered Solvents: other
-Anthracite Coal: coal
-Bituminous/Subbituminous Coal: coal
-Lignite: coal
-Process Gas: other
-Petroleum Coke: other
-Wood/Bark Waste: biomass
-wood/bark waste: biomass
-heat: other
-Bagasse: biomass
-Solid Waste: other
-Liquid Waste: other
-Geothermal Power Plants: other
-No6 Fuel Oil Blend: 
-Blend (bituminous/subituminous): coal
-Waste Supplemental Fuel: other
-Methanol: other
-Hydrogen: other
-Coal-based Synfuel: other
-Waste Coal: coal
-Other Oil: other
-CO Boiler: other
-Tire-derived Fuel: oather
-Gasoline: gasoline
-Kiln-dried biomass: biomass
-Wood Residuals: biomass
-Landfill Gas: other
-Biomass: biomass
-Coal: coal
-coal: coal
-Waste Oil: other
-Wood: biomass
-Natural Gas Fired: naturalGas
-Oil Fired: resFuelOil
-Gas: naturalGas
-Direct: other
-Indirect: other
-Fuel Oil: resFuelOil
-Oil: other
-Coke: coke
-Sawdust: biomass
-sawdust: biomass
-Dual Fuel: other
-Exhaust From Sawdust: biomass
-exhaust from sawdust: biomass
-No6 Fuel Oil Blend: resFuelOil
-gassified coal: other
-and Gas: other
-and Coke: coke
-or Oil: resFuelOil
-Direct Wood: biomass
-Direct Natural Gas: naturalGas
-Steam: other
-All Indirect: other
-All Direct: other
-direct NG: naturalGas
-Bituminous Coal: coal
-Liquified Petroleum Gas: lpgHGL
-Distillate Oil (Diesel): diesel
-Gasified Coal: coal
-jet a fuel : jetA
-jet_a : jetA
-Kerosene/Naphtha (Jet Fuel): kerosene
-Residual/Crude Oil: other
-Digester Gas: other
-Lignite Coal: coal
-Kerosene: other
-Heavy Residue: other
-None: null
-none: null
-natural gas: naturalGas
-distillate oil (diesel): diesel
-natural_gas: naturalGas
-nan: null
-distillate oil: diesel
-diesel: diesel
-gasoline: gasoline
-coal: coal
-process gas: other
-residual oil: other
-liquified petroleum gas (lpg): lpgHGL
-propane: lpgHGL 
-bituminous/subbituminous coal: coal
-coke: coke
-other biomass: biomass
-wood/bark waste: biomass
-anthracite coal: coal
-bituminous coal: coal
-liquified petroleum gas: lpgHGL
-liquid waste: other
-solid waste: other 
-Solid waste: other
-distillate oil (no. 2): diesel
-methanol: other
-gas: other
-waste oil: other
-natural gas fired: naturalGas
-and coke: other
-Refuse: other
-direct wood: biomass
-direct natural gas: naturalGas
-co boiler: other
-kerosene/naphtha (jet fuel): kerosene
-tire-derived fuel: other
-petroleum coke: other 
-wood residuals: biomass
-residual/crude oil: other
-landfill gas: other
-recovered solvents: other
-dual fuel: other
-oil: other
-all indirect: other 
-natural_gas: naturalGas
-distillate_oil: diesel
-gasoline: gasoline
-LPG: lpgHGL
-process_gas: other
-residual_oil: resFuelOil
-wood: biomass
-coal: coal
-pet_coke: other
-coke: coke
-bagasse: biomass
-lignite: coal
+Propane Gas: 
+  lvl_1: Petroleum products
+  lvl_2: Propane gas
+  fied_2017: lpgHGL
+Natural Gas (Weighted U.S. Average): 
+  lvl_1: Natural gas
+  lvl_2: natural gas
+  fied_2017: naturalGas
+Wood and Wood Residuals (dry basis):
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+  fied_2017: biomass 
+Distillate Fuel Oil No. 2: 
+  lvl_1: Petroleum products
+  lvl_2: Distillate Fuel Oil No. 2
+  fied_2017: diesel 
+Liquefied petroleum gases (LPG): 
+  lvl_1: Petroleum products
+  lvl_2: Liquefied petroleum gases
+  fied_2017: lpgHGL 
+Propane: 
+  lvl_1: Petroleum products
+  lvl_2: Propane
+  fied_2017: lpgHGL 
+Motor Gasoline:
+  lvl_1: Petroleum products
+  lvl_2: Gasoline
+  fied_2017: gasoline
+Other Oil (>401 deg F): 
+  lvl_1: Petroleum products
+  lvl_2: Other oil (>401 deg F)
+  fied_2017: other
+Other Biomass Gases: 
+  lvl_1: Bioimass
+  lvl_2: Other biomass gases
+  fied_2017: biomass
+Used Oil:
+  lvl_1: Petroleum products
+  lvl_2: Used oil
+  fied_2017: other
+Agricultural Byproducts:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Agricultural byproducts
+All Direct:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+All Indirect:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+Anthracite:
+  fied_2017: coal
+  lvl_1: Coal
+  lvl_2: Anthracite coal
+Anthracite Coal:
+  fied_2017: coal
+  lvl_1: Coal
+  lvl_2: Anthracite coal
+Asphalt and Road Oil:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Asphalt and road oil
+Bagasse:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Bagasse
+Biodiesel (100%):
+  fied_2017: other
+  lvl_1: Biomass 
+  lvl_2: Biodiesel
+Biogenic Process Derived Fuel (PDF):
+  fied_2017: other
+  lvl_1: Biomass
+  lvl_2: Biogenic process derived fuel
+Biomass:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Biomass
+Bituminous:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Bituminous coal
+Bituminous Coal:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Bituminous coal
+Bituminous/Subbituminous Coal:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Bituminous and subituminous coal
+Blast Furnace Gas:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Blast furnace gas
+Blend (bituminous/subituminous):
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Bituminous and subituminous coal
+Butane:
+  fied_2017: lpgHGL
+  lvl_1: Petroleum products
+  lvl_2: Butane
+Butane (gaseous):
+  fied_2017: lpgHGL
+  lvl_1: Petroleum products
+  lvl_2: Butane gas
+CO Boiler:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+Carbon Monoxide:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Carbon monoxide
+Coal:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Coal
+Coal Coke:
+  fied_2017: coke
+  lvl_1: Coal and coke
+  lvl_2: Coal coke
+Coal-based Synfuel:
+  fied_2017: other
+  lvl_1: Coal and coke
+  lvl_2: Coal-based synfuel
+Coke:
+  fied_2017: coke
+  lvl_1: Coal and coke
+  lvl_2: Coke
+Coke Oven Gas:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Coke oven gas
+Combined Purge and Cold Box Fuel:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Combined purge and cold box fuel
+Digester Gas:
+  fied_2017: other
+  lvl_1: Biomass
+  lvl_2: Digester gas
+Direct:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+Direct Natural Gas:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+Direct Wood:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood
+Distillate Fuel Oil No. 1:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Distillate fuel oil No. 1
+Distillate Fuel Oil No. 4:
+  fied_2017: other
+  lvl_1: Petroleu products
+  lvl_2: Distillate fuel oil No. 4
+Distillate Oil:
+  fied_2017: diesel
+  lvl_1: Petroleum products
+  lvl_2: Diesel
+Distillate Oil (Diesel):
+  fied_2017: diesel
+  lvl_1: Petroleum products
+  lvl_2: Deisel
+Distillate Oil (No. 2):
+  fied_2017: diesel
+  lvl_1: Petroleum products
+  lvl_2: Distillate fuel oil No. 2
+Dual Fuel:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+Ethane:
+  fied_2017: lpgHGL
+  lvl_1: Petroelum products
+  lvl_2: Ethane
+Ethanol (100%):
+  fied_2017: other
+  lvl_1: Biomass
+  lvl_2: Ethanol
+Ethylene:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Ethylene
+Exhaust From Sawdust:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Sawdust
+Fuel Gas:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Fuel gas
+Fuel Oil:
+  fied_2017: resFuelOil
+  lvl_1: Petroleum products
+  lvl_2: Residual fuel oil
+Gas:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natrual gas
+Gasified Coal:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Gasified coal
+Gasoline:
+  fied_2017: gasoline
+  lvl_1: Petroleum products
+  lvl_2: Gasoline
+Geothermal Power Plants:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Geothermal
+HYD-01:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Hydrogen
+Heavy Gas Oils:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Heavy gas oils
+Heavy Residue:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Heavy gas oils
+Hydrogen:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Hydrogen
+Indirect:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+Kerosene:
+  fied_2017: kerosene
+  lvl_1: Petroleum products
+  lvl_2: Kerosene
+Kerosene-Type Jet Fuel:
+  fied_2017: jetA
+  lvl_1: Petroleum products
+  lvl_2: Jet A
+Kerosene/Naphtha (Jet Fuel):
+  fied_2017: kerosene
+  lvl_1: Petroleum products
+  lvl_2: Jet A
+Kiln-dried biomass:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Biomass
+LPG:
+  fied_2017: lpgHGL
+  lvl_1: Petroleum products
+  lvl_2: Liquified petroleum gases
+Landfill Gas:
+  fied_2017: other
+  lvl_1: Biomass
+  lvl_2: Landfill gas
+Lignite:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Lignite coal
+Lignite Coal:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Lignite coal
+Liquid Waste:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Liquid waste
+Liquified Petroleum Gas:
+  fied_2017: lpgHGL
+  lvl_1: Petroleum products
+  lvl_2: Liquified petroleum gases
+Liquified Petroleum Gas (LPG):
+  fied_2017: lpgHGL
+  lvl_1: Petroleum products
+  lvl_2: Liquified petroleum gases
+Lubricants:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Lubricants
+Methanol:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Methanol
+Mixed (Industrial sector):
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Mixed industrial sector coal
+Mixed Fuel Gas:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Fuel gas
+Municipal Solid Waste:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Municipal solid waste
+NG:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+Naphtha (<401 deg F):
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Naphtha (<401 deg F)
+Natural Gas:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+Natural Gas Fired:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+Natural Gasoline:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Natural gasoline
+No6 Fuel Oil Blend:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Residual Fuel Oil No. 6
+None:
+  fied_2017: null
+  lvl_1: null
+  lvl_2: null
+OCC Rejects:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+OffGas:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+Oil:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Residual fuel oil No. 6
+Oil Fired:
+  fied_2017: resFuelOil
+  lvl_1: Petroleum products
+  lvl_2: Residual fuel oil No. 6
+Oilfield Gas:
+  fied_2017: other 
+  lvl_1: Other
+  lvl_2: Oilfield gas
+Other Gaseous Fuel:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+Other Oil:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Other
+PSA Off-gas:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+PSA Tail Gas:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+Pentanes Plus:
+  fied_2017: lpgHGL
+  lvl_1: Petroleum products
+  lvl_2: Pentanes plus
+Petrochemical Feedstocks:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Petrochemical feedstocks
+Petroleum Coke:
+  fied_2017: other 
+  lvl_1: Other
+  lvl_2: Plastics
+Plastics:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Plastics
+Process:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Process gas
+Process Gas:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Process gas
+Propylene:
+  fied_2017: lpgHGL
+  lvl_1: Petroleum products
+  lvl_2: Propylene
+Raw Hydrogen:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Hydrogen
+Recovered Solvents:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Solvents
+Refinery Fuel Gas:
+  fied_2017: other
+  lvl_1: Other 
+  lvl_2: Fuel gas
+Refinery Fuel Gas 1:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Fuel gas
+Refinery Fuel Gas 2:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Fuel gas
+Refuse:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Municipal solid waste
+Rendered Animal Fat:
+  fied_2017: other
+  lvl_1: Biomass
+  lvl_2: Rendered animal fat
+Residual Fuel Oil No. 5:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Residual Fuel Oil No. 5
+Residual Fuel Oil No. 6:
+  fied_2017: resFuelOil
+  lvl_1: Petroleum products
+  lvl_2: Residual Fuel Oil No. 6
+Residual Oil:
+  fied_2017: resFuelOil
+  lvl_1: Petroleum products
+  lvl_2: Residual Fuel Oil No. 6
+Residual/Crude Oil:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Residual Fuel Oil No. 6
+Sawdust:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+Solid Byproducts:
+  fied_2017: biomass
+  lvl_1: Other
+  lvl_2: Waste
+Solid Waste:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Municipal solid waste
+Solid waste:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Municipal solid waste
+Special Naphtha:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Special naptha
+Steam:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Steam
+Subbituminous:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Subbituminous coal
+Tail Gas:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Tail gas
+Tire-derived Fuel:
+  fied_2017: oather
+  lvl_1: Other
+  lvl_2: Tires
+Tires:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Tires
+Vacuum:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+Vegetable Oil:
+  fied_2017: other
+  lvl_1: Biomass
+  lvl_2: Vegetable oil
+Waste 1:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Waste
+Waste 2:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Waste
+Waste Coal:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Waste coal
+Waste Oil:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Waste oil
+Waste Supplemental Fuel:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+Wood:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+Wood Residuals:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+Wood and Wood Residuals:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+Wood/Bark Waste:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+\#2 oil:
+  fied_2017: diesel
+  lvl_1: Petroleum products
+  lvl_2: Distillate fuel oil No. 2
+\#6 oil:
+  fied_2017: resFuelOil
+  lvl_1: Petroleum products
+  lvl_2: Distillate fuel oil No. 6
+all indirect:
+  fied_2017: other
+  lvl_1: null
+  lvl_2: null
+and Coke:
+  fied_2017: coke
+  lvl_1: null
+  lvl_2: null
+and Gas:
+  fied_2017: other
+  lvl_1: null
+  lvl_2: null
+and coke:
+  fied_2017: other
+  lvl_1: null
+  lvl_2: null
+anthracite coal:
+  fied_2017: coal
+  lvl_1: Coal
+  lvl_2: Anthracite coal
+bagasse:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Bagasse
+bituminous coal:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Bituminous coal
+bituminous/subbituminous coal:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Bituminous and subituminous coal
+carbon monoxide:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Carbon monoxide
+co boiler:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+coal:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Coal
+coke:
+  fied_2017: coke
+  lvl_1: Coal and coke
+  lvl_2: Coke
+diesel:
+  fied_2017: diesel
+  lvl_1: Petroleum products
+  lvl_2: Diesel
+digester gas:
+  fied_2017: other
+  lvl_1: Biomass
+  lvl_2: Digester gas
+direct NG:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+direct natural gas:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+direct wood:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+distillate oil:
+  fied_2017: diesel
+  lvl_1: Petroleum products
+  lvl_2: Distillate fuel oil No. 2
+distillate oil (diesel):
+  fied_2017: diesel
+  lvl_1: Petroleum products
+  lvl_2: Diesel
+distillate oil (no. 2):
+  fied_2017: diesel
+  lvl_1: Petroleum products
+  lvl_2: Distillate fuel oil No. 2
+distillate_oil:
+  fied_2017: diesel
+  lvl_1: Petroleum products
+  lvl_2: Diesel
+dual fuel:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+exhaust from sawdust:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+gas:
+  fied_2017: other
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+gas furnace process:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+gasoline:
+  fied_2017: gasoline
+  lvl_1: Petroleum products
+  lvl_2: Gasoline
+gassified coal:
+  fied_2017: other
+  lvl_1: Coal and coke
+  lvl_2: Gassified coal
+heat:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Other
+heated with waste heat and supplemental gas burners:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+jet a fuel:
+  fied_2017: jetA
+  lvl_1: Petroleum products
+  lvl_2: Jet A
+jet_a:
+  fied_2017: jetA
+  lvl_1: Petroleum products
+  lvl_2: Jet A
+kerosene/naphtha (jet fuel):
+  fied_2017: kerosene
+  lvl_1: Petroleum products
+  lvl_2: Jet A
+landfill gas:
+  fied_2017: other
+  lvl_1: Biomass
+  lvl_2: Landfill gas
+lignite:
+  fied_2017: coal
+  lvl_1: Coal and coke
+  lvl_2: Lignite coal
+liquid waste:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Liquid waste
+liquified petroleum gas:
+  fied_2017: lpgHGL
+  lvl_1: Petroleum products
+  lvl_2: Liquified petroleum gases
+liquified petroleum gas (lpg):
+  fied_2017: lpgHGL
+  lvl_1: Petroleum products
+  lvl_2: Liquified petroleum gases
+methanol:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Methanol
+nan:
+  fied_2017: None
+  lvl_1: null
+  lvl_2: null
+natural gas:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+natural gas fired:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+natural_gas:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+none:
+  fied_2017: null
+  lvl_1: null
+  lvl_2: null
+oil:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Residual fuel oil
+or Oil:
+  fied_2017: resFuelOil
+  lvl_1: Petroleum products
+  lvl_2: Residual fuel oil
+other biomass:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Other
+pet_coke:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Petcoke
+petroleum coke:
+  fied_2017: other 
+  lvl_1: Petroleum products
+  lvl_2: Petcoke
+process gas:
+  fied_2017: other
+  lvl_1: Other 
+  lvl_2: Process gas
+process_gas:
+  fied_2017: other
+  lvl_1: Other 
+  lvl_2: Process gas
+propane:
+  fied_2017: lpgHGL
+  lvl_1: Petroleum products
+  lvl_2: Propane
+recovered solvents:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Other
+residual fuel oil:
+  fied_2017: resFuelOil
+  lvl_1: Petroleum products
+  lvl_2: Residual fuel oil
+residual oil:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Residual fuel oil
+residual/crude oil:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Other
+residual_oil:
+  fied_2017: resFuelOil
+  lvl_1: Petroleum products
+  lvl_2: Residual fuel oil
+rotary drum dryer / mixer, natural gas, counterflow:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+rotary drum dryer / mixer, natural gas, parallel flow:
+  fied_2017: naturalGas
+  lvl_1: Natural gas
+  lvl_2: Natural gas
+sawdust:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+solid waste:
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Municipal solid waste
+tire-derived fuel:
+  fied_2017: other
+  lvl_1: Waste
+  lvl_2: Tires
+vent gas (Oxo Propane Recycle):
+  fied_2017: other
+  lvl_1: Other
+  lvl_2: Vent gas (oxo propane recycle)
+waste oil:
+  fied_2017: other
+  lvl_1: Petroleum products
+  lvl_2: Waste oil
+wood:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+wood residuals:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
+wood/bark waste:
+  fied_2017: biomass
+  lvl_1: Biomass
+  lvl_2: Wood and wood residuals
 
 # ---
 # # units:
