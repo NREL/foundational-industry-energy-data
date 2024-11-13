@@ -4,7 +4,24 @@ import re
 import logginggg 
 
 class Units:
-    """Class for creating standardized unit categories and extracting characterization information"""
+    """
+    Class for creating standardized unit categories and extracting characterization information
+
+        .. csv-table:: Level 1 Unit Types
+            :header: "Unit Type"
+    
+            "Boiler"
+            "Furnace"
+            "Heater"
+            "Dryer"
+            "Kiln"
+            "Internal combustion engine"'
+            "Oven"
+            "Combined cycle"
+            "Turbine"
+            "Other combustion"
+            "Other"
+    """
 
     def __init__(self):
         
@@ -36,6 +53,8 @@ class Units:
     def make_unit_types(self):
         """"""
 
+
+# from Tools class under misc_tools.py
     def __init__(self):
 
         # Combustion unit types
@@ -50,7 +69,7 @@ class Units:
             'reciprocating', 'roaster'
             ]
 
-# from Tools class under misc_tools.py
+
     def unit_regex(self, unitType):
         """
         Use regex to standardize unit types,
