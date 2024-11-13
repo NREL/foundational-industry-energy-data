@@ -389,87 +389,6 @@ class NEI ():
 
             except (TypeError, ValueError):  # NEI data set has many columns with mixed dtypes
                 logging.error("Mixed types in NEI data")
-            #     dts = {
-            #         'epa_region_code': str,
-            #         'state': str,
-            #         'fips_state_code': str,
-            #         'tribal_name': str,
-            #         'fips_code': str,
-            #         'county': str,
-            #         'eis_facility_id': object,
-            #         'program_system_code': str,
-            #         'agency_facility_id': str,
-            #         'tri_facility_id': str,
-            #         'company_name': str,
-            #         'site_name': str,
-            #         'naics_code': object,
-            #         'naics_description': str,
-            #         'facility_source_type':	str,
-            #         'site_latitude': object,
-            #         'site_longitude': object,
-            #         'address': str,
-            #         'city': str,
-            #         'zip_code':	object,
-            #         'postal_abbreviation': str,
-            #         'eis_unit_id': str,
-            #         'agency_unit_id': str,
-            #         'unit_type': str,
-            #         'unit_description':	str,
-            #         'design_capacity': object,
-            #         'design_capacity_uom': str,
-            #         'eis_process_id': object,
-            #         'agency_process_id': str,
-            #         'scc': object,
-            #         'reg_codes': str,
-            #         'reg_code_description': str,	
-            #         'process_description': str,
-            #         'reporting_period': str,
-            #         'emissions_operating_type': str,
-            #         'calculation_parameter_value': str,
-            #         'calculation_parameter_uom': str,
-            #         'calculation_material': str,
-            #         'calculation_parameter_type': str,
-            #         'calc_data_source': object,
-            #         'calc_data_year': str,
-            #         'pollutant_code': str,
-            #         'pollutant_desc': str, 
-            #         'pollutant_type': str,
-            #         'total_emissions': object,
-            #         'emissions_uom': str,
-            #         'emission_factor': object,
-            #         'ef_numerator_uom':	str,
-            #         'ef_denominator_uom': str,
-            #         'ef_text': str,
-            #         'calc_method_code':	object,
-            #         'calculation_method': str,
-            #         'emission_comment': str,
-            #         'source_data_set': str,
-            #         'data_tagged': str,
-            #         'data_set': str
-            #         }
-            # # nei_data = pd.read_csv(self._nei_data_path,
-            # #                        index_col=0, dtype=dts)
-                
-            # nei_data = pd.DataFrame()
-
-            # for k,v in dts.items():
-
-            #     try:
-            #         d = pd.read_csv(
-            #             self._nei_data_path, index_col=0, 
-            #             usecols=[k], dtype=v
-            #             )
-                    
-            #     except (ValueError, TypeError) as e:
-            #         logging.error(f'{e}: \ncolumn: {k} with dtype: {v}')
-            #         continue
-
-            #     except AttributeError as e:
-            #         logging.error(f'{e}')
-            #         continue
-
-            #     else:
-            #         nei_data = pd.concat([nei_data, d], axis=0)
 
         else:
 
@@ -478,7 +397,9 @@ class NEI ():
             nei_data = pd.DataFrame()
            
             if year == '2017':
+
                 for f in os.listdir(os.path.join(self._nei_folder_path,str(year))):
+
                     if '.csv' in f:
                         
                         if f == 'point_unknown_2017.csv':
@@ -523,7 +444,9 @@ class NEI ():
 
                         else:
                             pass
+
                         nei_data = nei_data.append(data, sort=False)
+
                         if partial_unit and full_unit:
                             unit_matches = NEI.match_partial(full_unit, partial_unit)
                             nei_data.replace({'unit_type': unit_matches}, inplace=True)
@@ -538,11 +461,17 @@ class NEI ():
                         #nei_data.replace({'unit_type': unit_matches}, inplace=True)
                         #nei_data.replace({'calculation_method': meth_matches}, inplace=True)
 
+                    nei_data = nei_data.append(data, sort=False)
+
             elif year == '2020':
+
                 for f in os.listdir(os.path.join(self._nei_folder_path,str(year))):
+
                     if '.csv' in f:
+        
                         if f == 'point_unknown_2020.csv':
                             continue
+
                         else:
 
                             data = pd.read_csv(
@@ -563,16 +492,20 @@ class NEI ():
                                 'region': 'epa_region_code',
                                 'primary_naics_code': 'naics_code'
                                 }, inplace=True)
-                            
-            nei_data = nei_data.append(data, sort=False)
+    
+                    nei_data = nei_data.append(data, sort=False)
+    
             nei_naics = pd.DataFrame(
                 nei_data.naics_code.unique(), columns=['naics_code']
             )
+
             nei_naics.loc[:, 'naics_sub'] = \
                 nei_naics.naics_code.astype(str).str[:3].astype(int)
+
             nei_naics.loc[:, 'ind'] = [
                 str(x)[0:2] in ['11', '21', '23', '31', '32', '33'] for x in nei_naics.naics_sub
                 ]
+
             nei_naics = nei_naics[nei_naics.ind == True]['naics_code']
 
             # Keep only industrial facilities
@@ -1759,7 +1692,7 @@ class NEI ():
             generic fuel types that have been applied to NEI data.
         """
 
-        with open('./tools/type_standardization.yml','r') as file:
+        with open(Path(self._FIEDPATH, "tools/type_standardization.yml"),'r') as file:
             docs = yaml.safe_load_all(file)
 
             for i, d in enumerate(docs):
