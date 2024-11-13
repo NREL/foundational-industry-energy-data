@@ -9,8 +9,8 @@ import zipfile
 import sys
 from io import BytesIO
 from pathlib import Path
-#toolspath = str(Path(__file__).parents[1]/"tools")
-sys.path.append(str(Path(__file__).parents[1]/"tools"))
+toolspath = str(Path(__file__).parents[1]/"tools")
+sys.path.append(toolspath)
 from misc_tools import Tools
 
 
@@ -53,9 +53,6 @@ class NEI ():
         # self._scc_units_path = os.path.abspath('./scc/iden_scc.csv')
 
         self._data_source = 'NEI'
-        
-        ##### SET NEI YEAR ###############################################
-        self.year = 2017
         
         self._cap_conv = {
             'energy': {  # Convert to MJ
@@ -366,10 +363,14 @@ class NEI ():
 
         return matching_dict
 
-    def load_nei_data(self):
+    def load_nei_data(self,year):
         """
         Load 2017 NEI data. Zip file needs to be downloaded and
         unzipped manually from https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip
+        due to error in zipfile library.
+
+        Load 2020 NEI data. Zip file needs to be downloaded and
+        unzipped manually from https://gaftp.epa.gov/air/nei/2020/data_summaries/2020nei_facility_process_byregions.zip
         due to error in zipfile library.
 
         Returns
@@ -377,7 +378,6 @@ class NEI ():
         nei_data : pandas.DataFrame
             Raw NEI data.
         """
-
 
         if self._nei_data_path.exists():
 
@@ -477,8 +477,8 @@ class NEI ():
 
             nei_data = pd.DataFrame()
            
-            if self.year == 2017:
-                for f in os.listdir(os.path.join(self._nei_folder_path,'2017')):
+            if year == '2017':
+                for f in os.listdir(os.path.join(self._nei_folder_path,str(year))):
                     if '.csv' in f:
                         
                         if f == 'point_unknown_2017.csv':
@@ -488,7 +488,7 @@ class NEI ():
 
                             data = pd.read_csv(
                                     os.path.join(
-                                        os.path.join(self._nei_folder_path,'2017'), f
+                                        os.path.join(self._nei_folder_path,str(year)), f
                                         ),
                                     low_memory=False
                                     )
@@ -538,8 +538,8 @@ class NEI ():
                         #nei_data.replace({'unit_type': unit_matches}, inplace=True)
                         #nei_data.replace({'calculation_method': meth_matches}, inplace=True)
 
-            elif self.year == 2020:
-                for f in os.listdir(os.path.join(self._nei_folder_path,"2020")):
+            elif year == '2020':
+                for f in os.listdir(os.path.join(self._nei_folder_path,str(year))):
                     if '.csv' in f:
                         if f == 'point_unknown_2020.csv':
                             continue
@@ -547,7 +547,7 @@ class NEI ():
 
                             data = pd.read_csv(
                                     os.path.join(
-                                        os.path.join(self._nei_folder_path,"2020"), f
+                                        os.path.join(self._nei_folder_path,str(year)), f
                                         ),
                                     low_memory=False
                                     )
@@ -1759,7 +1759,7 @@ class NEI ():
             generic fuel types that have been applied to NEI data.
         """
 
-        with open(r'C:\Users\cskangos\Documents\GitHub\foundational-industry-energy-data\fied\tools\type_standardization.yml') as file:
+        with open('./tools/type_standardization.yml','r') as file:
             docs = yaml.safe_load_all(file)
 
             for i, d in enumerate(docs):
@@ -1952,7 +1952,8 @@ class NEI ():
 
         nei = NEI()
         logging.info("Getting NEI data...")
-        nei_data = nei.load_nei_data()
+        #initialize year argument
+        nei_data = nei.load_nei_data(year=str(2020))
         iden_scc = nei.load_scc_unittypes()
         webfr = nei.load_webfires()
         logging.info("Merging WebFires data...")
