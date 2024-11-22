@@ -564,6 +564,11 @@ class SCC_ID:
 
         scc_ind = all_scc.query("scc_level_one == 'Industrial Processes' & status == 'Active'")
 
+
+        all_types_cols = [f"{t}_types_lvl{l}" for t in ['unit', 'fuel'] for l in [1, 2]]
+        
+        types_df = pd.DataFrame()
+
         all_types = {
             'unit_types_lvl1': [],
             'unit_types_lvl2': [],
@@ -571,6 +576,29 @@ class SCC_ID:
             'fuel_types_lvl2': []
             }
     
+        type_queries: {
+            1: "scc_level_two == 'In-process Fuel Use' & scc_level_four != 'Total' & sector != 'Industrial Processes - Storage and Transfer'",
+            2: "sector = 'Commercial Cooking",
+            3: "scc_level_three == 'Ammonia Production'",
+            4: "scc_level_two != 'In-process Fuel Use') & tier 1 description == 'Storage & Transport'",
+            }
+
+        for n, q in type_queries.items():
+
+            data = scc_ind.query(q).copy(deep=True)
+
+            if n == 1:
+            
+            elif n == 2:
+        
+            elif n == 3:
+
+
+
+            types_df = types_df.append(data)
+
+
+
         other_counter = []
 
         for i, r in scc_ind.iterrows():
@@ -578,9 +606,10 @@ class SCC_ID:
             ft1, ft2 = None, None
             ut1, ut2 = None, None
 
+            # Query 2
             if 'Commercial Cooking' in r['scc_level_three']:
 
-                u = r['scc_level_four'].split(' - ')[1]
+                u = r['scc_level_three'].split(' - ')[1]
 
                 if u == 'Total':
                     ut1, ut2 = 'Other combustion', 'Cooking'
@@ -588,6 +617,29 @@ class SCC_ID:
                 else:
                     ut1, ut2 = 'Other combustion', u
 
+            # sector values (15): Industrial Processes - Chemical Manuf, Industrial Processes - NEC, Commercial Cooking, Industrial Processes - Non-ferrous Metals, 
+            # Industrial Processes - Ferrous Metals,
+            # Industrial Processes - Petroleum Refineries, Industrial Processes - Oil & Gas Production, Dust - Construction Dust, Industrial Processes - Mining
+            # Industrial Processes - Storage and Transfer, Agriculture - Livestock Waste, Industrial Processes - Cement Manuf, Industrial Processes - Pulp & Paper
+            # Solvent - Graphic Arts, Miscellaneous Non-Industrial NEC
+            # Of these, can skip over (5): Dust - Construction Dust, Agriculture - Livestock Waste, Solvent - Graphic Arts,
+            # Miscellaneous Non-Industrial NEC, Commercial Cooking (addressed in line 614)
+
+
+            # sector values (15): 
+            # Industrial Processes - Chemical Manuf, 
+            # Industrial Processes - NEC,
+            # Industrial Processes - Non-ferrous Metals, 
+            # Industrial Processes - Ferrous Metals
+            # Industrial Processes - Petroleum Refineries, 
+            # Industrial Processes - Oil & Gas Production,
+            # Industrial Processes - Mining
+            # Industrial Processes - Cement Manuf, 
+            # Industrial Processes - Pulp & Paper
+
+            # if r['sector'] == 'Industrial Processes - Cement': 
+
+            # Query 1
             elif (r['scc_level_two'] == 'In-process Fuel Use') & \
                 (r['scc_level_four'] != 'Total') & \
                 ('Fuel Storage' not in r['scc_level_three']):
@@ -602,6 +654,7 @@ class SCC_ID:
     
                 other_counter.append(i)
 
+            # Query 3
             elif r['scc_level_three'] == 'Ammonia Production':
 
                 if ':' in r['scc_level_four']:
@@ -612,6 +665,33 @@ class SCC_ID:
 
                 else:
                     continue
+
+            # Query 4
+            elif (r['scc_level_two'] != 'In-process Fuel Use') & \
+                (r['tier 1 description'] == 'Storage & Transport'):
+
+                if re.search(r'(Breathing Loss)', r['scc_level_four']):
+                    continue
+                else:
+                    ut1, ut2 = 'Other', r['scc_level_four']
+
+            
+            # Query 5 sector == 'Industrial Processes - Petroleum Refineries'
+            ['Process Heaters', 'Catalytic Cracking Unit', 'Flares', 'Fluid Coking Unit', 'Petroleum Coke Calcining', 'Incinerators']
+
+            if scc_level_three == 'Process Heaters':
+                {
+                    'Process Heaters': {
+                        'unit_types': ['Heater', 'Process heater'],
+                        'fuel_types': self.match_fuel_type(r['scc_level_four'])
+                        },
+                    'Catalytic Cracking Unit': {
+                        'unit_types': ['scc_level_four'].split(': ')[0],
+                        'fuel_types': self.match_fuel_type(['scc_level_four'].split(': ')[1]),
+                    }
+                
+                
+                }
 
             elif (r['scc_level_two'] != 'In-process Fuel Use') & \
                 (any([x in r['scc_level_four'].lower() for x in [
@@ -650,15 +730,13 @@ class SCC_ID:
                         except AttributeError:
 
                             try:
-                                ft1, f2 = self.match_fuel_type(
-                                    re.search(
-                                        r'cbm|nat gas|natural gas|distillate oil|residual oil|#2 oil|#6 oil|propane|coal|process gas', 
-                                        ut.lower()
-                                        ).group()
-                                    )
+                                ft = re.search(
+                                    r'cbm|nat gas|natural gas|distillate oil|residual oil|#2 oil|#6 oil|propane|coal|process gas', 
+                                    ut.lower()
+                                    ).group()
 
                             except AttributeError:
-                                ft = None
+                                ft1, ft2 = None, None
 
                             else:
                                 if ft.lower() == 'nat gas':
