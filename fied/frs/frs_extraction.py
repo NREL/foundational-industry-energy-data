@@ -11,6 +11,8 @@ import time
 import itertools
 import pandas as pd
 from collections import OrderedDict
+from pathlib import Path
+from naics_selection import NAICS_Identification
 
 
 logging.basicConfig(level=logging.INFO)
@@ -27,7 +29,11 @@ class FRS:
 
     def __init__(self):
 
-        self._frs_data_path = os.path.abspath('./data/FRS')
+        self._FIEDPATH = Path(__file__).parents[1]
+
+        self._frs_data_path = Path(self._FIEDPATH, "data/FRS")
+
+        # self._frs_data_path = os.path.abspath('./data/FRS')
 
         # Names of relevant FRS data files and columns.
         self._names_columns = OrderedDict({
@@ -43,7 +49,7 @@ class FRS:
                 'EPA_REGION_CODE',
                 'LATITUDE83', 'LONGITUDE83'
                 ],
-            'NAICS': ['REGISTRY_ID', 'NAICS_CODE'],
+            'NAICS': ['REGISTRY_ID', 'NAICS_CODE', 'PGM_SYS_ACRNM'],
             'single': ['REGISTRY_ID', 'PRIMARY_NAME',
                        'LOCATION_ADDRESS', 'SUPPLEMENTAL_LOCATION',
                        'CITY_NAME', 'COUNTY_NAME', 'FIPS_CODE', 'STATE_CODE',
@@ -317,22 +323,12 @@ class FRS:
         data = pd.merge(data, all_naics, on='NAICS_CODE', how='left')
         data = data.query("ind==True")
 
-        data_unique = data.drop_duplicates(
-            subset=['REGISTRY_ID'], keep='first'
-            )
-
-        dups = data[~data.index.isin(data_unique.index)]
-        dups = dups.groupby('REGISTRY_ID').apply(
-            lambda x: list(x['NAICS_CODE'].unique())
-            )
-        dups.name = 'NAICS_CODE_additional'
-
-        data = pd.merge(
-            data_unique, dups, on='REGISTRY_ID',
-            how='left'
-            )
-
         data.drop(['ind'], axis=1, inplace=True)
+
+    
+        data = NAICS_Identification().assign_all_naics(data)
+
+        data['NAICS_CODE'] = data.NAICS_CODE.astype(int)
 
         return data
 
@@ -655,7 +651,7 @@ if __name__ == '__main__':
     frs_methods.download_unzip_frs_data(combined=combined)
 
     frs_data_df = frs_methods.import_format_frs(combined=combined)
-    frs_data_df.to_csv('./data/FRS/frs_data_formatted.csv')
+    frs_data_df.to_csv(Path(__file__).parents[1], 'data/FRS/frs_data_formatted.csv')
 
     # t_stop = time.perf_counter()
     # logging.info(f'Program time: {t_stop - t_start:0.2f} seconds')
