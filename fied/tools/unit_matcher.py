@@ -1,13 +1,19 @@
 
 import pandas as pd
+import numpy as np
 import re
-import logginggg 
+import os
+import yaml
+import pathlib
+import logging 
 
 class Units:
     """
-    Class for creating standardized unit categories and extracting characterization information
+    Class for creating standardized, 2-level unit categories and extracting characterization information.
+    The unit types shown in the table below reprsent the first level of characterization. These act
+    as the standardized types, with the second level providing additional detail.
 
-        .. csv-table:: Level 1 Unit Types
+        .. csv-table:: Level 1 Unit Types (unitTypeLv1)
             :header: "Unit Type"
     
             "Boiler"
@@ -27,6 +33,31 @@ class Units:
         
         logging.basicConfig(level=logging.INFO)
 
+        self._unit_types_lvl_1 = [
+            "boiler",
+            "furnace",
+            "heater",
+            "dryer",
+            "kiln",
+            "internal combustion engine",
+            "oven",
+            "combined cycle",
+            "turbine",
+            "other combustion",
+            "other"  # represents units that are not combustion units, such as material handling equipment
+            ]
+        
+        # YAML that contains GHGRP-specific unit types, both standard (EPA defined, default unit types)
+        # and non-standard (custom unit types that are gleaned from the UNIT_NAME field in GHGRP data)
+        self._ghgrp_unittypes_path = pathlib.Path(__file__).parents[1]/"tools/ghgrp_unit_types.yaml"
+
+        self._ghgrp_ut_dict = {}
+
+        with open(self._ghgrp_unittypes_path, 'r') as file:
+            uts = list(yaml.safe_load_all(file))
+            self._ghgrp_ut_dict['std'] = uts[0]
+            self._ghgrp_ut_dict['nonstd'] = uts[1]
+
 
     def char_nei_units(self, nei_data):
         """
@@ -40,35 +71,69 @@ class Units:
 
     def char_ghgrp_units(self, ghgrp_data):
         """
-        
+        Characterize and standardize GHGRP-reported unit types.
+
         Parameters
         ----------
+        ghgrp_data : pandas.DataFrame
+            DataFrame of GHGRP data with derived energy use.
+
 
         Returns
         -------
-
+        ghgrp_data : pandas.DataFrame
+            DataFrame of GHGRP data with added columns for standardized unit types,
+            `unitTypeLv1` and `unitTypeLv2`. 
 
         """
 
-    def make_unit_types(self):
-        """"""
+        std_uts = pd.DataFrame.from_dict(
+            self._ghgrp_ut_dict['std'], 
+            orient='index'
+            ).reset_index()
+        
+        std_uts.rename(columns={'index': 'UNIT_TYPE'}, inplace=True)
 
+        # Issue with section character for coke oven battery combustion stacks
+        ghgrp_data['COB'] = ghgrp_data.UNIT_TYPE.dropna().apply(
+            lambda x: x[0:3] == 'COB'
+            )
+        
+        ghgrp_data.loc[ghgrp_data[ghgrp_data.COB == True].index, 'UNIT_TYPE'] = 'COB (By-product recovery coke oven battery combustion stacks)'
+        
+        ghgrp_data.drop(['COB'], axis=1, inplace=True)
 
-# from Tools class under misc_tools.py
-    def __init__(self):
+        ghgrp_data = pd.merge(
+            ghgrp_data, 
+            std_uts,
+            on='UNIT_TYPE',
+            how='left'
+            )
+        
+        # Check that EPA has not defined new standard unit types
+        if not ghgrp_data[(ghgrp_data.UNIT_TYPE.notnull()) & (ghgrp_data.unitTypeLv1.isnull())].empty:
+            ghgrp_data[(ghgrp_data.UNIT_TYPE.notnull()) & (ghgrp_data.unitTypeLv1.isnull())].UNIT_TYPE.drop_duplicates().to_pickle("new_ghgrp_units.pkl")
+            raise AssertionError("Check for new standard EPA unit types.\nExporting pkl with these unit types")
+                        
+        
+        # Try to identify unit type from UNIT_NAME field for OCS and NaN UNIT_TYPE entries
+        ocs_types = ghgrp_data[ghgrp_data.UNIT_TYPE == 'OCS (Other combustion source)']
+        none_types = ghgrp_data[ghgrp_data.UNIT_TYPE.isnull()]
 
-        # Combustion unit types
-        self._unit_types = [
-            'kiln', 'dryer', 'oven', 'furnace',
-            'boiler', 'incinerator', 'flare',
-            'heater', 'calciner', 'turbine',
-            'stove', 'distillation', 'other combustion',
-            'engine\s', 'generator', 'oxidizer', 'pump',
-            'compressor', 'building heat', 'cupola',
-            'PCWD', 'PCWW', 'PCO', 'PCT', 'OFB', 'broil',
-            'reciprocating', 'roaster'
-            ]
+        for df in [ocs_types, none_types]:
+    
+            found_types = df.UNIT_NAME.apply(lambda x: self.unit_regex(x))
 
+            found_types_df = pd.concat(
+                [pd.DataFrame(v, index=[i]) for i, v in found_types.items()],
+                axis=0
+                )
+
+            found_types_df.columns=['unitTypeLv1', 'unitTypeLv2']
+
+            ghgrp_data.update(found_types_df)
+
+        return ghgrp_data
 
     def unit_regex(self, unitType):
         """
@@ -83,17 +148,15 @@ class Units:
 
         Returns
         -------
-        unitTypeStd : str;
-            Standardized unit type
+        final_types : numpy.array
+            Array of strings for standardized unit types for the first and second level of unit description.
         """
-
-        other_boilers = ['PCWD', 'PCWW', 'PCO', 'PCT', 'OFB']
 
         ut_std = []
 
-        for unit in self._unit_types:
-
-            unit_pattern = re.compile(r'({})'.format(unit), flags=re.IGNORECASE)
+        for ut in self._ghgrp_ut_dict['nonstd'].keys():
+        
+            unit_pattern = re.compile(r'({})'.format(ut), flags=re.IGNORECASE)
 
             try:
                 unit_search = unit_pattern.search(unitType)
@@ -102,45 +165,21 @@ class Units:
                 continue
 
             if unit_search:
-                ut_std.append(unit)
+                ut_std.append(ut)
 
             else:
                 continue
 
-        if any([x in ut_std for x in ['engine\s', 'reciprocating']]):
-            ut_std = 'engine'
-
-        elif (len(ut_std) > 1):
-            ut_std = 'other combustion'
-
-        elif (len(ut_std) == 0):
-            ut_std = 'other'
-
-        elif ut_std[0] == 'calciner':
-            ut_std = 'kiln'
-
-        elif ut_std[0] == 'oxidizer':
-            ut_std = 'thermal oxidizer'
-
-        elif ut_std[0] == 'buidling heat':
-            ut_std = 'other combustion'
-
-        elif ut_std[0] in ['cupola', 'broil']:
-            ut_std = 'other combustion'
-
-        elif ut_std[0] == 'roaster':
-            ut_std = 'other combustion'
-
-        elif any([x in ut_std[0] for x in other_boilers]):
-            ut_std = 'boiler'
-
-        elif ut_std[0] == 'reciprocating':
-            ut_std = 'engine'
+        if (len(ut_std) > 1) | (len(ut_std)==0):
+            final_types = np.array([['other combustion', 'other combustion']])
 
         else:
-            ut_std = ut_std[0]
+            final_types = np.array(
+                [[self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv1'],
+                  unitType]]
+            )
 
-        return ut_std
+        return final_types
 
 # from nei_EF_calculations.py
     def unit_type_selection(self, series):

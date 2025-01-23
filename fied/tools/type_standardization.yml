@@ -1,800 +1,800 @@
 --- # Fuel Types
 Propane Gas: 
-  lvl_1: Petroleum products
-  lvl_2: Propane gas
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: propane gas
   fied_2017: lpgHGL
 Natural Gas (Weighted U.S. Average): 
-  lvl_1: Natural gas
-  lvl_2: natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
   fied_2017: naturalGas
 Wood and Wood Residuals (dry basis):
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
   fied_2017: biomass 
 Distillate Fuel Oil No. 2: 
-  lvl_1: Petroleum products
-  lvl_2: Distillate Fuel Oil No. 2
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: distillate Fuel Oil No. 2
   fied_2017: diesel 
 Liquefied petroleum gases (LPG): 
-  lvl_1: Petroleum products
-  lvl_2: Liquefied petroleum gases
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Liquefied petroleum gases
   fied_2017: lpgHGL 
 Propane: 
-  lvl_1: Petroleum products
-  lvl_2: Propane
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: propane
   fied_2017: lpgHGL 
 Motor Gasoline:
-  lvl_1: Petroleum products
-  lvl_2: Gasoline
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: gasoline
   fied_2017: gasoline
 Other Oil (>401 deg F): 
-  lvl_1: Petroleum products
-  lvl_2: Other oil (>401 deg F)
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: other oil (>401 deg F)
   fied_2017: other
 Other Biomass Gases: 
-  lvl_1: Bioimass
-  lvl_2: Other biomass gases
+  fuelTypeLv1: Bioimass
+  fuelTypeLv2: other biomass gases
   fied_2017: biomass
 Used Oil:
-  lvl_1: Petroleum products
-  lvl_2: Used oil
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: used oil
   fied_2017: other
 Agricultural Byproducts:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Agricultural byproducts
+  fuelTypeLv1: biomass
+  fuelTypeLv2: Agricultural byproducts
 All Direct:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 All Indirect:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 Anthracite:
   fied_2017: coal
-  lvl_1: Coal
-  lvl_2: Anthracite coal
+  fuelTypeLv1: coal
+  fuelTypeLv2: anthracite coal
 Anthracite Coal:
   fied_2017: coal
-  lvl_1: Coal
-  lvl_2: Anthracite coal
+  fuelTypeLv1: coal
+  fuelTypeLv2: anthracite coal
 Asphalt and Road Oil:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Asphalt and road oil
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: asphalt and road oil
 Bagasse:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Bagasse
+  fuelTypeLv1: biomass
+  fuelTypeLv2: Bagasse
 Biodiesel (100%):
   fied_2017: other
-  lvl_1: Biomass 
-  lvl_2: Biodiesel
+  fuelTypeLv1: biomass 
+  fuelTypeLv2: biodiesel
 Biogenic Process Derived Fuel (PDF):
   fied_2017: other
-  lvl_1: Biomass
-  lvl_2: Biogenic process derived fuel
+  fuelTypeLv1: biomass
+  fuelTypeLv2: Biogenic process derived fuel
 Biomass:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Biomass
+  fuelTypeLv1: biomass
+  fuelTypeLv2: biomass
 Bituminous:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Bituminous coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: bituminous coal
 Bituminous Coal:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Bituminous coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: bituminous coal
 Bituminous/Subbituminous Coal:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Bituminous and subituminous coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: bituminous and subituminous coal
 Blast Furnace Gas:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Blast furnace gas
+  fuelTypeLv1: other
+  fuelTypeLv2: blast furnace gas
 Blend (bituminous/subituminous):
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Bituminous and subituminous coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: bituminous and subituminous coal
 Butane:
   fied_2017: lpgHGL
-  lvl_1: Petroleum products
-  lvl_2: Butane
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: butane
 Butane (gaseous):
   fied_2017: lpgHGL
-  lvl_1: Petroleum products
-  lvl_2: Butane gas
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: butane gas
 CO Boiler:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 Carbon Monoxide:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Carbon monoxide
+  fuelTypeLv1: other
+  fuelTypeLv2: carbon monoxide
 Coal:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: coal
 Coal Coke:
   fied_2017: coke
-  lvl_1: Coal and coke
-  lvl_2: Coal coke
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: coal coke
 Coal-based Synfuel:
   fied_2017: other
-  lvl_1: Coal and coke
-  lvl_2: Coal-based synfuel
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: coal-based synfuel
 Coke:
   fied_2017: coke
-  lvl_1: Coal and coke
-  lvl_2: Coke
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: coke
 Coke Oven Gas:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Coke oven gas
+  fuelTypeLv1: other
+  fuelTypeLv2: coke oven gas
 Combined Purge and Cold Box Fuel:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Combined purge and cold box fuel
+  fuelTypeLv1: other
+  fuelTypeLv2: combined purge and cold box fuel
 Digester Gas:
   fied_2017: other
-  lvl_1: Biomass
-  lvl_2: Digester gas
+  fuelTypeLv1: biomass
+  fuelTypeLv2: Digester gas
 Direct:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 Direct Natural Gas:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 Direct Wood:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood
 Distillate Fuel Oil No. 1:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Distillate fuel oil No. 1
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: distillate fuel oil No. 1
 Distillate Fuel Oil No. 4:
   fied_2017: other
-  lvl_1: Petroleu products
-  lvl_2: Distillate fuel oil No. 4
+  fuelTypeLv1: Petroleu products
+  fuelTypeLv2: distillate fuel oil No. 4
 Distillate Oil:
   fied_2017: diesel
-  lvl_1: Petroleum products
-  lvl_2: Diesel
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Diesel
 Distillate Oil (Diesel):
   fied_2017: diesel
-  lvl_1: Petroleum products
-  lvl_2: Deisel
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Deisel
 Distillate Oil (No. 2):
   fied_2017: diesel
-  lvl_1: Petroleum products
-  lvl_2: Distillate fuel oil No. 2
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: distillate fuel oil No. 2
 Dual Fuel:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 Ethane:
   fied_2017: lpgHGL
-  lvl_1: Petroelum products
-  lvl_2: Ethane
+  fuelTypeLv1: Petroelum products
+  fuelTypeLv2: Ethane
 Ethanol (100%):
   fied_2017: other
-  lvl_1: Biomass
-  lvl_2: Ethanol
+  fuelTypeLv1: biomass
+  fuelTypeLv2: Ethanol
 Ethylene:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Ethylene
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Ethylene
 Exhaust From Sawdust:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Sawdust
+  fuelTypeLv1: biomass
+  fuelTypeLv2: Sawdust
 Fuel Gas:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Fuel gas
+  fuelTypeLv1: other
+  fuelTypeLv2: Fuel gas
 Fuel Oil:
   fied_2017: resFuelOil
-  lvl_1: Petroleum products
-  lvl_2: Residual fuel oil
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual fuel oil
 Gas:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natrual gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: Natrual gas
 Gasified Coal:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Gasified coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: Gasified coal
 Gasoline:
   fied_2017: gasoline
-  lvl_1: Petroleum products
-  lvl_2: Gasoline
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: gasoline
 Geothermal Power Plants:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Geothermal
+  fuelTypeLv1: other
+  fuelTypeLv2: Geothermal
 HYD-01:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Hydrogen
+  fuelTypeLv1: other
+  fuelTypeLv2: Hydrogen
 Heavy Gas Oils:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Heavy gas oils
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: heavy gas oils
 Heavy Residue:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Heavy gas oils
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: heavy gas oils
 Hydrogen:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Hydrogen
+  fuelTypeLv1: other
+  fuelTypeLv2: Hydrogen
 Indirect:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 Kerosene:
   fied_2017: kerosene
-  lvl_1: Petroleum products
-  lvl_2: Kerosene
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: kerosene
 Kerosene-Type Jet Fuel:
   fied_2017: jetA
-  lvl_1: Petroleum products
-  lvl_2: Jet A
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: jet A
 Kerosene/Naphtha (Jet Fuel):
   fied_2017: kerosene
-  lvl_1: Petroleum products
-  lvl_2: Jet A
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: jet A
 Kiln-dried biomass:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Biomass
+  fuelTypeLv1: biomass
+  fuelTypeLv2: biomass
 LPG:
   fied_2017: lpgHGL
-  lvl_1: Petroleum products
-  lvl_2: Liquified petroleum gases
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: liquified petroleum gases
 Landfill Gas:
   fied_2017: other
-  lvl_1: Biomass
-  lvl_2: Landfill gas
+  fuelTypeLv1: biomass
+  fuelTypeLv2: landfill gas
 Lignite:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Lignite coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: Lignite coal
 Lignite Coal:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Lignite coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: Lignite coal
 Liquid Waste:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Liquid waste
+  fuelTypeLv1: other
+  fuelTypeLv2: liquid waste
 Liquified Petroleum Gas:
   fied_2017: lpgHGL
-  lvl_1: Petroleum products
-  lvl_2: Liquified petroleum gases
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: liquified petroleum gases
 Liquified Petroleum Gas (LPG):
   fied_2017: lpgHGL
-  lvl_1: Petroleum products
-  lvl_2: Liquified petroleum gases
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: liquified petroleum gases
 Lubricants:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Lubricants
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Lubricants
 Methanol:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Methanol
+  fuelTypeLv1: other
+  fuelTypeLv2: methanol
 Mixed (Industrial sector):
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Mixed industrial sector coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: Mixed industrial sector coal
 Mixed Fuel Gas:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Fuel gas
+  fuelTypeLv1: other
+  fuelTypeLv2: Fuel gas
 Municipal Solid Waste:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Municipal solid waste
+  fuelTypeLv1: other
+  fuelTypeLv2: Municipal solid waste
 NG:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 Naphtha (<401 deg F):
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Naphtha (<401 deg F)
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Naphtha (<401 deg F)
 Natural Gas:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 Natural Gas Fired:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 Natural Gasoline:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Natural gasoline
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: natural gasoline
 No6 Fuel Oil Blend:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Residual Fuel Oil No. 6
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual Fuel Oil No. 6
 None:
   fied_2017: null
-  lvl_1: null
-  lvl_2: null
+  fuelTypeLv1: null
+  fuelTypeLv2: null
 OCC Rejects:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 OffGas:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 Oil:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Residual fuel oil No. 6
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual fuel oil No. 6
 Oil Fired:
   fied_2017: resFuelOil
-  lvl_1: Petroleum products
-  lvl_2: Residual fuel oil No. 6
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual fuel oil No. 6
 Oilfield Gas:
   fied_2017: other 
-  lvl_1: Other
-  lvl_2: Oilfield gas
+  fuelTypeLv1: other
+  fuelTypeLv2: Oilfield gas
 Other Gaseous Fuel:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 Other Oil:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Other
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: other
 PSA Off-gas:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 PSA Tail Gas:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 Pentanes Plus:
   fied_2017: lpgHGL
-  lvl_1: Petroleum products
-  lvl_2: Pentanes plus
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Pentanes plus
 Petrochemical Feedstocks:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Petrochemical feedstocks
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Petrochemical feedstocks
 Petroleum Coke:
   fied_2017: other 
-  lvl_1: Other
-  lvl_2: Plastics
+  fuelTypeLv1: other
+  fuelTypeLv2: Plastics
 Plastics:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Plastics
+  fuelTypeLv1: other
+  fuelTypeLv2: Plastics
 Process:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Process gas
+  fuelTypeLv1: other
+  fuelTypeLv2: Process gas
 Process Gas:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Process gas
+  fuelTypeLv1: other
+  fuelTypeLv2: Process gas
 Propylene:
   fied_2017: lpgHGL
-  lvl_1: Petroleum products
-  lvl_2: Propylene
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Propylene
 Raw Hydrogen:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Hydrogen
+  fuelTypeLv1: other
+  fuelTypeLv2: Hydrogen
 Recovered Solvents:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Solvents
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Solvents
 Refinery Fuel Gas:
   fied_2017: other
-  lvl_1: Other 
-  lvl_2: Fuel gas
+  fuelTypeLv1: other 
+  fuelTypeLv2: Fuel gas
 Refinery Fuel Gas 1:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Fuel gas
+  fuelTypeLv1: other
+  fuelTypeLv2: Fuel gas
 Refinery Fuel Gas 2:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Fuel gas
+  fuelTypeLv1: other
+  fuelTypeLv2: Fuel gas
 Refuse:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Municipal solid waste
+  fuelTypeLv1: other
+  fuelTypeLv2: Municipal solid waste
 Rendered Animal Fat:
   fied_2017: other
-  lvl_1: Biomass
-  lvl_2: Rendered animal fat
+  fuelTypeLv1: biomass
+  fuelTypeLv2: Rendered animal fat
 Residual Fuel Oil No. 5:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Residual Fuel Oil No. 5
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual Fuel Oil No. 5
 Residual Fuel Oil No. 6:
   fied_2017: resFuelOil
-  lvl_1: Petroleum products
-  lvl_2: Residual Fuel Oil No. 6
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual Fuel Oil No. 6
 Residual Oil:
   fied_2017: resFuelOil
-  lvl_1: Petroleum products
-  lvl_2: Residual Fuel Oil No. 6
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual Fuel Oil No. 6
 Residual/Crude Oil:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Residual Fuel Oil No. 6
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual Fuel Oil No. 6
 Sawdust:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 Solid Byproducts:
   fied_2017: biomass
-  lvl_1: Other
-  lvl_2: Waste
+  fuelTypeLv1: other
+  fuelTypeLv2: waste
 Solid Waste:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Municipal solid waste
+  fuelTypeLv1: other
+  fuelTypeLv2: Municipal solid waste
 Solid waste:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Municipal solid waste
+  fuelTypeLv1: other
+  fuelTypeLv2: Municipal solid waste
 Special Naphtha:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Special naptha
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Special naptha
 Steam:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Steam
+  fuelTypeLv1: other
+  fuelTypeLv2: Steam
 Subbituminous:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Subbituminous coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: Subbituminous coal
 Tail Gas:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Tail gas
+  fuelTypeLv1: other
+  fuelTypeLv2: Tail gas
 Tire-derived Fuel:
   fied_2017: oather
-  lvl_1: Other
-  lvl_2: Tires
+  fuelTypeLv1: other
+  fuelTypeLv2: tires
 Tires:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Tires
+  fuelTypeLv1: other
+  fuelTypeLv2: tires
 Vacuum:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 Vegetable Oil:
   fied_2017: other
-  lvl_1: Biomass
-  lvl_2: Vegetable oil
+  fuelTypeLv1: biomass
+  fuelTypeLv2: Vegetable oil
 Waste 1:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Waste
+  fuelTypeLv1: other
+  fuelTypeLv2: waste
 Waste 2:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Waste
+  fuelTypeLv1: other
+  fuelTypeLv2: waste
 Waste Coal:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Waste coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: waste coal
 Waste Oil:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Waste oil
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: waste oil
 Waste Supplemental Fuel:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 Wood:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 Wood Residuals:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 Wood and Wood Residuals:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 Wood/Bark Waste:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 \#2 oil:
   fied_2017: diesel
-  lvl_1: Petroleum products
-  lvl_2: Distillate fuel oil No. 2
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: distillate fuel oil No. 2
 \#6 oil:
   fied_2017: resFuelOil
-  lvl_1: Petroleum products
-  lvl_2: Distillate fuel oil No. 6
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: distillate fuel oil No. 6
 all indirect:
   fied_2017: other
-  lvl_1: null
-  lvl_2: null
+  fuelTypeLv1: null
+  fuelTypeLv2: null
 and Coke:
   fied_2017: coke
-  lvl_1: null
-  lvl_2: null
+  fuelTypeLv1: null
+  fuelTypeLv2: null
 and Gas:
   fied_2017: other
-  lvl_1: null
-  lvl_2: null
+  fuelTypeLv1: null
+  fuelTypeLv2: null
 and coke:
   fied_2017: other
-  lvl_1: null
-  lvl_2: null
+  fuelTypeLv1: null
+  fuelTypeLv2: null
 anthracite coal:
   fied_2017: coal
-  lvl_1: Coal
-  lvl_2: Anthracite coal
+  fuelTypeLv1: coal
+  fuelTypeLv2: anthracite coal
 bagasse:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Bagasse
+  fuelTypeLv1: biomass
+  fuelTypeLv2: Bagasse
 bituminous coal:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Bituminous coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: bituminous coal
 bituminous/subbituminous coal:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Bituminous and subituminous coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: bituminous and subituminous coal
 carbon monoxide:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Carbon monoxide
+  fuelTypeLv1: other
+  fuelTypeLv2: carbon monoxide
 co boiler:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 coal:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: coal
 coke:
   fied_2017: coke
-  lvl_1: Coal and coke
-  lvl_2: Coke
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: coke
 diesel:
   fied_2017: diesel
-  lvl_1: Petroleum products
-  lvl_2: Diesel
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Diesel
 digester gas:
   fied_2017: other
-  lvl_1: Biomass
-  lvl_2: Digester gas
+  fuelTypeLv1: biomass
+  fuelTypeLv2: Digester gas
 direct NG:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 direct natural gas:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 direct wood:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 distillate oil:
   fied_2017: diesel
-  lvl_1: Petroleum products
-  lvl_2: Distillate fuel oil No. 2
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: distillate fuel oil No. 2
 distillate oil (diesel):
   fied_2017: diesel
-  lvl_1: Petroleum products
-  lvl_2: Diesel
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Diesel
 distillate oil (no. 2):
   fied_2017: diesel
-  lvl_1: Petroleum products
-  lvl_2: Distillate fuel oil No. 2
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: distillate fuel oil No. 2
 distillate_oil:
   fied_2017: diesel
-  lvl_1: Petroleum products
-  lvl_2: Diesel
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: Diesel
 dual fuel:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 exhaust from sawdust:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 gas:
   fied_2017: other
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 gas furnace process:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 gasoline:
   fied_2017: gasoline
-  lvl_1: Petroleum products
-  lvl_2: Gasoline
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: gasoline
 gassified coal:
   fied_2017: other
-  lvl_1: Coal and coke
-  lvl_2: Gassified coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: Gassified coal
 heat:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Other
+  fuelTypeLv1: other
+  fuelTypeLv2: other
 heated with waste heat and supplemental gas burners:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 jet a fuel:
   fied_2017: jetA
-  lvl_1: Petroleum products
-  lvl_2: Jet A
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: jet A
 jet_a:
   fied_2017: jetA
-  lvl_1: Petroleum products
-  lvl_2: Jet A
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: jet A
 kerosene/naphtha (jet fuel):
   fied_2017: kerosene
-  lvl_1: Petroleum products
-  lvl_2: Jet A
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: jet A
 landfill gas:
   fied_2017: other
-  lvl_1: Biomass
-  lvl_2: Landfill gas
+  fuelTypeLv1: biomass
+  fuelTypeLv2: landfill gas
 lignite:
   fied_2017: coal
-  lvl_1: Coal and coke
-  lvl_2: Lignite coal
+  fuelTypeLv1: coal and coke
+  fuelTypeLv2: Lignite coal
 liquid waste:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Liquid waste
+  fuelTypeLv1: other
+  fuelTypeLv2: liquid waste
 liquified petroleum gas:
   fied_2017: lpgHGL
-  lvl_1: Petroleum products
-  lvl_2: Liquified petroleum gases
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: liquified petroleum gases
 liquified petroleum gas (lpg):
   fied_2017: lpgHGL
-  lvl_1: Petroleum products
-  lvl_2: Liquified petroleum gases
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: liquified petroleum gases
 methanol:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Methanol
+  fuelTypeLv1: other
+  fuelTypeLv2: methanol
 nan:
   fied_2017: None
-  lvl_1: null
-  lvl_2: null
+  fuelTypeLv1: null
+  fuelTypeLv2: null
 natural gas:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 natural gas fired:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 natural_gas:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 none:
   fied_2017: null
-  lvl_1: null
-  lvl_2: null
+  fuelTypeLv1: null
+  fuelTypeLv2: null
 oil:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Residual fuel oil
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual fuel oil
 or Oil:
   fied_2017: resFuelOil
-  lvl_1: Petroleum products
-  lvl_2: Residual fuel oil
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual fuel oil
 other biomass:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Other
+  fuelTypeLv1: biomass
+  fuelTypeLv2: other
 pet_coke:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Petcoke
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: petcoke
 petroleum coke:
   fied_2017: other 
-  lvl_1: Petroleum products
-  lvl_2: Petcoke
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: petcoke
 process gas:
   fied_2017: other
-  lvl_1: Other 
-  lvl_2: Process gas
+  fuelTypeLv1: other 
+  fuelTypeLv2: Process gas
 process_gas:
   fied_2017: other
-  lvl_1: Other 
-  lvl_2: Process gas
+  fuelTypeLv1: other 
+  fuelTypeLv2: Process gas
 propane:
   fied_2017: lpgHGL
-  lvl_1: Petroleum products
-  lvl_2: Propane
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: propane
 recovered solvents:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Other
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: other
 residual fuel oil:
   fied_2017: resFuelOil
-  lvl_1: Petroleum products
-  lvl_2: Residual fuel oil
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual fuel oil
 residual oil:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Residual fuel oil
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual fuel oil
 residual/crude oil:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Other
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: other
 residual_oil:
   fied_2017: resFuelOil
-  lvl_1: Petroleum products
-  lvl_2: Residual fuel oil
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: residual fuel oil
 rotary drum dryer / mixer, natural gas, counterflow:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 rotary drum dryer / mixer, natural gas, parallel flow:
   fied_2017: naturalGas
-  lvl_1: Natural gas
-  lvl_2: Natural gas
+  fuelTypeLv1: natural gas
+  fuelTypeLv2: natural gas
 sawdust:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 solid waste:
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Municipal solid waste
+  fuelTypeLv1: other
+  fuelTypeLv2: Municipal solid waste
 tire-derived fuel:
   fied_2017: other
-  lvl_1: Waste
-  lvl_2: Tires
+  fuelTypeLv1: waste
+  fuelTypeLv2: tires
 vent gas (Oxo Propane Recycle):
   fied_2017: other
-  lvl_1: Other
-  lvl_2: Vent gas (oxo propane recycle)
+  fuelTypeLv1: other
+  fuelTypeLv2: vent gas (oxo propane recycle)
 waste oil:
   fied_2017: other
-  lvl_1: Petroleum products
-  lvl_2: Waste oil
+  fuelTypeLv1: petroleum products
+  fuelTypeLv2: waste oil
 wood:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 wood residuals:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 wood/bark waste:
   fied_2017: biomass
-  lvl_1: Biomass
-  lvl_2: Wood and wood residuals
+  fuelTypeLv1: biomass
+  fuelTypeLv2: wood and wood residuals
 
 # ---
 # # units:
@@ -882,11 +882,11 @@ wood/bark waste:
 #  - Calcining: Gas-fired Calcimatic Kiln
 #  - Fluidized Bed Kiln
 #  - Multiple Hearth Calciner
-#  - Calcining: Coal-fired Rotary Kiln
+#  - Calcining: coal-fired Rotary Kiln
 #  - Calcining: Gas-fired Rotary Kiln
-#  - Calcining: Coal- and Gas-fired Rotary Kiln
-#  - Calcining: Coal- and Coke-fired Rotary Kiln
-#  - Calcining: Coal-fired Rotary Preheater Kiln
+#  - Calcining: coal- and Gas-fired Rotary Kiln
+#  - Calcining: coal- and Coke-fired Rotary Kiln
+#  - Calcining: coal-fired Rotary Preheater Kiln
 #  - Calcining: Gas-fired Parallel Flow Regenerative Kiln
 #  - Continuous Kettle: Calciner
 #  - Flash Calciner
@@ -904,9 +904,9 @@ wood/bark waste:
 #  - Rotary Cooler Following Calciner
 #  - Lime Kiln
 #  - Fluid Bed Calciner
-#  - Rotary Calciner: Natural Gas-fired
+#  - Rotary Calciner: natural Gas-fired
 #  - Rotary Calciner: Fuel Oil-fired
-#  - Fluidized Bed Calciner: Natural Gas-fired
+#  - Fluidized Bed Calciner: natural Gas-fired
 #  - Fluidized Bed Calciner: Fuel Oil-fired
 #  - Glazing and firing kiln (use SCCs 3-05-008-45 & -50)
 #  - Pulverized Coal Kiln Feed Units
@@ -917,8 +917,8 @@ wood/bark waste:
 #  - Chromite-Magnesite Ore: Rotary Dryer
 #  - Chromite-Magnesite Ore: Tunnel Kiln
 #  - Kiln
-#  - Lime Kiln : Coal-fired
-#  - Lime Kiln : Natural Gas-fired
+#  - Lime Kiln : coal-fired
+#  - Lime Kiln : natural Gas-fired
 #  - Sesquicarbonate Process: Rotary Calciner
 #  - Sesquicarbonate Process: Fluid-bed Calciner
 #  - Fluorspar Drying Kiln: Fuel Combustion
@@ -938,19 +938,19 @@ wood/bark waste:
 #  - Tunnel Kiln: Sawdust-fired
 #  - Tunnel Kiln: Gas-fired
 #  - Tunnel Kiln: Oil-fired
-#  - Tunnel Kiln: Coal-fired
+#  - Tunnel Kiln: coal-fired
 #  - Periodic Kiln: Gas-fired
 #  - Periodic Kiln: Oil-fired
-#  - Periodic Kiln: Coal-fired
-#  - Tunnel Kiln: Wood-fired
+#  - Periodic Kiln: coal-fired
+#  - Tunnel Kiln: wood-fired
 #  - Tunnel Kiln: Gas-fired: High Sulfur Material
-#  - Tunnel Kiln: Petroleum Coke-fired
-#  - Periodic Kiln: Petroleum Coke-fired
+#  - Tunnel Kiln: petroleum Coke-fired
+#  - Periodic Kiln: petroleum Coke-fired
 #  - Periodic Kiln: Dual Fuel-fired
 #  - Tunnel Kiln: Dual Fuel-fired
 #  - Other Kiln: Gas-fired
 #  - Other Kiln: Oil Fired
-#  - Other Kiln: Coal-Fired
+#  - Other Kiln: coal-Fired
 #  - Other Kiln: Dual Fuel-fired
 #  - Carbon Kiln
 #  - Reduction Kiln
@@ -1070,11 +1070,11 @@ wood/bark waste:
 #  - Electric Furnace After Fluid Bed Roaster
 #  - Refining Kettle: Pot Furnace
 #  - Smelting Furnace: Reverberatory
-#  - Smelting Furnace: Blast
+#  - Smelting Furnace: blast
 #  - Sweating Furnace: Rotary
 #  - Reverberatory Sweating Furnace
-#  - Refining Kettle: Pot Furnace Heater: Distillate Oil
-#  - Refining Kettle: Pot Furnace Heater: Natural Gas
+#  - Refining Kettle: Pot Furnace Heater: distillate Oil
+#  - Refining Kettle: Pot Furnace Heater: natural Gas
 #  - Sweating Furnace: Fugitive Emissions
 #  - Smelting Furnace: Fugitive Emissions
 #  - Agglomeration Furnace
@@ -1101,7 +1101,7 @@ wood/bark waste:
 #  - Heat Treating Furnace
 # Electric Arc Furnace: Baghouse
 # Electric Arc Furnace: Baghouse Dust Handling
-# Reheating Furnace: Natural Gas
+# Reheating Furnace: natural Gas
 # Pneumatic Converter Furnace
 # Fugitive Emissions: Furnace
 # Horizontal Muffle Furnace
@@ -1110,10 +1110,10 @@ wood/bark waste:
 # Lead Reclaiming Furnace
 # Pot Furnace
 # Group 1 Furnace: Clean Charge Only
-# Group 1 Furnace: Other than Clean Charge
+# Group 1 Furnace: other than Clean Charge
 # Indurating Furnace: Gas Fired (see 3-03-023-51 thru -88)
 # Indurating Furnace: Oil Fired (see 3-03-023-51 thru -88)
-# Indurating Furnace: Coal Fired (see 3-03-023-51 thru -88)
+# Indurating Furnace: coal Fired (see 3-03-023-51 thru -88)
 # Blast Furnace: Charging
 # Blast Furnace: Casting/Tapping: Casthouse Roof Monitor
 # Blast Furnace: Casting/Tapping: Local Evacuation
@@ -1140,14 +1140,14 @@ wood/bark waste:
 # Electric Arc Furnace (EAF): Specialty Steel: Melt Shop Roof Monitor
 # Electric Arc Furnace (EAF): Specialty Steel: Dust Handling Control System
 # Electric Arc Furnace (EAF): Specialty Steel: Dust Handling Fugitive Emissions
-# Electric Arc Furnace (EAF): Carbon Steel: Charging
-# Electric Arc Furnace (EAF): Carbon Steel: Melting and Refining
-# Electric Arc Furnace (EAF): Carbon Steel: Tapping
-# Electric Arc Furnace (EAF): Carbon Steel
-# Electric Arc Furnace (EAF): Carbon Steel: Melt Shop Roof Monitor
-# Electric Arc Furnace (EAF): Carbon Steel: Charging Melting and Refining Tapping
-# Electric Arc Furnace (EAF): Carbon Steel: Dust Handling Control System
-# Electric Arc Furnace (EAF): Carbon Steel: Dust Handling Fugitive Emissions
+# Electric Arc Furnace (EAF): carbon Steel: Charging
+# Electric Arc Furnace (EAF): carbon Steel: Melting and Refining
+# Electric Arc Furnace (EAF): carbon Steel: Tapping
+# Electric Arc Furnace (EAF): carbon Steel
+# Electric Arc Furnace (EAF): carbon Steel: Melt Shop Roof Monitor
+# Electric Arc Furnace (EAF): carbon Steel: Charging Melting and Refining Tapping
+# Electric Arc Furnace (EAF): carbon Steel: Dust Handling Control System
+# Electric Arc Furnace (EAF): carbon Steel: Dust Handling Fugitive Emissions
 # Open Hearth Furnace: Charging
 # Open Hearth Furnace: Melting and Refining
 # Open Hearth Furnace: Tapping
@@ -1176,7 +1176,7 @@ wood/bark waste:
 # Electric Arc Furnace: Alloy Steel (Stack)
 # Charging: Electric Arc Furnace
 # Tapping: Electric Arc Furnace
-# Electric Arc Furnace: Carbon Steel (Stack)
+# Electric Arc Furnace: carbon Steel (Stack)
 # Basic Oxygen Furnace: Open Hood-Stack
 # Basic Oxygen Furnace: Closed Hood-Stack
 # Open Electric Smelting Furnace: 50% FeSi
@@ -1186,14 +1186,14 @@ wood/bark waste:
 # Open Electric Smelting Furnace: Silicomanaganese
 # Open Electric Smelting Furnace: 80% Ferromanganese
 # Open Electric Smelting Furnace: 80% Ferrochromium
-# Ferromanganese: Blast Furnace
-# Ferrosilicon: Blast Furnace
+# Ferromanganese: blast Furnace
+# Ferrosilicon: blast Furnace
 # Sealed Electric Arc Furnace: Ferromanganese
 # Sealed Electric Arc Furnace: Ferrochromium
 # Sealed Electric Arc Furnace: Ferrochromium Silicon
-# Sealed Furnace: Other Alloys
+# Sealed Furnace: other Alloys
 # Semi-covered Electric Arc Furnace: Ferromanganese
-# Semi-covered Electric Arc Furnace: Other Alloys
+# Semi-covered Electric Arc Furnace: other Alloys
 # Semi-covered Electric Arc Furnace: Ferrochromium
 # Semi-covered Electric Arc Furnace: Ferrochromium Silicon
 # Reclamation Furnace
@@ -1214,8 +1214,8 @@ wood/bark waste:
 #  - Reverberatory Sweat Furnace: Clean Metallic Scrap
 #  - Kettle-Sweat Furnace: General Metallic Scrap
 #  - Reverberatory Sweat Furnace: General Metallic Scrap
-#  - Kettle-Sweat Furnace: Residual Metallic Scrap
-#  - Reverberatory Sweat Furnace: Residual Metallic Scrap
+#  - Kettle-Sweat Furnace: residual Metallic Scrap
+#  - Reverberatory Sweat Furnace: residual Metallic Scrap
 #  - Kettle (Pot) Melting Furnace
 #  - Crucible Melting Furnace
 #  - Reverberatory Melting Furnace
@@ -1254,13 +1254,13 @@ wood/bark waste:
 #  - Flare
 #  - Flares: Continuous Pilot Light
 #  - Flares: Flaring Operations
-#  - Incinerator: Distillate Oil (No. 2)
-#  - Incinerator: Residual Oil
-#  - Incinerator: Natural Gas
+#  - Incinerator: distillate Oil (No. 2)
+#  - Incinerator: residual Oil
+#  - Incinerator: natural Gas
 #  - Incinerator: Process Gas
-#  - Flare: Distillate Oil (No. 2)
-#  - Flare: Residual Oil
-#  - Flare: Natural Gas
+#  - Flare: distillate Oil (No. 2)
+#  - Flare: residual Oil
+#  - Flare: natural Gas
 #  - Non-condensible Gases Incinerator
 #  - Incinerators Burning Waste Gas or Augmented Waste Gas
 #  - Flares Combusting Gases > 1000 BTU/scf
@@ -1302,13 +1302,13 @@ wood/bark waste:
 # - Heater
 # - Total: All Combustor Types
 # - Total
-# - Asphalt Heater: Natural Gas
-# - Asphalt Heater: Residual Oil
-# - Asphalt Heater: Distillate Oil
+# - Asphalt Heater: natural Gas
+# - Asphalt Heater: residual Oil
+# - Asphalt Heater: distillate Oil
 # - Asphalt Heater: LPG
-# - Asphalt Heater: Waste Oil
+# - Asphalt Heater: waste Oil
 # - Broilers: Enteric Confinement Manure Handling Storage Land Application
-# - Broiling Food: Natural Gas
+# - Broiling Food: natural Gas
 # - Distillate Oil (No. 2): Process Heaters
 # - Residual Oil: Process Heaters
 # - Natural Gas: Process Heaters
@@ -1324,7 +1324,7 @@ wood/bark waste:
 # - Heater Treater
 # - Gas Well Heaters
 # - CBM Well Heaters
-# - Boilers/Heaters: Natural Gas
+# - Boilers/Heaters: natural Gas
 # - Primary Reformer
 # - Well Drilling: Steam Emissions
 # - General (Subbituminous)
@@ -1334,16 +1334,16 @@ wood/bark waste:
 # - Coke Oven or Blast Furnace
 # - Coke Oven Gas
 # - Mineral Wool Fuel
-# - General: Coke
+# - General: coke
 # - Wood Building Products: Flatwood and others
-# - General: Wood
+# - General: wood
 # - Solid Waste: General
 # - Recovered Solvent: General
 # - OCS (Other combustion source)
 # - Sterilization - Steam Autoclaving
-# - Process Heater: Distillate Oil (No. 2)
-# - Process Heater: Residual Oil
-# - Process Heater: Natural Gas
+# - Process Heater: distillate Oil (No. 2)
+# - Process Heater: residual Oil
+# - Process Heater: natural Gas
 # - Process Heater: Process Gas
 # - Coal Preheater
 # - Malt Kiln
@@ -1546,7 +1546,7 @@ wood/bark waste:
 #  - Indirect Heated Dryer: Non-specified Fir Species Veneer
 #  - Indirect Heated Dryer: Douglas Fir Veneer
 #  - Monohydrate Process: Rotary Ore Calciner: Gas-fired
-#  - Monohydrate Process: Rotary Ore Calciner: Coal-fired
+#  - Monohydrate Process: Rotary Ore Calciner: coal-fired
 #  - Rotary Soda Ash Dryers
 #  - Fluid-bed Soda Ash Dryers/Coolers
 #  - Trona Dryer
@@ -1580,11 +1580,11 @@ wood/bark waste:
 #  - Rotolouvre Dryer
 #  - Airlift Dryer: Batch Process
 #  - Airlift Dryer: Continuous Process
-#  - Blood Dryer: Natural Gas Direct Fired
+#  - Blood Dryer: natural Gas Direct Fired
 #  - Blood Dryer: Steam-coil Indirect Heated
 #  - Vacuum Dryer
 #  - Air Dryer
-#  - Brewers Grain Dryer: Natural Gas-fired
+#  - Brewers Grain Dryer: natural Gas-fired
 #  - Brewers Grain Dryer: Fuel Oil-fired
 #  - Brewers Grain Dryer: Steam-heated
 #  - Dryer House Operations
@@ -1635,8 +1635,8 @@ wood/bark waste:
 # Parallel Strand Lumber (PSL) Manufacture: Softwood Veneer Dryer: Direct Natural Gas-fired: Cooling Section
 # Parallel Strand Lumber (PSL) Manufacture: Veneer Redryer: Radio Frequency-heated: Hardwood
 # Parallel Strand Lumber (PSL) Manufacture: Veneer Redryer: Radio Frequency-heated: Softwood
-# Parallel Strand Lumber (PSL) Manufacture: Veneer Redryer: Other: Hardwood
-# Parallel Strand Lumber (PSL) Manufacture: Veneer Redryer: Other: Softwood
+# Parallel Strand Lumber (PSL) Manufacture: Veneer Redryer: other: Hardwood
+# Parallel Strand Lumber (PSL) Manufacture: Veneer Redryer: other: Softwood
 # Tube dryer second stage indirect heated hardwood
 # Press Pre-Dryer: Phenol Formaldehyde Resin
 # Press Pre-Dryer: Non-Phenol Formaldehyde Resin
@@ -1646,15 +1646,15 @@ wood/bark waste:
 # Mat Dryer: Indirect-heated: Starch binder: Softwood
 # Mat Dryer: Indirect-heated: Starch binder: Hardwood
 # Mat Dryer: Indirect-heated: Starch binder: Mixed Softwood/Hardwood
-# Mat Dryer: Indirect-heated: Asphalt binder: Softwood
-# Mat Dryer: Indirect-heated: Asphalt binder: Hardwood
-# Mat Dryer: Indirect-heated: Asphalt binder: Mixed Softwood/Hardwood
+# Mat Dryer: Indirect-heated: asphalt binder: Softwood
+# Mat Dryer: Indirect-heated: asphalt binder: Hardwood
+# Mat Dryer: Indirect-heated: asphalt binder: Mixed Softwood/Hardwood
 # Mat Dryer: Direct-heated: Starch binder: Softwood
 # Mat Dryer: Direct-heated: Starch binder: Hardwood
 # Mat Dryer: Direct-heated: Starch binder: Mixed Softwood/Hardwood
-# Mat Dryer: Direct-heated: Asphalt binder: Softwood
-# Mat Dryer: Direct-heated: Asphalt binder: Hardwood
-# Mat Dryer: Direct-heated: Asphalt binder: Mixed Softwood/Hardwood
+# Mat Dryer: Direct-heated: asphalt binder: Softwood
+# Mat Dryer: Direct-heated: asphalt binder: Hardwood
+# Mat Dryer: Direct-heated: asphalt binder: Mixed Softwood/Hardwood
 # Laminated Veneer Lumber (LVL) Manufacture: Hardwood Veneer Dryer: Indirect-heated: Heated Zones
 # Laminated Veneer Lumber (LVL) Manufacture: Hardwood Veneer Dryer: Indirect-heated: Cooling Section
 # Laminated Veneer Lumber (LVL) Manufacture: Softwood Veneer Dryer: Indirect-heated: Heated Zones
@@ -1669,8 +1669,8 @@ wood/bark waste:
 # Laminated Veneer Lumber (LVL) Manufacture: Softwood Veneer Dryer: Direct Natural Gas-fired: Cooling Section
 # Laminated Veneer Lumber (LVL) Manufacture: Veneer Redryer: Radio Frequency-heated: Softwood
 # Laminated Veneer Lumber (LVL) Manufacture: Veneer Redryer: Radio Frequency-heated: Hardwood
-# Laminated Veneer Lumber (LVL) Manufacture: Veneer Redryer: Other: Softwood
-# Laminated Veneer Lumber (LVL) Manufacture: Veneer Redryer: Other: Hardwood
+# Laminated Veneer Lumber (LVL) Manufacture: Veneer Redryer: other: Softwood
+# Laminated Veneer Lumber (LVL) Manufacture: Veneer Redryer: other: Hardwood
 # Indirect Heated Dryer: Poplar Veneer
 # Veneer Redryer: Radio Frequency-heated: Hardwood
 # Veneer Redryer: Radio Frequency-heated: Softwood
@@ -1719,7 +1719,7 @@ wood/bark waste:
 # Direct Natural Gas-fired Rotary Predryer Softwoods
 # Secondary Tube Dryer: All Indirect-fired Units
 # Secondary Tube Dryer: All Direct-fired Units
-# Fiber Dryers: Other
+# Fiber Dryers: other
 # Direct Wood-fired Rotary Dryer Unspecified Pines
 # Direct Wood-fired Rotary Dryer Aspen
 # Rotary Strand Dryer: Direct Wood-fired: Softwood
@@ -1739,18 +1739,18 @@ wood/bark waste:
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Softwood
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Mixed Softwood/Hardwood
-# Pressurized Refiner/Primary Tube Dryer: Natural Gas-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Hardwood
-# Pressurized Refiner/Primary Tube Dryer: Natural Gas-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Softwood
-# Pressurized Refiner/Primary Tube Dryer: Natural Gas-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Mixed Softwood/Hardwood
+# Pressurized Refiner/Primary Tube Dryer: natural Gas-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Hardwood
+# Pressurized Refiner/Primary Tube Dryer: natural Gas-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Softwood
+# Pressurized Refiner/Primary Tube Dryer: natural Gas-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Mixed Softwood/Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Indirect-fired: Blowline Blend: Phenol Formaldehyde Resin: Softwood
 # Pressurized Refiner/Primary Tube Dryer: Indirect-fired: Blowline Blend: Phenol Formaldehyde Resin: Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Indirect-fired: Blowline Blend: Phenol Formaldehyde Resin: Mixed Softwood/Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Phenol Formaldehyde Resin: Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Phenol Formaldehyde Resin: Softwood
 # Pressurized Refiner/Primary Tube Dryer: Direct Wood-fired: Blowline Blend: Phenol Formaldehyde Resin: Mixed Softwood/Hardwood
-# Pressurized Refiner/Primary Tube Dryer: Natural Gas-fired: Blowline Blend: Phenol Formaldehyde Resin: Softwood
-# Pressurized Refiner/Primary Tube Dryer: Natural Gas-fired: Blowline Blend: Phenol Formaldehyde Resin: Mixed Softwood/Hardwood
-# Pressurized Refiner/Primary Tube Dryer: Natural Gas-fired: Blowline Blend: Phenol Formaldehyde Resin: Hardwood
+# Pressurized Refiner/Primary Tube Dryer: natural Gas-fired: Blowline Blend: Phenol Formaldehyde Resin: Softwood
+# Pressurized Refiner/Primary Tube Dryer: natural Gas-fired: Blowline Blend: Phenol Formaldehyde Resin: Mixed Softwood/Hardwood
+# Pressurized Refiner/Primary Tube Dryer: natural Gas-fired: Blowline Blend: Phenol Formaldehyde Resin: Hardwood
 # Board dryerdirect NG-firedsoftwood linseed oil binder(heated zones)
 # Pressurized Refiner/Primary Tube Dryer: Indirect-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Hardwood
 # Pressurized Refiner/Primary Tube Dryer: Indirect-fired: Blowline Blend: Non-Phenol Formaldehyde Resin: Softwood
@@ -1767,9 +1767,9 @@ wood/bark waste:
 # Cane Sugar Dryer
 # Sugar Dryer
 # Sugar Granulator (Dryer & Cooler)
-# Pulp Dryer : Coal-fired
+# Pulp Dryer : coal-fired
 # Pulp Dryer : Oil-fired
-# Pulp Dryer : Natural Gas-fired
+# Pulp Dryer : natural Gas-fired
 # Tetrahedrite Ore Dryer
 # Dryers/Calciners
 # Spray Dryers
@@ -1801,18 +1801,18 @@ wood/bark waste:
 # Continuous Process: Finishing: Dryers
 # Batch Process: Finishing: Dryers
 # Pellet Dryer
-# Spray Dryer: Natural Gas-fired
+# Spray Dryer: natural Gas-fired
 # Infrared (IR) Dryer
 # Convection Dryer
-# Presinter Thermal Processing: Natural Gas-fired Kiln
+# Presinter Thermal Processing: natural Gas-fired Kiln
 # Presinter Thermal Processing: Fuel Oil-fired Kiln
-# Roller Kiln: Natural Gas-fired
-# Tunnel Kiln: Natural Gas-fired
-# Shuttle Kiln: Natural Gas-fired
+# Roller Kiln: natural Gas-fired
+# Tunnel Kiln: natural Gas-fired
+# Shuttle Kiln: natural Gas-fired
 # Roller Kiln: Fuel Oil-fired
 # Tunnel Kiln: Fuel Oil-fired
 # Shuttle Kiln: Fuel Oil-fired
-# Refiring: Natural Gas-fired Kiln
+# Refiring: natural Gas-fired Kiln
 # Flash Dryer
 # Multilouvered Dryer
 # Rotary Dryer
@@ -1886,8 +1886,8 @@ wood/bark waste:
 # Oven Underfiring
 # By-product Process: Oven/Door Leaks
 
-# By-product Process: Combustion Stack: Coke Oven Gas (COG)
-# By-product Process: Combustion Stack: Blast Furnace Gas (BFG)
+# By-product Process: Combustion Stack: coke Oven Gas (COG)
+# By-product Process: Combustion Stack: blast Furnace Gas (BFG)
 # By-product Process: By-pass Bleeder Stack/Excess Coke Oven Gas Vent
 # Heat/No Chemical Recovery Process: Oven Charging
 # Nonrecovery Process: Oven Charging
@@ -1920,7 +1920,7 @@ wood/bark waste:
 # Retort and Muffle Distillation: Casting
 
 
-# Firing: Natural Gas-fired Tunnel Kiln Firing Structural Clay Tile
+# Firing: natural Gas-fired Tunnel Kiln Firing Structural Clay Tile
 # Electric Furnace: Hoods and Main Stack
 
 # Furnace Room Vents
