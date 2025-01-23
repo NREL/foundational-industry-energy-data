@@ -1,0 +1,200 @@
+
+%YAML 1.1
+---
+# Default, EPA-defined unit types
+OCS (Other combustion source):
+  unitTypeLv1: other combustion
+  unitTypeLv2: other combustion
+OB (Boiler, other):
+  unitTypeLv1: boiler
+  unitTypeLv2: other boiler
+F (Furnace):
+  unitTypeLv1: furnace
+  unitTypeLv2: furnace
+ICI (Incinerator, commercial and industrial):
+  unitTypeLv1: other combustion
+  unitTypeLv2: incinerator commercial and industrial
+S (Stoker Boiler):
+  unitTypeLv1: boiler
+  unitTypeLv2: stoker boiler
+OFB (Fluidized bed, other):
+  unitTypeLv1: boiler
+  unitTypeLv2: fluidized bed other
+PRH (Process Heater):
+  unitTypeLv1: heater
+  unitTypeLv2: process heater
+BFB (Boiler, bubbling fluidized bed):
+  unitTypeLv1: boiler
+  unitTypeLv2: boiler bubbling fluidized bed
+PCT (Pulverized coal, tangentially-fired):
+  unitTypeLv1: boiler
+  unitTypeLv2: pulverized coal tangentially-fired
+PCWD (Pulverized coal, wall-fired, dry bottom):
+  unitTypeLv1: boiler
+  unitTypeLv2: pulverized coal wall-fired dry bottom
+CH (Comfort heater):
+  unitTypeLv1: heater
+  unitTypeLv2: comfort heater
+HMH (Heater, heat medium for heat exchange):
+  unitTypeLv1: heater
+  unitTypeLv2: heater heat medium for heat exchange
+K (Kiln):
+  unitTypeLv1: kiln
+  unitTypeLv2: kiln
+NGLH (Heater, natural gas line):
+  unitTypeLv1: heater
+  unitTypeLv2: heater natural gas line
+PCO (Pulverized coal, other):
+  unitTypeLv1: boiler
+  unitTypeLv2: pulverized coal other
+PD (Product or intermediate product dryer):
+  unitTypeLv1: dryer
+  unitTypeLv2: product or intermediate product dryer
+SCCT (CT (Turbine, simple cycle combustion)):
+  unitTypeLv1: turbine
+  unitTypeLv2: turbine simple cycle combustion
+TODF (Thermal oxidizer, direct fired, no heat recovery):
+  unitTypeLv1: other combustion
+  unitTypeLv2: thermal oxidizer direct fired no heat recovery
+C (Calciner):
+  unitTypeLv1: other combustion
+  unitTypeLv2: calciner
+CCCT (CC (Turbine, combined cycle)):
+  unitTypeLv1: combined cycle
+  unitTypeLv2: turbine combined cycle
+FLR (Flare):
+  unitTypeLv1: other combustion
+  unitTypeLv2: flare
+HWH (Heater, hot water):
+  unitTypeLv1: heater
+  unitTypeLv2: heater hot water
+O (Oven):
+  unitTypeLv1: oven 
+  unitTypeLv2: oven
+PFB (Boiler, pressurized fluidized bed):
+  unitTypeLv1: boiler
+  unitTypeLv2: boiler pressurized fluidized bed
+RICE (Reciprocating internal combustion engine):
+  unitTypeLv1: internal combustion engine
+  unitTypeLv2: reciprocating internal combustion engine
+RTO (Regenerative thermal oxidizer):
+  unitTypeLv1: other combustion
+  unitTypeLv2: regenerative thermal oxidizer
+RCO (Regenerative catalytic oxidizer):
+  unitTypeLv1: other combustion
+  unitTypeLv2: regenerative catalytic oxidizer
+CFB (Boiler, circulating fluidized bed):
+  unitTypeLv1: boiler
+  unitTypeLv2: boiler circulating fluidized bed
+CF (Cyclone Furnace):
+  unitTypeLv1: furnace
+  unitTypeLv2: cyclone furnace
+Q (Other Subpart Q combustion sources not otherwise listed.):
+  unitTypeLv1: other combustion
+  unitTypeLv2: other subpart q combustion sources not otherwise listed.
+CatH (Heater,  catalytic):
+  unitTypeLv1: heater
+  unitTypeLv2: heater  catalytic
+MWC (Municipal waste combustor):
+  unitTypeLv1: other combustion
+  unitTypeLv2: municipal waste combustor
+FeFL (Subpart Q - ladle reheater):
+  unitTypeLv1: heater
+  unitTypeLv2: ladle reheater
+HPPU (hydrogen production process units):
+  unitTypeLv1: other combustion
+  unitTypeLv2: hydrogen production process units
+COB (By-product recovery coke oven battery combustion stacks):
+  unitTypeLv1: other combustion
+  unitTypeLv2: by-product recovery coke oven battery combustion stacks
+II (Incinerator, institutional):
+  unitTypeLv1: other combustion
+  unitTypeLv2: incinerator institutional
+PCWW (Pulverized coal, wall-fired, wet bottom):
+  unitTypeLv1: boiler
+  unitTypeLv2: pulverized coal wall-fired wet bottom
+Electricity Generator:
+  unitTypeLv1: other combustion
+  unitTypeLv2: other combustion
+Chemical Recovery Combustion Unit:
+  unitTypeLv1: other combustion
+  unitTypeLv2: other combustion
+Chemical Recovery Furnace:
+  unitTypeLv1: furnace
+  unitTypeLv2: furnace
+Pulp Mill Lime Kiln:
+  unitTypeLv1: kiln
+  unitTypeLv2: kiln
+---
+# Non-standardized unit types found in UNIT_NAME field
+kiln:
+  unitTypeLv1: kiln
+  unitTypeLv2: 
+dryer:
+  unitTypeLv1: dryer
+  unitTypeLv2:
+oven:
+  unitTypeLv1: oven
+  unitTypeLv2:
+furnace:
+  unitTypeLv1: furnace
+  unitTypeLv2:
+boiler:
+  unitTypeLv1: boiler
+  unitTypeLv2:
+incinerator:
+  unitTypeLv1: other combustion 
+  unitTypeLv2: incincerator
+flare:
+  unitTypeLv1: other combustion
+  unitTypeLv2: incinerator
+heater:
+  unitTypeLv1: heater
+  unitTypeLv2:
+calciner:
+  unitTypeLv1: kiln
+  unitTypeLv2: calciner
+turbine: 
+  unitTypeLv1: turbine
+  unitTypeLv2:
+stove:
+  unitTypeLv1: other combustion
+  unitTypeLv2: stove
+distillation:
+  unitTypeLv1: other
+  unitTypeLv2: distillation
+other combustion:
+  unitTypeLv1: other combusion
+  unitTypeLv2:
+engine\s:
+  unitTypeLv1: internal combustion engine
+  unitTypeLv2: 
+generator:
+  unitTypeLv1: internal combustion engine
+  unitTypeLv2: generator
+oxidizer:
+  unitTypeLv1: other combusion
+  unitTypeLv2: oxidizer
+pump:
+  unitTypeLv1: internal combustion engine
+  unitTypeLv2: pump
+compressor:
+  unitTypeLv1: internal combustion engine
+  unitTypeLv2: compressor
+building heat: 
+  unitTypeLv1: other combustion
+  unitTypeLv2: building heat
+cupola:
+  unitTypeLv1: furnace
+  unitTypeLv2: cupola
+broil:
+  unitTypeLv1: other combustion
+  unitTypeLv2: broiler
+reciprocating:
+  unitTypeLv1: internal combustion engine
+  unitTypeLv2: reciprocating
+roaster:
+  unitTypeLv1: other combustion
+  unitTypeLv2: roaster
+
+    
