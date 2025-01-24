@@ -391,7 +391,6 @@ class GHGRP_unit_char():
         ghgrp_df = self.get_unit_capacity(ghgrp_df)
         # Harmonize fuel types for GHGRP data
         ghgrp_df = self.harmonize_fuel_type(ghgrp_df, 'FUEL_TYPE_FINAL')
-        ghgrp_df.to_pickle("ghgrp_df_pre_format.pkl")
         ghgrp_df = self.format_ghgrp_df(ghgrp_df)
 
         ghgrp_df.to_csv(
