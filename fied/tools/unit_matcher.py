@@ -33,7 +33,7 @@ class Units:
         
         logging.basicConfig(level=logging.INFO)
 
-        self._unit_types_lvl_1 = [
+        self._unit_types_lv1 = [
             "boiler",
             "furnace",
             "heater",
@@ -174,10 +174,19 @@ class Units:
             final_types = np.array([['other combustion', 'other combustion']])
 
         else:
-            final_types = np.array(
-                [[self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv1'],
-                  unitType]]
-            )
+
+            if self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv2']:
+
+                final_types = np.array(
+                    [[self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv1'],
+                      self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv2']]]
+                    )
+            else:
+
+                final_types = np.array(
+                    [[self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv1'],
+                    unitType]]
+                    )
 
         return final_types
 
