@@ -54,12 +54,6 @@ class GHGRP_unit_char():
                 orient='index'
                 )
 
-            # for i, d in enumerate(docs):
-            #     if i == 0:
-            #         fuel_dict = d
-            #     else:
-            #         continue
-
         fuel_types.reset_index(inplace=True)
 
         fuel_types.rename(columns={'index': 'FUEL_TYPE_FINAL'}, inplace=True)
@@ -137,7 +131,7 @@ class GHGRP_unit_char():
             ghgrp_ind = pd.read_excel(
                 unit_data_file_path,
                 engine='pyxlsb', sheet_name='UNIT_DATA',
-                skiprows=6
+                skiprows=6, na_values=""
                 )
             
         except XLRDError as e:
@@ -172,7 +166,7 @@ class GHGRP_unit_char():
         # Industrial facilities aleady selected in FRS data.
         ghgrp_ind = ghgrp_ind[ghgrp_ind["Reporting Year"] == self._reporting_year].copy(deep=True)
         # ghgrp_ind = ghgrp_ind.where(
-        #     ghgrp_ind['Reporting Year'].isin(ghgrp_df.REPORTING_YEAR)
+        #     ghgrp_ind['Reporting Year'].isin(ghg/rp_df.REPORTING_YEAR)
         #     ).dropna(how='all')
 
         ghgrp_ind.update(
@@ -212,10 +206,21 @@ class GHGRP_unit_char():
         """
         Formatting (e.g., dropping columns, aggregating fuel types)
         for GHGRP energy estimates, which now include unit capacity data.
+
+        Parameters
+        ----------
+        ghgrp_df : pandas.DataFrame
+
+        Returns
+        -------
+        ghgrp_df : pandas.DataFrame
+
+
         """
         self.logger.debug("Formatting GHGRP data")
 
-        # ghgrp_df.to_csv('ghgrp_emissions.csv')
+        # The groupby below was originally missing facilities that do 
+        # not have values for max capacity and/or FRS registry ID.
 
         # Aggregate. Units may combust multiple types of 
         # fuels and have multiple observations (estimates)
@@ -226,9 +231,10 @@ class GHGRP_unit_char():
         ghgrp_df = ghgrp_df.groupby(
             ['FACILITY_ID', 'FRS_REGISTRY_ID', 'REPORTING_YEAR',
              'FUEL_TYPE_FINAL', 'fuelTypeLv1', 'fuelTypeLv2', 'UNIT_NAME',
-             'unitTypeLv1', 'unitTypeLv2', 'MAX_CAP_MMBTU_per_HOUR'], as_index=False
+             'unitTypeLv1', 'unitTypeLv2', 'MAX_CAP_MMBTU_per_HOUR'], as_index=False,
+             dropna=False
              )[['TJ_TOTAL', 'MTCO2e_TOTAL']].sum()
-
+    
         ghgrp_df.loc[:, "energyMJ"] = ghgrp_df.TJ_TOTAL * 10**6
 
         ghgrp_df['designCapacity'] = np.nan

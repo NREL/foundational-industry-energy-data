@@ -127,6 +127,18 @@ Pulp Mill Lime Kiln:
   unitTypeLv2: kiln
 ---
 # Non-standardized unit types found in UNIT_NAME field
+ICE:
+  unitTypeLv1: internal combustion engine
+  unitTypeLv2:
+RICE:
+  unitTypeLv1: internal combustion engine
+  unitTypeLv2:
+HTR:
+  unitTypeLv1: heater
+  unitTypeLv2:
+Water Heater:
+  unitTypeLv1: heater
+  unitTypeLv2: water heater
 kiln:
   unitTypeLv1: kiln
   unitTypeLv2: 
