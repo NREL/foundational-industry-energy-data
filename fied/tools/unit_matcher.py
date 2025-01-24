@@ -34,17 +34,17 @@ class Units:
         logging.basicConfig(level=logging.INFO)
 
         self._unit_types_lv1 = [
-            "boiler",
-            "furnace",
-            "heater",
-            "dryer",
-            "kiln",
-            "internal combustion engine",
-            "oven",
-            "combined cycle",
-            "turbine",
-            "other combustion",
-            "other"  # represents units that are not combustion units, such as material handling equipment
+            "Boiler",
+            "Furnace",
+            "Heater",
+            "Dryer",
+            "Kiln",
+            "Internal combustion engine",
+            "Oven",
+            "Combined cycle",
+            "Turbine",
+            "Other combustion",
+            "Other"  # represents units that are not combustion units, such as material handling equipment
             ]
         
         # YAML that contains GHGRP-specific unit types, both standard (EPA defined, default unit types)
@@ -171,7 +171,7 @@ class Units:
                 continue
 
         if (len(ut_std) > 1) | (len(ut_std)==0):
-            final_types = np.array([['other combustion', 'other combustion']])
+            final_types = np.array([['Other combustion', 'Other combustion']])
 
         else:
 
@@ -552,113 +552,3 @@ class Units:
         return nei
     
 
-# GHGRP unit type. From ghgrp_fac_unit.py
-    def get_unit_type(self):
-        """
-        Use unit name to deterimine unit type for
-        unit types that are defined as OCS (Other combustion source).
-
-
-        Returns
-        -------
-        ghgrp_df : pandas.DataFrame
-            Dataframe from GHGRP energy calculations with
-            UNIT_TYPE column updated from OCS to a specific
-            unit type.
-        """
-
-        ghgrp_df = pd.read_parquet(
-            os.path.join(self._data_dir, self._ghgrp_energy_file)
-            )
-
-        types = [
-            'furnace', 'kiln', 'dryer', 'heater',
-            'oven', 'calciner', 'stove', 'htr', 'furn',
-            'cupola', 'boiler', 'turbine', 'building heat', 'space heater',
-            'engine', 'compressor', 'pump', 'rice', 'generator',
-            'hot water', 'crane', 'water heater',
-            'comfort heater', 'RTO', 'TODF', 'oxidizer', 'RCO'
-            ]
-
-        ocs_units = ghgrp_df.query(
-            "UNIT_TYPE == 'OCS (Other combustion source)'"
-            ).UNIT_NAME
-
-        ocs_units = ocs_units.str.lower()
-
-        logging.info(
-            f'There are {len(ocs_units)} units '
-            f'or {len(ocs_units)/len(ghgrp_df):.1%} labelled as OCS'
-            )
-
-        # Assume boilers will be the most typical combustion unit type
-        # pd.Series.str.find returns -1 where a string is not found
-        # Not perfect, as approach assigns "boiler" to units that are 
-        # aggregations, e.g., "GP-1 Boilers / Afterburners"
-        named_units = pd.concat(
-            [pd.Series(ocs_units.str.find(t), name=t) for t in types],
-            axis=1, ignore_index=False
-            )
-
-        # Matched will show as NaN
-        named_units = named_units.where(named_units == -1)
-
-        for c in named_units.columns:
-            named_units[c].fillna(c, inplace=True)
-
-        named_units.replace(
-            {
-                'furn': 'furnace', 'htr': 'heater',
-                'hot water': 'water heater',
-                'rice': 'engine', 'comfort heater': 'space heater'
-            }, inplace=True
-            )
-
-        named_units = named_units.where(named_units != -1)
-        named_units = named_units.apply(lambda x: x.dropna(), axis=0)
-
-        sing_types = named_units.count(axis=1)
-        sing_types = sing_types.where(sing_types == 1).dropna()
-        sing_types = pd.DataFrame(
-            named_units.loc[sing_types.index, :]
-            )
-
-        mult_types = named_units.count(axis=1)
-        mult_types = mult_types.where(mult_types > 1).dropna()
-        mult_types = pd.DataFrame(
-            named_units.loc[mult_types.index, :]
-            )
-        mult_types['unit_type_iden'] = False
-
-        ocs_units = pd.concat(
-            [ocs_units,
-             pd.Series(index=ocs_units.index, name='unit_type_iden')],
-            axis=1
-            )
-
-        # TODO why isn't sing_types.apply(lambda x: x.dropna()), result_type='reduce')
-        # returning a series? Should be a faster approach than this loop
-        for i in sing_types.index:
-            ocs_units.loc[i, 'unit_type_iden'] = \
-                sing_types.loc[i, :].dropna().values[0]
-
-        for t in ['boiler', 'furnace', 'kiln', 'calciner', 'dryer', 'stove',
-                  'space heater', 'water heater', 'turbine', 'generator',
-                  'engine', 'cupola', 'compressor', 'pump', 'building heat',
-                  'space heater', 'oxidizer']:
-
-            mult_types.unit_type_iden.update(
-                mult_types[t]
-                )
-
-            ocs_units.unit_type_iden.update(
-                mult_types.unit_type_iden
-                )
-
-            mult_types = mult_types.where(
-                mult_types.unit_type_iden != t
-                ).dropna(subset=['unit_type_iden'])
-
-        ghgrp_df.UNIT_TYPE.update(ocs_units.unit_type_iden)
-
-        return ghgrp_df
