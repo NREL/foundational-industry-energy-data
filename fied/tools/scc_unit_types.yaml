@@ -1,0 +1,231 @@
+Incinerator:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Incinerator
+Other Incinerators:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Incinerator
+Flare:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Flare
+Process Heater:
+  unitTypeLv1: Heater
+  unitTypeLv2: Process heater
+Broiling Food:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Food broiling
+Furnaces:
+  unitTypeLv1: Furnace
+  unitTypeLv2: Furnace
+Incinerators:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Incinerator
+Process Heaters:
+  unitTypeLv1: Heater
+  unitTypeLv2: Process heater
+Space Heaters:
+  unitTypeLv1: Heater
+  unitTypeLv2: Space heater
+Flares:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Flare
+Incinerator/Afterburner:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Incinerator/afterburner
+Other Not Elsewhere Classified:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Other combustion
+Dryer:
+  unitTypeLv1: Dryer
+  unitTypeLv2: None
+Kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: None
+Boiler:
+  unitTypeLv1: Boiler
+  unitTypeLv2: None
+Heaters:
+  unitTypeLv1: Heater
+  unitTypeLv1: None
+Engines:
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: None
+Compressors:
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: None
+Generators:
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: None
+Cooker:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: None
+Fryer:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: None
+Roaster:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: None
+Drying:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: None
+Calcining:
+  unitTypeLv1: Kiln
+  unitTypeLv2: None
+In process fuel use not elsewhere classified:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: None
+tunnel kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Tunnel kiln
+triple-pass dryer cyclone:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Triple-pass dryer cyclone
+indirect-fired batch roaster -natural gas (incl combustion emiss):
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Batch roaster
+indirect-fired continuous roaster -natural gas (incl combustion emiss):
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Continuous roaster
+direct-fired batch roaster - natural gas:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Batch roaster
+direct-fired continuous roaster - natural gas:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Continuous roaster
+gas-fired malt kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Malt kiln
+direct-fired dryer - produces corn gluten feed:
+  unitTypeLv1: Dyer
+  unitTypeLv2: Corn gluten feed dryer, direct
+indirect-fired dryer - produces corn gluten feed:
+  unitTypeLv1: Dyer
+  unitTypeLv2: Corn gluten feed dryer, indirect
+direct-fired dryer - produces corn gluten meal:
+  unitTypeLv1: Dyer
+  unitTypeLv2: Corn gluten meal dryer, direct
+indirect-fired dryer - produces corn gluten meal:
+  unitTypeLv1: Dyer
+  unitTypeLv2: Corn gluten meal dryer, indirect
+brewers grain dryer:
+  unitTypeLv1: Dryer 
+  unitTypeLv2: Brewers grain dryer
+pulp dryer:
+  unitTypeLv1: Dyer
+  unitTypeLv2: Pulp dryer
+lime kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Lime kiln
+almond roaster:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Roaster
+gas-fired toaster:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Toaster
+Rotary Drum Dryer / Mixer, Natural Gas, Parallel Flow:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary drum dryer, parallel flow
+Rotary Drum Dryer / Mixer, Natural Gas, Counterflow:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary drum dryer, counterflow
+Rotary Drum Dryer / Mixer, Propane, Parallel Flow:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary drum dryer, parallel flow
+Rotary Drum Dryer / Mixer, Propane, Counterflow:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary drum dryer, counterflow
+periodic kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Periodic kiln
+other kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Other kiln
+Heated With Waste Heat And Supplemental Gas Burners:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Other combustion
+sawdust dryer: 
+  unitTypeLv1: Kiln
+  unitTypeLv2: Sawdust dryer
+spray dryer:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Spray dryer
+rotary calciner:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Rotary calciner
+fluidized bed calciner:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Fluidized bed calciner
+natural gas-fired kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Kiln
+fuel oil-fired kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Kiln
+shuttle kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Shuttle kiln
+roller kiln: 
+  unitTypeLv1: Kiln
+  unitTypeLv2: Roller kiln
+tunnel kiln: 
+  unitTypeLv1: Kiln
+  unitTypeLv2: Tunnel kiln
+natural gas-fired kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Kiln
+gas-fired calcimatic kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Calcimaticlkiln
+coal-fired rotary kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Rotary kiln
+gas-fired rotary kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Rotary kiln
+coal- and gas-fired rotary kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Rotary kiln
+coal- and coke-fired rotary kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Rotary kiln
+coal-fired rotary preheater kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Rotary preheater kiln
+gas-fired parallel flow regenerative kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Parallel flow regenerative kiln
+gas- or oil-fired rotary or fluidized bed dryer:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary or fluidized bed dryer
+gas-fired rotary dryer:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary dryer
+oil-fired rotary dryer:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary dryer
+gas-fired fluidized bed dryer:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Fluidized bed drye
+oil-fired fluidized bed dryer:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Fluidized bed drye
+rotary dryer, gas-fired:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary dryer
+rotary dryer, oil-fired (also see -46):
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary dryer
+'rotary dryer, waste/drain/# 6 oil-fired (also see -47':
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary dryer
+rotary dryer, oil-fired:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Rotary dryer
+fluidized bed dryer, gas-fired:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Fluidized bed dryer
+fluidized bed dryer, oil-fired:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Fluidized bed dryer
+gas-fired vertical furnace:
+  unitTypeLv1: Furnace
+  unitTypeLv2: Vertical furnace
