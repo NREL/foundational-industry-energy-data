@@ -36,7 +36,6 @@ class NEI ():
         self._FIEDPATH = Path(__file__).parents[1]
 
         self._nei_data_path = Path(self._FIEDPATH, "data/NEI/nei_ind_data.csv")
-
         self._unit_conv_path = Path(self._FIEDPATH, "nei/unit_conversions.yml")
 
         with open(self._unit_conv_path) as file:
@@ -521,9 +520,14 @@ class NEI ():
 
         iden_scc.loc[:, 'SCC'] = iden_scc.SCC.astype('int64')
 
+        # iden_scc.rename(columns={
+        #     'unit_type': 'scc_unit_type',
+        #     'fuel_type': 'scc_fuel_type'}, inplace=True
+        #     )
+
         iden_scc.rename(columns={
-            'unit_type': 'scc_unit_type',
-            'fuel_type': 'scc_fuel_type'}, inplace=True
+            'unit_type_lv1': 'scc_unit_type',
+            'fuel_type_lv1': 'scc_fuel_type'}, inplace=True
             )
 
         return iden_scc
@@ -635,10 +639,6 @@ class NEI ():
             nei_data[nei_data.ghgsTonneCO2eQ2.isnull()][['energy_MJ_q0','energy_MJ_q2', 'energy_MJ_q3']].multiply(nei_data.ef, axis=0)/1000
 
         emissions.columns = ['ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']
-
-        # Drop values that are >25,000 metric tons. If these values are not
-        # errors, then they will be picked up by the inclusion of GHGRP unit emissions
-        # emissions = emissions.query("ghgsTonneCO2eQ3 < 25000 ")
 
         nei_data.update(emissions)
 
@@ -1288,8 +1288,6 @@ class NEI ():
             NEI with mass and throughput coversion factors. 
     
         """
-        #TODO refactor to condense code (many common elements between NEI and
-        #WebFire)
 
         # map unit of emissions and EFs in NEI/WebFire to unit conversion key
         # convert NEI total emissions value to LB
@@ -1845,7 +1843,6 @@ class NEI ():
         # Use median EF from WebFires as alt approach to estimating energy
         nei_char = nei.apply_median_webfr_ef(nei_char, webfr, cutoff=0.75)  
         logging.info("Extracting and aggregating GHG emissions")
-        nei_char.to_pickle('nei_char_pre_med.pkl')
         logging.info("Final NEI data assembly...")
         med_unit = nei.get_median_throughput_and_energy(nei_char)
         missing_unit = nei.separate_missing_units(nei_char)
