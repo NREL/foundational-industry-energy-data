@@ -1,14 +1,14 @@
 Incinerator:
-  unitTypeLv1: Other combustion
+  unitTypeLv1: Incinerator
   unitTypeLv2: Incinerator
 Other Incinerators:
-  unitTypeLv1: Other combustion
+  unitTypeLv1: Incinerator
   unitTypeLv2: Incinerator
 Flare:
   unitTypeLv1: Other combustion
   unitTypeLv2: Flare
 Process Heater:
-  unitTypeLv1: Heater
+  unitTypeLv1: Process heater
   unitTypeLv2: Process heater
 Broiling Food:
   unitTypeLv1: Other combustion
@@ -17,62 +17,62 @@ Furnaces:
   unitTypeLv1: Furnace
   unitTypeLv2: Furnace
 Incinerators:
-  unitTypeLv1: Other combustion
+  unitTypeLv1: Incinerator
   unitTypeLv2: Incinerator
 Process Heaters:
-  unitTypeLv1: Heater
+  unitTypeLv1: Process heater
   unitTypeLv2: Process heater
 Space Heaters:
-  unitTypeLv1: Heater
+  unitTypeLv1: Space heater
   unitTypeLv2: Space heater
 Flares:
   unitTypeLv1: Other combustion
   unitTypeLv2: Flare
 Incinerator/Afterburner:
-  unitTypeLv1: Other combustion
+  unitTypeLv1: Incinerator
   unitTypeLv2: Incinerator/afterburner
 Other Not Elsewhere Classified:
   unitTypeLv1: Other combustion
   unitTypeLv2: Other combustion
 Dryer:
   unitTypeLv1: Dryer
-  unitTypeLv2: None
+  unitTypeLv2: Dryer
 Kiln:
   unitTypeLv1: Kiln
-  unitTypeLv2: None
+  unitTypeLv2: Kiln
 Boiler:
   unitTypeLv1: Boiler
-  unitTypeLv2: None
+  unitTypeLv2: Boiler
 Heaters:
-  unitTypeLv1: Heater
-  unitTypeLv1: None
+  unitTypeLv1: Process heater
+  unitTypeLv1: Heaters
 Engines:
   unitTypeLv1: Internal combustion engine
-  unitTypeLv2: None
+  unitTypeLv2: Engines
 Compressors:
   unitTypeLv1: Internal combustion engine
-  unitTypeLv2: None
+  unitTypeLv2: Compressors
 Generators:
   unitTypeLv1: Internal combustion engine
-  unitTypeLv2: None
+  unitTypeLv2: Generators
 Cooker:
   unitTypeLv1: Other combustion
-  unitTypeLv2: None
+  unitTypeLv2: Cooker
 Fryer:
-  unitTypeLv1: Other combustion
-  unitTypeLv2: None
+  unitTypeLv1: Fryer
+  unitTypeLv2: Fryer
 Roaster:
   unitTypeLv1: Other combustion
-  unitTypeLv2: None
+  unitTypeLv2: Roaster
 Drying:
   unitTypeLv1: Other combustion
-  unitTypeLv2: None
+  unitTypeLv2: Dryer
 Calcining:
-  unitTypeLv1: Kiln
-  unitTypeLv2: None
+  unitTypeLv1: Calciner
+  unitTypeLv2: Calciner
 In process fuel use not elsewhere classified:
   unitTypeLv1: Other combustion
-  unitTypeLv2: None
+  unitTypeLv2: Other combustion
 tunnel kiln:
   unitTypeLv1: Kiln
   unitTypeLv2: Tunnel kiln
@@ -149,10 +149,10 @@ spray dryer:
   unitTypeLv1: Dryer
   unitTypeLv2: Spray dryer
 rotary calciner:
-  unitTypeLv1: Kiln
+  unitTypeLv1: Calciner
   unitTypeLv2: Rotary calciner
 fluidized bed calciner:
-  unitTypeLv1: Kiln
+  unitTypeLv1: Calciner
   unitTypeLv2: Fluidized bed calciner
 natural gas-fired kiln:
   unitTypeLv1: Kiln
