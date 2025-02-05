@@ -9,8 +9,6 @@ def load_naics_assignments(og_fp, new_fp):
     and revised approach.
     """
 
-
-
     og_naics = pd.read_csv(
         og_fp,
         usecols=['registryID', 'naicsCode'], 

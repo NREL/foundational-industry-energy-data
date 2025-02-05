@@ -931,6 +931,10 @@ Blast Furnace Gas (BFG):
   fied_2017: lpgHgl
   fuelTypeLv1: Hydrocarbon gas liquids
   fuelTypeLv2: Butand and propane mix
+Other: 
+  fied_2017: Other
+  fuelTypeLv1: Other
+  fuelTypeLv2: Other
 Specify Waste Material in Comments:
   fied_2017: Other
   fuelTypeLv1: Other

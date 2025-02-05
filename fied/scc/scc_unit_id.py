@@ -52,10 +52,17 @@ class SCC_ID:
 
         self._all_fuel_types_path = Path(self._FIEDPATH, "tools/all_fuels.csv")
 
+        # YAML that contains fuel types
+        self._all_fuel_types_path = Path(self._FIEDPATH, "tools/fuel_type_standardization.yaml")
+
+
         # self._all_fuel_types = pd.read_csv(self._all_fuel_types_path)
-        self._all_fuel_types = pd.read_csv(self._all_fuel_types_path, index_col=['ft'])
-        self._all_fuel_types = self._all_fuel_types[~self._all_fuel_types.index.duplicated()]  # Catch duplicates
-        self._all_fuel_types = self._all_fuel_types.to_dict(orient='index')
+        # self._all_fuel_types = pd.read_csv(self._all_fuel_types_path, index_col=['ft'])
+        # self._all_fuel_types = self._all_fuel_types[~self._all_fuel_types.index.duplicated()]  # Catch duplicates
+        # self._all_fuel_types = self._all_fuel_types.to_dict(orient='index')
+
+        with open(self._all_fuel_types_path, 'r') as file:
+            self._all_fuel_types = yaml.safe_load(file)
 
 
     def load_complete_scc(self):
@@ -826,11 +833,7 @@ class SCC_ID:
 
 if __name__ == '__main__':
 
-    id_scc = SCC_ID()
-    all_scc = id_scc.load_complete_scc()
-    exc = id_scc.id_external_combustion(all_scc)
-    ice = id_scc.id_ice(all_scc)
-    sta = id_scc.id_stationary_fuel_combustion(all_scc)
-    scc_chee = id_scc.id_chemical_evaporation(all_scc)
+    id_scc = SCC_ID().main()
+    # all_scc = id_scc.load_complete_scc()
     # id_scc_df = id_scc.build_id()
     # id_scc_df.to_csv('./scc/updated_iden_scc.csv')
