@@ -17,13 +17,17 @@ class UnitsFuels:
             :header: "Unit Type"
     
             "Boiler"
-            "Furnace"
-            "Heater"
+            "Calciner"
             "Dryer"
+            "Fryer"
+            "Furnace"
+            "Incinerator"
+            "Internal combustion engine"
             "Kiln"
-            "Internal combustion engine"'
             "Oven"
-            "Combined cycle"
+            "Process heater"
+            "Space heater"
+            "Thermal oxidizer"
             "Turbine"
             "Other combustion"
             "Other"
@@ -47,16 +51,20 @@ The standardized, Level 1 fuel types are shown below.
 
         self._unit_types_lv1 = [
             "Boiler",
-            "Furnace",
-            "Heater",
+            "Calciner",
             "Dryer",
-            "Kiln",
+            "Fryer",
+            "Furnace",
+            "Incinerator",
             "Internal combustion engine",
+            "Kiln",
             "Oven",
-            "Combined cycle",
+            "Process heater",
+            "Space heater",
+            "Thermal oxidizer",
             "Turbine",
             "Other combustion",
-            "Other"  # represents units that are not combustion units, such as material handling equipment
+            "Other" # represents units that are not combustion units, such as material handling equipment
             ]
         
         # YAML that contains GHGRP-specific unit types, both standard (EPA defined, default unit types)
@@ -67,7 +75,7 @@ The standardized, Level 1 fuel types are shown below.
         self._nei_unittypes_path = pathlib.Path(__file__).parents[1]/"tools/scc_unit_types.yaml"
 
         # YAML that contains fuel types
-        self._fuel_types_path = pathlib.Path(__file__).parents[1]/"tools/type_standardization.yaml"
+        self._fuel_types_path = pathlib.Path(__file__).parents[1]/"tools/fuel_type_standardization.yaml"
 
         self._ghgrp_ut_dict = {}
 
@@ -384,19 +392,17 @@ The standardized, Level 1 fuel types are shown below.
             final_types = np.array([['Other combustion', 'Other combustion']])
 
         else:
+            # if self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv2']:
 
-            if self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv2']:
-
-                final_types = np.array(
-                    [[self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv1'],
-                      self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv2']]]
-                    )
-            else:
-
-                final_types = np.array(
-                    [[self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv1'],
-                    unitType]]
-                    )
+            final_types = np.array(
+                [[self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv1'],
+                    self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv2']]]
+                )
+            # else:
+            #     final_types = np.array(
+            #         [[self._ghgrp_ut_dict['nonstd'][ut_std[0]]['unitTypeLv1'],
+            #         unitType]]
+            #         )
 
         return final_types
 
