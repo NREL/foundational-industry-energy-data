@@ -2,3 +2,6 @@
 !/data/dir_structure.md
 *.pyc
 *.pkl
+# pixi environments
+.pixi
+*.egg-info
