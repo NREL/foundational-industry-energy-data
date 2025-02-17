@@ -20,6 +20,7 @@ fied = { path = ".", editable = true }
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
+dask = ">=2023.2.0,<2024"
 geopandas = "==0.12.1"
 matplotlib = "==3.6.2"
 numpy = "==1.23.4"
