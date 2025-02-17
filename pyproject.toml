@@ -48,4 +48,4 @@ ruff = ">=0.9.6,<0.10"
 sphinx = "==7.3.7"
 
 [tool.pixi.feature.test.dependencies]
-pytest = ">=8.3.4,<9"
+pytest = "~=7.4.0"
