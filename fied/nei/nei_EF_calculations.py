@@ -18,6 +18,53 @@ from datasets import fetch_webfirefactors
 
 logging.basicConfig(level=logging.INFO)
 
+def match_partial(full_list, partial_list):
+        """
+        The NEI file point_678910.csv contains truncated values for
+        unit types and calculation methods. This method creates a dictionary
+        that has approximate matches to each set of values based on the
+        point_12345.csv file. These are approximate matches because the
+        truncated values may have multiple matches (e.g., 'S/L/T Emis' matches
+        'S/L/T Emission Factor (no Control Efficiency used)' and
+        'S/L/T Emission Factor (pre-control) plus Control Efficiency'.
+
+        Parameters
+        ----------
+        full_list : list of str
+            List of complete unit types or calculation methods
+
+        partial_list : list of str
+            List of truncated unit types or calculation methods
+
+        Returns
+        -------
+        matching_dict : dictionary of str
+            Dictionary of {partial: match}.
+
+        """
+
+        matching_dict = {}
+
+        for k in partial_list:
+            len_k = len(k)
+            matches = [k == v[0:len_k] for v in full_list]
+            m_index = [i for i, val in enumerate(matches) if val]
+
+            try:
+                full = full_list[m_index[0]]  # use first match
+
+            except IndexError:
+                continue
+
+            else:
+                if full == k:
+                    continue
+
+                else:
+                    matching_dict[k] = full
+
+        return matching_dict
+
 class NEI ():
     """
     Calculates unit throughput and energy input (later op hours?) from
@@ -313,53 +360,6 @@ class NEI ():
 
         return df
 
-    @staticmethod
-    def match_partial(full_list, partial_list):
-        """
-        The NEI file point_678910.csv contains truncated values for
-        unit types and calculation methods. This method creates a dictionary
-        that has approximate matches to each set of values based on the
-        point_12345.csv file. These are approximate matches because the
-        truncated values may have multiple matches (e.g., 'S/L/T Emis' matches
-        'S/L/T Emission Factor (no Control Efficiency used)' and
-        'S/L/T Emission Factor (pre-control) plus Control Efficiency'.
-
-        Parameters
-        ----------
-        full_list : list of str
-            List of complete unit types or calculation methods
-
-        partial_list : list of str
-            List of truncated unit types or calculation methods
-
-        Returns
-        -------
-        matching_dict : dictionary of str
-            Dictionary of {partial: match}.
-
-        """
-
-        matching_dict = {}
-
-        for k in partial_list:
-            len_k = len(k)
-            matches = [k == v[0:len_k] for v in full_list]
-            m_index = [i for i, val in enumerate(matches) if val]
-
-            try:
-                full = full_list[m_index[0]]  # use first match
-
-            except IndexError:
-                continue
-
-            else:
-                if full == k:
-                    continue
-
-                else:
-                    matching_dict[k] = full
-
-        return matching_dict
 
     def load_nei_data(self,year):
         """
@@ -446,15 +446,15 @@ class NEI ():
                         nei_data = nei_data.append(data, sort=False)
 
                         if partial_unit and full_unit:
-                            unit_matches = NEI.match_partial(full_unit, partial_unit)
+                            unit_matches = match_partial(full_unit, partial_unit)
                             nei_data.replace({'unit_type': unit_matches}, inplace=True)
 
                         if partial_method and full_method:
-                            meth_matches = NEI.match_partial(full_method, partial_method)
+                            meth_matches = match_partial(full_method, partial_method)
                             nei_data.replace({'calculation_method': meth_matches}, inplace=True)
 
-                        #unit_matches = NEI.match_partial(full_unit, partial_unit)
-                        #meth_matches = NEI.match_partial(full_method, partial_method)
+                        #unit_matches = match_partial(full_unit, partial_unit)
+                        #meth_matches = match_partial(full_method, partial_method)
 
                         #nei_data.replace({'unit_type': unit_matches}, inplace=True)
                         #nei_data.replace({'calculation_method': meth_matches}, inplace=True)
