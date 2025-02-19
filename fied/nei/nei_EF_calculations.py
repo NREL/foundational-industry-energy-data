@@ -90,6 +90,41 @@ def load_scc_unittypes(filename):
         return iden_scc
 
 
+def load_webfires(filename):
+        """
+        Load all EPA WebFire emissions factors, downloading from
+        https://www.epa.gov/electronic-reporting-air-emissions/webfire
+        if necessary.
+
+        Returns
+        -------
+        webfr : pandas.DataFrame
+            EPA WebFire emissions factors.
+        """
+        if filename.exists():
+
+            logging.info('Reading WebFire data from csv')
+
+            webfr = pd.read_csv(filename, low_memory=False)
+
+        else:
+
+            logging.info(
+                'Downloading WebFire data; writing webfirefactors.csv'
+                )
+
+            Path.mkdir(filename.parents[0])
+
+            r = requests.get('https://cfpub.epa.gov/webfire/download/webfirefactors.zip')
+
+            with zipfile.ZipFile(BytesIO(r.content)) as zf:
+                with zf.open(zf.namelist()[0]) as f:
+                    webfr = pd.read_csv(f, low_memory=False)
+
+                    webfr.to_csv(filename)
+
+        return webfr
+
 class NEI ():
     """
     Calculates unit throughput and energy input (later op hours?) from
