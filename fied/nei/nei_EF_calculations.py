@@ -65,6 +65,31 @@ def match_partial(full_list, partial_list):
 
         return matching_dict
 
+
+def load_scc_unittypes(filename):
+        """
+        Load unit types (and fuel types) gleaned from SCC data.
+
+        Returns
+        -------
+        iden_scc : pandas.DataFrame
+            SCC codes with identified unit types and fuel types.
+
+        """
+
+        iden_scc = pd.read_csv(filename, index_col=0)
+        iden_scc.reset_index(drop=True, inplace=True)
+
+        iden_scc.loc[:, 'SCC'] = iden_scc.SCC.astype('int64')
+
+        iden_scc.rename(columns={
+            'unit_type': 'scc_unit_type',
+            'fuel_type': 'scc_fuel_type'}, inplace=True
+            )
+
+        return iden_scc
+
+
 class NEI ():
     """
     Calculates unit throughput and energy input (later op hours?) from
@@ -525,29 +550,7 @@ class NEI ():
 
         return unit_conv
 
-    def load_scc_unittypes(self):
-        """
-        Load unit types (and fuel types) gleaned from SCC data.
 
-        Returns
-        -------
-        iden_scc : pandas.DataFrame
-            SCC codes with identified unit types and fuel types.
-
-        """
-
-        iden_scc = pd.read_csv(self._scc_units_path, index_col=0)
-        iden_scc.reset_index(drop=True, inplace=True)
-
-        iden_scc.loc[:, 'SCC'] = iden_scc.SCC.astype('int64')
-
-        iden_scc.rename(columns={
-            'unit_type': 'scc_unit_type',
-            'fuel_type': 'scc_fuel_type'}, inplace=True
-            )
-
-        return iden_scc
-    
     def extract_ghg_emissions(self, nei_data):
         """
         Capture GHG emissions (i.e., CO2, CH4, N2O)
@@ -1848,7 +1851,7 @@ class NEI ():
         logging.info("Getting NEI data...")
         #initialize year argument
         nei_data = nei.load_nei_data(year=str(2020))
-        iden_scc = nei.load_scc_unittypes()
+        iden_scc = load_scc_unittypes(nei._scc_units_path)
         webfr = fetch_webfirefactors()
         logging.info("Merging WebFires data...")
         nei_char = nei.match_webfire_to_nei(nei_data, webfr)
