@@ -125,6 +125,47 @@ def load_webfires(filename):
 
         return webfr
 
+def match_webfire_to_nei(nei_data, webfr):
+        """
+        Match WebFire EF data to NEI data
+
+        Parameters
+        ----------
+        nei_data : pandas.DataFrame
+            NEI emissions data
+
+        webfr : pandas.DataFrame
+            WebFires Emissions Factors
+
+        Returns
+        -------
+        nei_emiss : pandas.DataFrame
+        """
+
+        # remove duplicate EFs for the same pollutant and SCC; keep max EF
+        webfr = webfr.sort_values('FACTOR').drop_duplicates(
+            subset=['SCC', 'NEI_POLLUTANT_CODE'], keep='last'
+            )
+
+        # use only NEI emissions of PM, CO, NOX, SOX, VOC, or CH4
+        nei_emiss = nei_data[
+            nei_data.pollutant_code.str.contains('PM|CO2|CO|NOX|NO3|SO2|VOC|CH4')
+            ].copy()
+
+        nei_emiss = pd.merge(
+            nei_emiss,
+            webfr[['SCC', 'NEI_POLLUTANT_CODE', 'FACTOR', 'UNIT', 'MEASURE',
+                   'MATERIAL', 'ACTION']],
+            left_on=['scc', 'pollutant_code'],
+            right_on=['SCC', 'NEI_POLLUTANT_CODE'],
+            how='left'
+            )
+
+        nei_emiss.rename(columns={'SCC': 'SCC_web'}, inplace=True)
+
+        return nei_emiss
+
+
 class NEI ():
     """
     Calculates unit throughput and energy input (later op hours?) from
@@ -927,46 +968,6 @@ class NEI ():
 
         return nei_data
 
-    def match_webfire_to_nei(self, nei_data, webfr):
-        """
-        Match WebFire EF data to NEI data
-
-        Parameters
-        ----------
-        nei_data : pandas.DataFrame
-            NEI emissions data
-
-        webfr : pandas.DataFrame
-            WebFires Emissions Factors
-
-        Returns
-        -------
-        nei_emiss : pandas.DataFrame
-        """
-
-        # remove duplicate EFs for the same pollutant and SCC; keep max EF
-        webfr = webfr.sort_values('FACTOR').drop_duplicates(
-            subset=['SCC', 'NEI_POLLUTANT_CODE'], keep='last'
-            )
-
-        # use only NEI emissions of PM, CO, NOX, SOX, VOC, or CH4
-        nei_emiss = nei_data[
-            nei_data.pollutant_code.str.contains('PM|CO2|CO|NOX|NO3|SO2|VOC|CH4')
-            ].copy()
-
-        nei_emiss = pd.merge(
-            nei_emiss,
-            webfr[['SCC', 'NEI_POLLUTANT_CODE', 'FACTOR', 'UNIT', 'MEASURE',
-                   'MATERIAL', 'ACTION']],
-            left_on=['scc', 'pollutant_code'],
-            right_on=['SCC', 'NEI_POLLUTANT_CODE'],
-            how='left'
-            )
-
-        nei_emiss.rename(columns={'SCC': 'SCC_web'}, inplace=True)
-
-        return nei_emiss
-    
     #TODO refactor 
     def unit_type_selection(self, series):
         """
@@ -1889,7 +1890,7 @@ class NEI ():
         iden_scc = load_scc_unittypes(nei._scc_units_path)
         webfr = fetch_webfirefactors()
         logging.info("Merging WebFires data...")
-        nei_char = nei.match_webfire_to_nei(nei_data, webfr)
+        nei_char = match_webfire_to_nei(nei_data, webfr)
         logging.info("Merging SCC data...")
         logging.info("Assigning unit and fuel types...")
         nei_char = nei.assign_types(nei_char, iden_scc)
