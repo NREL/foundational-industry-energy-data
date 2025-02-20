@@ -32,6 +32,37 @@ def load_fueltype_dict():
 
     return fuel_dict
 
+
+# #TODO make into a tools method
+def harmonize_fuel_type(ghgrp_unit_data, fuel_type_column):
+    """
+    Applies fuel type mapping to fuel types reported under GHGRP.
+
+    Parameters
+    ----------
+    ghgrp_unit_data : pandas.DataFrame
+
+    fuel_type_column : str
+        Name of column containing fuel types.
+
+    Returns
+    -------
+    ghgrp_unit_data : pandas.DataFrame
+
+    """
+
+    fuel_dict = load_fueltype_dict()
+
+    ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
+
+    # drop any fuelTypes that are null
+    ghgrp_unit_data = ghgrp_unit_data.where(
+        ghgrp_unit_data[fuel_type_column] != 'None'
+        ).dropna(how='all')
+
+    return ghgrp_unit_data
+
+
 class GHGRP_unit_char():
 
     def __init__(self, ghgrp_energy_file, reporting_year):
@@ -46,34 +77,6 @@ class GHGRP_unit_char():
 
         self._reporting_year = reporting_year
 
-    # #TODO make into a tools method
-    def harmonize_fuel_type(self, ghgrp_unit_data, fuel_type_column):
-        """
-        Applies fuel type mapping to fuel types reported under GHGRP.
-
-        Parameters
-        ----------
-        ghgrp_unit_data : pandas.DataFrame
-
-        fuel_type_column : str
-            Name of column containing fuel types.
-
-        Returns
-        -------
-        ghgrp_unit_data : pandas.DataFrame
-
-        """
-
-        fuel_dict = load_fueltype_dict()
-
-        ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
-
-        # drop any fuelTypes that are null
-        ghgrp_unit_data = ghgrp_unit_data.where(
-            ghgrp_unit_data[fuel_type_column] != 'None'
-            ).dropna(how='all')
-
-        return ghgrp_unit_data
 
 
     # TODO fix up code for getting capacity data
@@ -185,7 +188,7 @@ class GHGRP_unit_char():
         ghgrp_df = ghgrp_df.query("REPORTING_YEAR==@self._reporting_year")
 
         # Harmonize fuel types for GHGRP data
-        ghgrp_df = self.harmonize_fuel_type(ghgrp_df, 'FUEL_TYPE_FINAL')
+        ghgrp_df = harmonize_fuel_type(ghgrp_df, 'FUEL_TYPE_FINAL')
 
         ghgrp_df.to_csv('ghgrp_emissions.csv')
 
