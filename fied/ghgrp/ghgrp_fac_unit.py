@@ -8,6 +8,30 @@ import logging
 
 import datasets
 
+def load_fueltype_dict():
+    """
+    Opens and loads a yaml that specifies the mapping of
+    GHGRP fuel types to standard fuel types that have
+    aready been applied to NEI data.
+
+    Returns
+    -------
+    fuel_dict : dictionary
+        Dictionary of mappings between GHGRP fuel types and
+        generic fuel types that have been applied to NEI data.
+    """
+
+    with open('./tools/type_standardization.yml', 'r') as file:
+        docs = yaml.safe_load_all(file)
+
+        for i, d in enumerate(docs):
+            if i == 0:
+                fuel_dict = d
+            else:
+                continue
+
+    return fuel_dict
+
 class GHGRP_unit_char():
 
     def __init__(self, ghgrp_energy_file, reporting_year):
@@ -21,30 +45,6 @@ class GHGRP_unit_char():
         self._data_source = 'GHGRP'
 
         self._reporting_year = reporting_year
-
-    def load_fueltype_dict(self):
-        """
-        Opens and loads a yaml that specifies the mapping of
-        GHGRP fuel types to standard fuel types that have
-        aready been applied to NEI data.
-
-        Returns
-        -------
-        fuel_dict : dictionary
-            Dictionary of mappings between GHGRP fuel types and
-            generic fuel types that have been applied to NEI data.
-        """
-
-        with open('./tools/type_standardization.yml', 'r') as file:
-            docs = yaml.safe_load_all(file)
-
-            for i, d in enumerate(docs):
-                if i == 0:
-                    fuel_dict = d
-                else:
-                    continue
-
-        return fuel_dict
 
     # #TODO make into a tools method
     def harmonize_fuel_type(self, ghgrp_unit_data, fuel_type_column):
@@ -64,7 +64,7 @@ class GHGRP_unit_char():
 
         """
 
-        fuel_dict = self.load_fueltype_dict()
+        fuel_dict = load_fueltype_dict()
 
         ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
 
