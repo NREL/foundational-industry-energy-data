@@ -651,7 +651,11 @@ if __name__ == '__main__':
     frs_methods.download_unzip_frs_data(combined=combined)
 
     frs_data_df = frs_methods.import_format_frs(combined=combined)
-    frs_data_df.to_csv(Path(__file__).parents[1], 'data/FRS/frs_data_formatted.csv')
+    frs_data_df.to_csv(
+        os.path.join(
+            Path(__file__).parents[1],
+            'data/FRS/frs_data_formatted.csv')
+    )
 
     # t_stop = time.perf_counter()
     # logging.info(f'Program time: {t_stop - t_start:0.2f} seconds')
