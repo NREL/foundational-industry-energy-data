@@ -1,5 +1,11 @@
 [project]
-authors = [{name = "Gui Castelao", email = "guilherme@castelao.net"}]
+authors = [
+  {name = "Colin McMillan"},
+  {name = "Gui Castelao", email = "gpimenta@nrel.gov"}
+	]
+maintainers = [
+  {name = "Gui Castelao", email = "gpimenta@nrel.gov"}
+	]
 dependencies = []
 description = "Add a short description here"
 name = "fied"
