@@ -1,0 +1,27 @@
+name: Lint Code Base
+
+on:
+  push:
+    branches-ignore:
+      - 'gh-pages'
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint Code Base with Ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/ruff-action@v3
+        with:
+          version: 0.7.4
+          args: check
+          src: "./fied"
+
+      # - uses: astral-sh/ruff-action@v3
+      #   with:
+      #     version: 0.7.4
+      #     args: format --check
+      #     src: "./fied"

@@ -49,3 +49,78 @@ sphinx = "==7.3.7"
 
 [tool.pixi.feature.test.dependencies]
 pytest = "~=7.4.0"
+
+[tool.ruff]
+line-length = 79
+extend-exclude = [
+  "fied/energy/IEDB/ag_total.py",
+  "fied/energy/IEDB/county_energy_nonmfg.py",
+  "fied/energy/IEDB/mining_total.py",
+  ]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint]
+preview = true
+select = [
+  # "A", # flake8-builtins
+  # "B", # flake8-bugbear
+  "ARG", # flake8-unused-arguments
+  "BLE", # flake8-blind-except
+  # "C4", # flake8-comprehensions
+  # "C90", # mccabe
+  "COM", # flake8-commas
+  # "D", # pydocstyle
+  # "E", # pycodestyle
+  # "EM", # flake8-errmsg
+  # "F", # Pyflakes
+  # "FURB", # refurb
+  "FLY", #  flynt
+  # "G", # flake8-logging-format
+  "I", # isort
+  # "INP", # flake8-no-pep420
+  # "ISC", # flake8-implicit-str-concat
+  # "LOG", # flake8-logging
+  "N", # pep8-naming
+  "NPY", # numpy-specific
+  # "PD", # pandas-vet
+  # "PERF", # Perflint
+  # "PIE", # flake8-pie
+  # "PL", # Pylint
+  # "PTH", # flake8-use-pathlib
+  "PYI", # flake8-pyi
+  # "Q", # flake8-quotes
+  # "RET", # flake8-return
+  "RSE", # flake8-raise
+  # "RUF", # Ruff-specific rules
+  # "S", # flake8-bandit
+  "SLF", # flake8-self
+  # "SIM", # flake8-simplify
+  "TID", # flake8-tidy-imports (absolute imports)
+  # "TRY", # tryceratops
+  # "UP", # pyupgrade
+  # "W", # Warning
+]
+ignore = [
+  "ARG001", # unused function argument
+  "ARG002", # unused method argument
+  "COM812", # missing-trailing-comma (incompatible with formatter)
+  "I001", # isort: imports are incorrectly sorted
+  "N801", # class name should use CapWords convention
+  "N802", # function name should be lowercase
+  "N803", # argument name should be lowercase
+  "N806", # variable in function should be lowercase
+  "N815", # mixedCase variable in class scope
+  "N816", # mixedCase variable in global scope
+  "N999", # invalid module name
+]
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 72
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
