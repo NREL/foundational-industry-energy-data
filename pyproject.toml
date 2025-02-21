@@ -62,7 +62,7 @@ preview = true
 select = [
   # "A", # flake8-builtins
   # "B", # flake8-bugbear
-  # "ARG", # flake8-unused-arguments
+  "ARG", # flake8-unused-arguments
   "BLE", # flake8-blind-except
   # "C4", # flake8-comprehensions
   # "C90", # mccabe
@@ -74,11 +74,11 @@ select = [
   # "FURB", # refurb
   "FLY", #  flynt
   # "G", # flake8-logging-format
-  # "I", # isort
+  "I", # isort
   # "INP", # flake8-no-pep420
   # "ISC", # flake8-implicit-str-concat
   # "LOG", # flake8-logging
-  # "N", # pep8-naming
+  "N", # pep8-naming
   "NPY", # numpy-specific
   # "PD", # pandas-vet
   # "PERF", # Perflint
@@ -99,7 +99,17 @@ select = [
   # "W", # Warning
 ]
 ignore = [
+  "ARG001", # unused function argument
+  "ARG002", # unused method argument
   "COM812", # missing-trailing-comma (incompatible with formatter)
+  "I001", # isort: imports are incorrectly sorted
+  "N801", # class name should use CapWords convention
+  "N802", # function name should be lowercase
+  "N803", # argument name should be lowercase
+  "N806", # variable in function should be lowercase
+  "N815", # mixedCase variable in class scope
+  "N816", # mixedCase variable in global scope
+  "N999", # invalid module name
 ]
 
 [tool.ruff.lint.pycodestyle]
