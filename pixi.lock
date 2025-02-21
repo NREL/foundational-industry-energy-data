@@ -5078,7 +5078,7 @@ packages:
 - pypi: .
   name: fied
   version: 0.0.1
-  sha256: 73513147cb248c9d836e45841e0e510f7c1bb009cd8ecca2d5ca5e1fa1c400c7
+  sha256: f0dac054bc100b3be0436a3985ad0f1e5ffc042e3d23fd4e0069ce4b41b01512
   requires_python: '>=3.9'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/linux-64/fiona-1.9.1-py39hbc5ff6d_0.conda

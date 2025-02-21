@@ -170,6 +170,9 @@ max-doc-length = 72
 convention = "numpy"
 
 [tool.ruff.lint.per-file-ignores]
+"fied/nei/nei_EF_calculations.py" = [
+  "SLF001" # private-member-access
+  ]
 
 [tool.setuptools]
 packages = ["fied"]
