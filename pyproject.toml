@@ -52,6 +52,11 @@ pytest = "~=7.4.0"
 
 [tool.ruff]
 line-length = 79
+extend-exclude = [
+  "fied/energy/IEDB/ag_total.py",
+  "fied/energy/IEDB/county_energy_nonmfg.py",
+  "fied/energy/IEDB/mining_total.py",
+  ]
 
 [tool.ruff.format]
 quote-style = "double"
