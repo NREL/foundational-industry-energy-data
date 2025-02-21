@@ -16,6 +16,154 @@ from misc_tools import Tools
 
 logging.basicConfig(level=logging.INFO)
 
+def match_partial(full_list, partial_list):
+        """
+        The NEI file point_678910.csv contains truncated values for
+        unit types and calculation methods. This method creates a dictionary
+        that has approximate matches to each set of values based on the
+        point_12345.csv file. These are approximate matches because the
+        truncated values may have multiple matches (e.g., 'S/L/T Emis' matches
+        'S/L/T Emission Factor (no Control Efficiency used)' and
+        'S/L/T Emission Factor (pre-control) plus Control Efficiency'.
+
+        Parameters
+        ----------
+        full_list : list of str
+            List of complete unit types or calculation methods
+
+        partial_list : list of str
+            List of truncated unit types or calculation methods
+
+        Returns
+        -------
+        matching_dict : dictionary of str
+            Dictionary of {partial: match}.
+
+        """
+
+        matching_dict = {}
+
+        for k in partial_list:
+            len_k = len(k)
+            matches = [k == v[0:len_k] for v in full_list]
+            m_index = [i for i, val in enumerate(matches) if val]
+
+            try:
+                full = full_list[m_index[0]]  # use first match
+
+            except IndexError:
+                continue
+
+            else:
+                if full == k:
+                    continue
+
+                else:
+                    matching_dict[k] = full
+
+        return matching_dict
+
+
+def load_scc_unittypes(filename):
+        """
+        Load unit types (and fuel types) gleaned from SCC data.
+
+        Returns
+        -------
+        iden_scc : pandas.DataFrame
+            SCC codes with identified unit types and fuel types.
+
+        """
+
+        iden_scc = pd.read_csv(filename, index_col=0)
+        iden_scc.reset_index(drop=True, inplace=True)
+
+        iden_scc.loc[:, 'SCC'] = iden_scc.SCC.astype('int64')
+
+        iden_scc.rename(columns={
+            'unit_type': 'scc_unit_type',
+            'fuel_type': 'scc_fuel_type'}, inplace=True
+            )
+
+        return iden_scc
+
+
+def load_webfires(filename):
+        """
+        Load all EPA WebFire emissions factors, downloading from
+        https://www.epa.gov/electronic-reporting-air-emissions/webfire
+        if necessary.
+
+        Returns
+        -------
+        webfr : pandas.DataFrame
+            EPA WebFire emissions factors.
+        """
+        if filename.exists():
+
+            logging.info('Reading WebFire data from csv')
+
+            webfr = pd.read_csv(filename, low_memory=False)
+
+        else:
+
+            logging.info(
+                'Downloading WebFire data; writing webfirefactors.csv'
+                )
+
+            Path.mkdir(filename.parents[0])
+
+            r = requests.get('https://cfpub.epa.gov/webfire/download/webfirefactors.zip')
+
+            with zipfile.ZipFile(BytesIO(r.content)) as zf:
+                with zf.open(zf.namelist()[0]) as f:
+                    webfr = pd.read_csv(f, low_memory=False)
+
+                    webfr.to_csv(filename)
+
+        return webfr
+
+def match_webfire_to_nei(nei_data, webfr):
+        """
+        Match WebFire EF data to NEI data
+
+        Parameters
+        ----------
+        nei_data : pandas.DataFrame
+            NEI emissions data
+
+        webfr : pandas.DataFrame
+            WebFires Emissions Factors
+
+        Returns
+        -------
+        nei_emiss : pandas.DataFrame
+        """
+
+        # remove duplicate EFs for the same pollutant and SCC; keep max EF
+        webfr = webfr.sort_values('FACTOR').drop_duplicates(
+            subset=['SCC', 'NEI_POLLUTANT_CODE'], keep='last'
+            )
+
+        # use only NEI emissions of PM, CO, NOX, SOX, VOC, or CH4
+        nei_emiss = nei_data[
+            nei_data.pollutant_code.str.contains('PM|CO2|CO|NOX|NO3|SO2|VOC|CH4')
+            ].copy()
+
+        nei_emiss = pd.merge(
+            nei_emiss,
+            webfr[['SCC', 'NEI_POLLUTANT_CODE', 'FACTOR', 'UNIT', 'MEASURE',
+                   'MATERIAL', 'ACTION']],
+            left_on=['scc', 'pollutant_code'],
+            right_on=['SCC', 'NEI_POLLUTANT_CODE'],
+            how='left'
+            )
+
+        nei_emiss.rename(columns={'SCC': 'SCC_web'}, inplace=True)
+
+        return nei_emiss
+
+
 class NEI ():
     """
     Calculates unit throughput and energy input (later op hours?) from
@@ -315,53 +463,6 @@ class NEI ():
 
         return df
 
-    @staticmethod
-    def match_partial(full_list, partial_list):
-        """
-        The NEI file point_678910.csv contains truncated values for
-        unit types and calculation methods. This method creates a dictionary
-        that has approximate matches to each set of values based on the
-        point_12345.csv file. These are approximate matches because the
-        truncated values may have multiple matches (e.g., 'S/L/T Emis' matches
-        'S/L/T Emission Factor (no Control Efficiency used)' and
-        'S/L/T Emission Factor (pre-control) plus Control Efficiency'.
-
-        Parameters
-        ----------
-        full_list : list of str
-            List of complete unit types or calculation methods
-
-        partial_list : list of str
-            List of truncated unit types or calculation methods
-
-        Returns
-        -------
-        matching_dict : dictionary of str
-            Dictionary of {partial: match}.
-
-        """
-
-        matching_dict = {}
-
-        for k in partial_list:
-            len_k = len(k)
-            matches = [k == v[0:len_k] for v in full_list]
-            m_index = [i for i, val in enumerate(matches) if val]
-
-            try:
-                full = full_list[m_index[0]]  # use first match
-
-            except IndexError:
-                continue
-
-            else:
-                if full == k:
-                    continue
-
-                else:
-                    matching_dict[k] = full
-
-        return matching_dict
 
     def load_nei_data(self,year):
         """
@@ -448,15 +549,15 @@ class NEI ():
                         nei_data = nei_data.append(data, sort=False)
 
                         if partial_unit and full_unit:
-                            unit_matches = NEI.match_partial(full_unit, partial_unit)
+                            unit_matches = match_partial(full_unit, partial_unit)
                             nei_data.replace({'unit_type': unit_matches}, inplace=True)
 
                         if partial_method and full_method:
-                            meth_matches = NEI.match_partial(full_method, partial_method)
+                            meth_matches = match_partial(full_method, partial_method)
                             nei_data.replace({'calculation_method': meth_matches}, inplace=True)
 
-                        #unit_matches = NEI.match_partial(full_unit, partial_unit)
-                        #meth_matches = NEI.match_partial(full_method, partial_method)
+                        #unit_matches = match_partial(full_unit, partial_unit)
+                        #meth_matches = match_partial(full_method, partial_method)
 
                         #nei_data.replace({'unit_type': unit_matches}, inplace=True)
                         #nei_data.replace({'calculation_method': meth_matches}, inplace=True)
@@ -516,44 +617,6 @@ class NEI ():
 
         return nei_data
 
-    def load_webfires(self):
-        """
-        Load all EPA WebFire emissions factors, downloading from
-        https://www.epa.gov/electronic-reporting-air-emissions/webfire
-        if necessary.
-
-        Returns
-        -------
-        webfr : pandas.DataFrame
-            EPA WebFire emissions factors. 
-        """
-
-        if self._webfires_data_path.exists():
-
-            logging.info('Reading WebFire data from csv')
-
-            webfr = pd.read_csv(self._webfires_data_path, low_memory=False)
-
-        else:
-
-            logging.info(
-                'Downloading WebFire data; writing webfirefactors.csv'
-                )
-                
-            Path.mkdir(self._webfires_data_path.parents[0])
-
-            r = requests.get(
-                'https://cfpub.epa.gov/webfire/download/webfirefactors.zip'
-                )
-
-            with zipfile.ZipFile(BytesIO(r.content)) as zf:
-                with zf.open(zf.namelist()[0]) as f:
-                    webfr = pd.read_csv(f, low_memory=False)
-
-                    webfr.to_csv(self._webfires_data_path)
-
-        return webfr
-
     def load_unit_conversions(self):
         """
         Load unit conversions and fuel dictionary
@@ -564,29 +627,7 @@ class NEI ():
 
         return unit_conv
 
-    def load_scc_unittypes(self):
-        """
-        Load unit types (and fuel types) gleaned from SCC data.
 
-        Returns
-        -------
-        iden_scc : pandas.DataFrame
-            SCC codes with identified unit types and fuel types.
-
-        """
-
-        iden_scc = pd.read_csv(self._scc_units_path, index_col=0)
-        iden_scc.reset_index(drop=True, inplace=True)
-
-        iden_scc.loc[:, 'SCC'] = iden_scc.SCC.astype('int64')
-
-        iden_scc.rename(columns={
-            'unit_type': 'scc_unit_type',
-            'fuel_type': 'scc_fuel_type'}, inplace=True
-            )
-
-        return iden_scc
-    
     def extract_ghg_emissions(self, nei_data):
         """
         Capture GHG emissions (i.e., CO2, CH4, N2O)
@@ -928,46 +969,6 @@ class NEI ():
 
         return nei_data
 
-    def match_webfire_to_nei(self, nei_data, webfr):
-        """
-        Match WebFire EF data to NEI data
-
-        Parameters
-        ----------
-        nei_data : pandas.DataFrame
-            NEI emissions data
-
-        webfr : pandas.DataFrame
-            WebFires Emissions Factors
-
-        Returns
-        -------
-        nei_emiss : pandas.DataFrame
-        """
-
-        # remove duplicate EFs for the same pollutant and SCC; keep max EF
-        webfr = webfr.sort_values('FACTOR').drop_duplicates(
-            subset=['SCC', 'NEI_POLLUTANT_CODE'], keep='last'
-            )
-
-        # use only NEI emissions of PM, CO, NOX, SOX, VOC, or CH4
-        nei_emiss = nei_data[
-            nei_data.pollutant_code.str.contains('PM|CO2|CO|NOX|NO3|SO2|VOC|CH4')
-            ].copy()
-
-        nei_emiss = pd.merge(
-            nei_emiss,
-            webfr[['SCC', 'NEI_POLLUTANT_CODE', 'FACTOR', 'UNIT', 'MEASURE',
-                   'MATERIAL', 'ACTION']],
-            left_on=['scc', 'pollutant_code'],
-            right_on=['SCC', 'NEI_POLLUTANT_CODE'],
-            how='left'
-            )
-
-        nei_emiss.rename(columns={'SCC': 'SCC_web'}, inplace=True)
-
-        return nei_emiss
-    
     #TODO refactor 
     def unit_type_selection(self, series):
         """
@@ -1887,10 +1888,10 @@ class NEI ():
         logging.info("Getting NEI data...")
         #initialize year argument
         nei_data = nei.load_nei_data(year=str(2020))
-        iden_scc = nei.load_scc_unittypes()
-        webfr = nei.load_webfires()
+        iden_scc = load_scc_unittypes(nei._scc_units_path)
+        webfr = load_webfires(nei._webfires_data_path)
         logging.info("Merging WebFires data...")
-        nei_char = nei.match_webfire_to_nei(nei_data, webfr)
+        nei_char = match_webfire_to_nei(nei_data, webfr)
         logging.info("Merging SCC data...")
         logging.info("Assigning unit and fuel types...")
         nei_char = nei.assign_types(nei_char, iden_scc)

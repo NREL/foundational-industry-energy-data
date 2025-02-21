@@ -10,6 +10,61 @@ from pyxlsb import open_workbook
 import logging
 
 
+def load_fueltype_dict():
+    """
+    Opens and loads a yaml that specifies the mapping of
+    GHGRP fuel types to standard fuel types that have
+    aready been applied to NEI data.
+
+    Returns
+    -------
+    fuel_dict : dictionary
+        Dictionary of mappings between GHGRP fuel types and
+        generic fuel types that have been applied to NEI data.
+    """
+
+    with open('./tools/type_standardization.yml', 'r') as file:
+        docs = yaml.safe_load_all(file)
+
+        for i, d in enumerate(docs):
+            if i == 0:
+                fuel_dict = d
+            else:
+                continue
+
+    return fuel_dict
+
+
+# #TODO make into a tools method
+def harmonize_fuel_type(ghgrp_unit_data, fuel_type_column):
+    """
+    Applies fuel type mapping to fuel types reported under GHGRP.
+
+    Parameters
+    ----------
+    ghgrp_unit_data : pandas.DataFrame
+
+    fuel_type_column : str
+        Name of column containing fuel types.
+
+    Returns
+    -------
+    ghgrp_unit_data : pandas.DataFrame
+
+    """
+
+    fuel_dict = load_fueltype_dict()
+
+    ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
+
+    # drop any fuelTypes that are null
+    ghgrp_unit_data = ghgrp_unit_data.where(
+        ghgrp_unit_data[fuel_type_column] != 'None'
+        ).dropna(how='all')
+
+    return ghgrp_unit_data
+
+
 class GHGRP_unit_char():
 
     def __init__(self, ghgrp_energy_file, reporting_year):
@@ -26,58 +81,6 @@ class GHGRP_unit_char():
 
         self._reporting_year = reporting_year
 
-    def load_fueltype_dict(self):
-        """
-        Opens and loads a yaml that specifies the mapping of
-        GHGRP fuel types to standard fuel types that have
-        aready been applied to NEI data.
-
-        Returns
-        -------
-        fuel_dict : dictionary
-            Dictionary of mappings between GHGRP fuel types and
-            generic fuel types that have been applied to NEI data.
-        """
-
-        with open('./tools/type_standardization.yml', 'r') as file:
-            docs = yaml.safe_load_all(file)
-
-            for i, d in enumerate(docs):
-                if i == 0:
-                    fuel_dict = d
-                else:
-                    continue
-
-        return fuel_dict
-
-    # #TODO make into a tools method
-    def harmonize_fuel_type(self, ghgrp_unit_data, fuel_type_column):
-        """
-        Applies fuel type mapping to fuel types reported under GHGRP.
-
-        Parameters
-        ----------
-        ghgrp_unit_data : pandas.DataFrame
-
-        fuel_type_column : str
-            Name of column containing fuel types.
-
-        Returns
-        -------
-        ghgrp_unit_data : pandas.DataFrame
-
-        """
-
-        fuel_dict = self.load_fueltype_dict()
-
-        ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
-
-        # drop any fuelTypes that are null
-        ghgrp_unit_data = ghgrp_unit_data.where(
-            ghgrp_unit_data[fuel_type_column] != 'None'
-            ).dropna(how='all')
-
-        return ghgrp_unit_data
 
     def download_unit_data(self):
         """
@@ -237,7 +240,7 @@ class GHGRP_unit_char():
         ghgrp_df = ghgrp_df.query("REPORTING_YEAR==@self._reporting_year")
 
         # Harmonize fuel types for GHGRP data
-        ghgrp_df = self.harmonize_fuel_type(ghgrp_df, 'FUEL_TYPE_FINAL')
+        ghgrp_df = harmonize_fuel_type(ghgrp_df, 'FUEL_TYPE_FINAL')
 
         ghgrp_df.to_csv('ghgrp_emissions.csv')
 
