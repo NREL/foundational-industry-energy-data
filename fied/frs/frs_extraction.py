@@ -319,16 +319,16 @@ class FRS:
         all_naics.loc[:, 'ind'] = all_naics.NAICS_CODE.apply(
             lambda x: int(str(x)[0:2]) in [11, 21, 23, 31, 32, 33]
             )
-
         data = pd.merge(data, all_naics, on='NAICS_CODE', how='left')
         data = data.query("ind==True")
 
         data.drop(['ind'], axis=1, inplace=True)
-
     
         data = NAICS_Identification().assign_all_naics(data)
 
         data['NAICS_CODE'] = data.NAICS_CODE.astype(int)
+
+        data.to_csv("data_naics_check_next.csv")
 
         return data
 
@@ -651,7 +651,7 @@ if __name__ == '__main__':
     frs_methods.download_unzip_frs_data(combined=combined)
 
     frs_data_df = frs_methods.import_format_frs(combined=combined)
-    frs_data_df.to_csv(Path(__file__).parents[1], 'data/FRS/frs_data_formatted.csv')
+    frs_data_df.to_csv(Path(Path(__file__).parents[1], 'data/FRS/frs_data_formatted.csv'))
 
     # t_stop = time.perf_counter()
     # logging.info(f'Program time: {t_stop - t_start:0.2f} seconds')
