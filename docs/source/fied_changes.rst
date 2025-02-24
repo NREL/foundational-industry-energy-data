@@ -14,11 +14,18 @@ The reporting year has been updated to 2020 (GHGRP and NEI).
 NAICS Code
 ==========
 
-An updated method was implemented for assigning NAICS codes to facilities with more than code assigned in the Facility Registry Service (FRS).
-The original method simply used the first value. The updated method selects a NAICS codes based on whether or not any duplicate NAICS codes are present, as well as which EPA reporting program has assigned the NAICS code.
+An updated method was implemented for assigning NAICS codes to facilities with
+more than code assigned in the Facility Registry Service (FRS).
+The original method simply used the first value. The updated method selects a
+NAICS codes based on whether or not any duplicate NAICS codes are present, as
+well as which EPA reporting program has assigned the NAICS code.
 
-Overall, applying the method resulted in changes to the NAICS code of 32,073, or 6.4%, of the original registryIDs. NAICS codes assigned by the new method also resulted in identifying nearly 15,000 additional industrial registryIDs, most of which are in the manufacturing sector (NAICS 31-33). 
-The results of the updated method as it was applied to 2017 data are summarized in Table 1.
+Overall, applying the method resulted in changes to the NAICS code of 32,073,
+or 6.4%, of the original registryIDs. NAICS codes assigned by the new method
+also resulted in identifying nearly 15,000 additional industrial registryIDs,
+most of which are in the manufacturing sector (NAICS 31-33).
+The results of the updated method as it was applied to 2017 data are summarized
+in Table 1.
 
 .. csv-table:: Comparison of Original and Updated Approach for Assigning NAICS Codes for 2017 FIED
     :header: "Metric", "Original Method", "Updated Method"
