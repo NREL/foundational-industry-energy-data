@@ -1,6 +1,7 @@
 import pandas as pd
 import pooch
 
+from pooch import HTTPDownloader
 
 def fetch_emission():
     fnames = pooch.retrieve(
