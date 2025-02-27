@@ -18,3 +18,16 @@ def fetch_emission():
     )
 
     return df
+
+
+def fetch_webfirefactors():
+    fnames = pooch.retrieve(
+        url="https://cfpub.epa.gov/webfire/download/webfirefactors.zip",
+        known_hash="e21f3edaddac76912ef7edcf701f8ca611f212f05fc30e40d2fe452ea779fbb2",
+        path=pooch.os_cache("FIED") / "WebFire",
+        # Temporary solution. Requires not verifying SSL.
+        downloader=HTTPDownloader(progressbar=True, verify=False),
+        processor=pooch.Unzip(members=["webfirefactors.csv"]),
+    )
+
+    return pd.read_csv(fnames[0])
