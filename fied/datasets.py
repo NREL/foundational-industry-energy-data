@@ -53,9 +53,14 @@ def fetch_emission():
 
 
 def fetch_webfirefactors():
-    """Load all EPA WebFire emissions factores
+    """Load all EPA WebFire emissions factors
 
-    More information at https://www.epa.gov/electronic-reporting-air-emissions/webfire
+    Download from EPA's https://www.epa.gov/electronic-reporting-air-emissions/webfire
+
+    Returns
+    -------
+    pd.DataFrame
+        EPA WebFire emissions factors
     """
     fnames = pooch.retrieve(
         url="https://cfpub.epa.gov/webfire/download/webfirefactors.zip",
