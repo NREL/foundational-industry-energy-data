@@ -25,6 +25,7 @@ def fetch_nei_2017():
 
     return fname
 
+
 def fetch_nei_2020():
     """Fetch the 2020 National Emissions Inventory (NEI)
 
