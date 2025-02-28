@@ -28,9 +28,9 @@ def fetch_webfirefactors():
     """
     fnames = pooch.retrieve(
         url="https://cfpub.epa.gov/webfire/download/webfirefactors.zip",
-        known_hash="e21f3edaddac76912ef7edcf701f8ca611f212f05fc30e40d2fe452ea779fbb2",
-        path=pooch.os_cache("FIED") / "WebFire",
-        # Temporary solution. Requires not verifying SSL.
+        known_hash="sha256:18421985874da6f5670fefdb03ecfb21b7e08eb99b39252802e5d95e4a63bd3f",
+        path=pooch.os_cache("FIED"),
+        # Temporary solution. Don't verify SSL.
         downloader=HTTPDownloader(progressbar=True, verify=False),
         processor=pooch.Unzip(members=["webfirefactors.csv"]),
     )
