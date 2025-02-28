@@ -22,6 +22,10 @@ def fetch_emission():
 
 
 def fetch_webfirefactors():
+    """Load all EPA WebFire emissions factores
+
+    More information at https://www.epa.gov/electronic-reporting-air-emissions/webfire
+    """
     fnames = pooch.retrieve(
         url="https://cfpub.epa.gov/webfire/download/webfirefactors.zip",
         known_hash="e21f3edaddac76912ef7edcf701f8ca611f212f05fc30e40d2fe452ea779fbb2",
