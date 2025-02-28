@@ -3,6 +3,36 @@ import pooch
 
 from pooch import HTTPDownloader
 
+
+def fetch_nei_2017():
+    """Fetch the 2017 National Emissions Inventory (NEI)
+
+    Currently only download the zip file, which uses an unconventional
+    compression, thus it can't be processed by Pooch's Unzip processor."""
+    fname = pooch.retrieve(
+        url="https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip",
+        known_hash="sha256:8f015ea29fc82e17c370a316020ad76ebb7df16aaeea3fc24425647b0edcb7c9",
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True, verify=False),
+    )
+
+    return fname
+
+def fetch_nei_2020():
+    """Fetch the 2020 National Emissions Inventory (NEI)
+
+    Currently only download the zip file, which uses an unconventional
+    compression, thus it can't be processed by Pooch's Unzip processor."""
+    fname = pooch.retrieve(
+        url="https://gaftp.epa.gov/air/nei/2020/data_summaries/2020nei_facility_process_byregions.zip",
+        known_hash="sha256:1264392ef859801fef7349b796937a974bfcbdaee1f6e8f69c0686b8e6bc9b7d",
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True, verify=False),
+    )
+
+    return fname
+
+
 def fetch_emission():
     """Fetch the Emissions by Unit and Fuel Type"""
     fnames = pooch.retrieve(
