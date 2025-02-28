@@ -52,11 +52,11 @@ def fetch_emission():
         ),
     )
 
-    df = pd.read_excel(
-        fnames[0], engine="pyxlsb", sheet_name="UNIT_DATA", skiprows=6
-    )
+    # df = pd.read_excel(
+    #     fnames[0], engine="pyxlsb", sheet_name="UNIT_DATA", skiprows=6
+    # )
 
-    return df
+    return fnames[0]
 
 
 def fetch_webfirefactors():
