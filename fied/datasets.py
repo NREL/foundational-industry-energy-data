@@ -1,3 +1,10 @@
+"""Temporary solution to fetch required datasets
+
+The FIED is based on several public datasets. This module manages how these data are obtained and optimize for the analysis.
+
+This is a temporary solution while I work on how to obtain and extract some of the data in an automatic way.
+"""
+
 import pandas as pd
 import pooch
 
