@@ -4,6 +4,7 @@ import pooch
 from pooch import HTTPDownloader
 
 def fetch_emission():
+    """Fetch the Emissions by Unit and Fuel Type"""
     fnames = pooch.retrieve(
         path=pooch.os_cache("FIED"),
         # URL to one of Pooch's test files
