@@ -32,3 +32,16 @@ def fetch_webfirefactors():
     )
 
     return pd.read_csv(fnames[0])
+
+
+def fetch_scc():
+    """Load EPA's Source Classification Codes (SCC)"""
+    fname = pooch.retrieve(
+        url="https://sor-scc-api.epa.gov/sccwebservices/v1/SCC?format=CSV&sortFacet=scc+level+one&filename=SCCDownload.csv",
+        known_hash="sha256:607d8575ee23d7b054143ac30c49e5f96f91303c48bdf26c40d53094716fb178",
+        path=pooch.os_cache("FIED") / "SCC",
+        # Temporary solution. Don't verify SSL.
+        downloader=HTTPDownloader(progressbar=True),
+    )
+
+    return pd.read_csv(fname)
