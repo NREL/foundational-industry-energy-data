@@ -1,22 +1,18 @@
 
 import pandas as pd
 import os
-import zipfile
 import yaml
 import json
-import requests
-from io import BytesIO
 from pyxlsb import open_workbook
 import logging
 
+import datasets
 
 class GHGRP_unit_char():
 
     def __init__(self, ghgrp_energy_file, reporting_year):
 
         logging.basicConfig(level=logging.INFO)
-
-        self._ghgrp_unit_url = 'https://www.epa.gov/system/files/other-files/2022-10/emissions_by_unit_and_fuel_type_c_d_aa_10_2022.zip'
 
         self._data_dir = os.path.abspath('./data/GHGRP/')
 
@@ -79,53 +75,6 @@ class GHGRP_unit_char():
 
         return ghgrp_unit_data
 
-    def download_unit_data(self):
-        """
-        Download and unzip GHGRP unit data. 
-
-        Returns
-        -------
-        file_path : str
-            File path of unit data spreadsheet.
-        """
-
-        zipfile_name = self._ghgrp_unit_url.split('/')[-1]
-
-        file_path = os.path.join(self._data_dir, zipfile_name)
-
-        if os.path.isfile(file_path):
-
-            with zipfile.ZipFile(file_path) as zf:
-
-                xlsbpath = os.path.join(self._data_dir, zf.namelist()[0])
-
-                if os.path.isfile(xlsbpath):
-
-                    pass
-
-                else:
-                    zf.extractall(self._data_dir)
-
-        else:
-
-            try:
-                r = requests.get(self._ghgrp_unit_url)
-                r.raise_for_status()
-
-            except requests.exceptions.HTTPError as e:
-                print(e)
-
-                print(
-                    f"Try downloading zipfile from {self._ghgrp_unit_url} and saving to {self._data_dir}"
-                    )
-
-            with zipfile.ZipFile(BytesIO(r.content)) as zf:
-
-                zf.extract(zf.namelist()[0], self._data_dir)
-
-                xlsbpath = os.path.join(self._data_dir, zf.namelist()[0])
-
-        return xlsbpath
 
     # TODO fix up code for getting capacity data
     def get_unit_capacity(self, ghgrp_df):
@@ -146,8 +95,7 @@ class GHGRP_unit_char():
             unit name.
 
         """
-
-        unit_data_file_path = self.download_unit_data()
+        unit_data_file_path = datasets.fetch_emission()
 
         # engine='pyxlsb' not working with python 3.6.5.final.0 and pandas 0.24.2
         # XLRDError: Excel 2007 xlsb file; not supported

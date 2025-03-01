@@ -13,6 +13,8 @@ toolspath = str(Path(__file__).parents[1]/"tools")
 sys.path.append(toolspath)
 from misc_tools import Tools
 
+from datasets import fetch_webfirefactors
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -38,10 +40,6 @@ class NEI ():
         self._nei_folder_path = Path(self._FIEDPATH,'data/NEI')
         
         # self._nei_data_path = os.path.abspath('./data/NEI/nei_ind_data.csv')
-        
-        self._webfires_data_path = Path(self._FIEDPATH, "data/WebFire/webfirefactors.csv")
-        # self._webfires_data_path = \
-        #     os.path.abspath('./data/WebFire/webfirefactors.csv')
 
         self._unit_conv_path = Path(self._FIEDPATH, "nei/unit_conversions.yml")
         # self._unit_conv_path = os.path.abspath('./nei/unit_conversions.yml')
@@ -516,43 +514,6 @@ class NEI ():
 
         return nei_data
 
-    def load_webfires(self):
-        """
-        Load all EPA WebFire emissions factors, downloading from
-        https://www.epa.gov/electronic-reporting-air-emissions/webfire
-        if necessary.
-
-        Returns
-        -------
-        webfr : pandas.DataFrame
-            EPA WebFire emissions factors. 
-        """
-
-        if self._webfires_data_path.exists():
-
-            logging.info('Reading WebFire data from csv')
-
-            webfr = pd.read_csv(self._webfires_data_path, low_memory=False)
-
-        else:
-
-            logging.info(
-                'Downloading WebFire data; writing webfirefactors.csv'
-                )
-                
-            Path.mkdir(self._webfires_data_path.parents[0])
-
-            r = requests.get(
-                'https://cfpub.epa.gov/webfire/download/webfirefactors.zip'
-                )
-
-            with zipfile.ZipFile(BytesIO(r.content)) as zf:
-                with zf.open(zf.namelist()[0]) as f:
-                    webfr = pd.read_csv(f, low_memory=False)
-
-                    webfr.to_csv(self._webfires_data_path)
-
-        return webfr
 
     def load_unit_conversions(self):
         """
@@ -1888,7 +1849,7 @@ class NEI ():
         #initialize year argument
         nei_data = nei.load_nei_data(year=str(2020))
         iden_scc = nei.load_scc_unittypes()
-        webfr = nei.load_webfires()
+        webfr = fetch_webfirefactors()
         logging.info("Merging WebFires data...")
         nei_char = nei.match_webfire_to_nei(nei_data, webfr)
         logging.info("Merging SCC data...")
