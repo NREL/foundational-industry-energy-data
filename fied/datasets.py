@@ -52,7 +52,7 @@ def fetch_frs(combined=True):
     fnames = pooch.retrieve(
         url=url,
         known_hash=knwon_hash,
-        path=pooch.os_cache("FIED"),
+        path=pooch.os_cache("FIED") / "FRS",
         downloader=HTTPDownloader(progressbar=True),
         processor=pooch.Unzip(members=members),
     )
