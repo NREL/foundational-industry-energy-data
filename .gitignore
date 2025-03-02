@@ -5,6 +5,14 @@ fied/_version.py
 !/data/dir_structure.md
 *.pyc
 *.pkl
+
 # pixi environments
 .pixi
+
+# Distribution / packaging
 *.egg-info
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
