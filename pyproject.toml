@@ -1,10 +1,16 @@
 [project]
-authors = [{name = "Gui Castelao", email = "guilherme@castelao.net"}]
-dependencies = []
+authors = [
+  {name = "Colin McMillan"},
+  {name = "Gui Castelao", email = "gpimenta@nrel.gov"}
+	]
+maintainers = [
+  {name = "Gui Castelao", email = "gpimenta@nrel.gov"}
+	]
 description = "Add a short description here"
 name = "fied"
 requires-python = ">= 3.9"
 version = "0.0.1"
+dependencies = []
 
 [build-system]
 build-backend = "hatchling.build"
