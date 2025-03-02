@@ -63,6 +63,23 @@ def fetch_frs(combined=True):
     return fnames
 
 
+def fetch_zip_codes():
+    """Fetch the ZIP Code dataset from USPS
+
+    This was originally used by frs_extraction's call_all_fips() on
+    demand, i.e. it accessed the remote file every time it was needed,
+    thus creating a permanent dependency on that service.
+    """
+    fname = pooch.retrieve(
+        url="https://postalpro.usps.com/mnt/glusterfs/2022-12/ZIP_Locale_Detail.xls",
+        known_hash="sha256:fd0689f6801a2d5291354a9d6c25af3656b863c2462b445ba4d4595b024cd5a9",
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True),
+    )
+
+    return pd.read_excel(fname)
+
+
 def fetch_nei_2017():
     """Fetch the 2017 National Emissions Inventory (NEI)
 
