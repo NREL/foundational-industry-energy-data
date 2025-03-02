@@ -8,6 +8,7 @@ build-backend = 'setuptools.build_meta'
 [project]
 name = "fied"
 dynamic = ["version"]
+description = "The Foundational Industry Energy Dataset (FIED) is a unit-level characterization of energy use in the U.S. industrial sector"
 readme = "README.md"
 authors = [
   {name = "Colin McMillan"},
@@ -16,7 +17,6 @@ authors = [
 maintainers = [
   {name = "Gui Castelao", email = "gpimenta@nrel.gov"}
 	]
-description = "Add a short description here"
 requires-python = ">= 3.9"
 dependencies = [
   "geopandas>=0.12.1",
