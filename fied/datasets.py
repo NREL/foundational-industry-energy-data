@@ -15,11 +15,13 @@ from pooch import HTTPDownloader
 
 
 def fetch_frs(combined=True):
-    """Fetch the Facility Registry Service (FRS) datase
+    """Fetch the Facility Registry Service (FRS) dataset from EPA
 
     NOTE: It looks like this dataset is updated frequently. The current
     download is only 20 days old. If the updates are too frequent, it
     might be impractical to validate the hash.
+
+    Combined file was ~732 MB on Dec 2022, and ~1.2 GB on Feb 2025.
 
     Parameters
     ----------
