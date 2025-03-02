@@ -14,6 +14,7 @@ from collections import OrderedDict
 from pathlib import Path
 from naics_selection import NAICS_Identification
 
+import datasets
 
 logging.basicConfig(level=logging.INFO)
 
@@ -154,52 +155,6 @@ class FRS:
 
         return all_fips
 
-    def download_unzip_frs_data(self, combined=True):
-        """
-        Download bulk FRS data files from EPA.
-        """
-
-        if combined:
-            name = 'combined'
-        else:
-            name = 'single'
-
-        # Combined file is ~732 MB as of December 2022
-        frs_url = \
-            f"https://ordsext.epa.gov/FLA/www3/state_files/national_{name}.zip"
-
-        zip_path = os.path.abspath(
-            os.path.join(self._frs_data_path, f"national_{name}.zip")
-            )
-
-        if not os.path.exists(os.path.abspath(self._frs_data_path)):
-            os.makedirs(os.path.abspath(self._frs_data_path))
-        else:
-            pass
-
-        if os.path.exists(zip_path):
-            logging.info(f"FRS {name.capitalize()} zip file exists.")
-
-        else:
-            logging.info(f"FRS {name.capitalize()} zip file does not exist. Downloading...")
-
-            r = requests.get(frs_url)
-
-            try:
-                r.raise_for_status()
-
-            except requests.exceptions.HTTPError as e:
-                logging.error(f'{e}')
-
-            with open(zip_path, "wb") as f:
-                f.write(r.content)
-
-        # Unzip with zipfile
-        with zipfile.ZipFile(zip_path, 'r') as zf:
-            zf.extractall(os.path.abspath(self._frs_data_path))
-            logging.info(f"FRS {name.capitalize()} file unzipped.")
-
-        return
 
     @staticmethod
     def fix_code(code):
@@ -495,6 +450,12 @@ class FRS:
             relevant site and facility data from EPA FRS. 
         """
 
+        # Temporary solution for transition to using datasets module
+        # This downloads the FRS raw data with datasets module and
+        # set the path to the directory containing the raw data.
+        fnames = datasets.fetch_frs(combined=combined)
+        self._frs_data_path = os.path.dirname(fnames[0])
+
         # Reminder that self._names_columns is an ordered dict
         pgm_data = self.read_frs_csv(
             name='PROGRAM', columns=self._names_columns['PROGRAM']
@@ -648,7 +609,6 @@ if __name__ == '__main__':
     combined = True
 
     frs_methods = FRS()
-    frs_methods.download_unzip_frs_data(combined=combined)
 
     frs_data_df = frs_methods.import_format_frs(combined=combined)
     frs_data_df.to_csv(Path(__file__).parents[1], 'data/FRS/frs_data_formatted.csv')
