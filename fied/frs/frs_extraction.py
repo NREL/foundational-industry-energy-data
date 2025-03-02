@@ -1,13 +1,10 @@
-import requests
 import re
 import json
 import gzip
 import logging
 import os
-import zipfile
 import requests
 import urllib
-import time
 import itertools
 import pandas as pd
 from collections import OrderedDict
