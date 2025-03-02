@@ -1,3 +1,10 @@
+[build-system]
+requires = [
+  "setuptools >= 61",
+  "setuptools_scm[toml] >= 8",
+]
+build-backend = 'setuptools.build_meta'
+
 [project]
 authors = [
   {name = "Colin McMillan"},
@@ -26,10 +33,6 @@ dependencies = [
   "pooch>=1.8.2,<2",
   "tqdm>=4.67.1,<5",
 ]
-
-[build-system]
-build-backend = "hatchling.build"
-requires = ["hatchling"]
 
 [tool.pixi.project]
 channels = ["conda-forge", "anaconda", "main"]
