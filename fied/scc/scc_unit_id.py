@@ -4,7 +4,8 @@ import numpy as np
 import re
 import logging
 import requests
-from io import BytesIO
+
+import datasets
 
 
 class SCC_ID:
@@ -33,41 +34,8 @@ class SCC_ID:
 
     def __init__(self):
 
-        self._complete_scc_filepath = './data/SCC/SCCDownload.csv'
-
         logging.basicConfig(level=logging.INFO)
 
-    def get_complete_scc(self):
-        """
-        Download full set of SCC codes from EPA and save to
-        `self._complete_scc_filepath`.
-        Note that downloading directly from website assignes filename for csv
-        based as 'SCCDownload-{y}-{md}-{t}.csv'
-
-        """
-
-        payload = {
-            'format': 'CSV',
-            'sortFacet': 'scc level one',
-            'filename': 'SCCDownload.csv'
-            }
-
-        url = 'https://sor-scc-api.epa.gov/sccwebservices/v1/SCC?'
-
-        try:
-            r = requests.get(url, params=payload)
-
-        except requests.exceptions.RequestException as e:
-            logging.ERROR(e.response.text)
-
-        else:
-            all_scc = pd.read_csv(
-                BytesIO(r.content)
-                )
-
-            all_scc.to_csv(self._complete_scc_filepath)
-
-        return all_scc
 
     def load_complete_scc(self):
         """
@@ -81,13 +49,7 @@ class SCC_ID:
 
         """
 
-        try:
-
-            all_scc = pd.read_csv(self._complete_scc_filepath)
-
-        except FileNotFoundError:
-
-            all_scc = self.get_complete_scc()
+        all_scc = datasets.fetch_scc()
 
         all_scc.columns = [c.replace(' ', '_') for c in all_scc.columns]
 

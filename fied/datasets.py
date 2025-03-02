@@ -152,7 +152,21 @@ def fetch_webfirefactors():
 
 
 def fetch_scc():
-    """Load EPA's Source Classification Codes (SCC)"""
+    """Load EPA's Source Classification Codes (SCC)
+
+    Note that downloading directly from website assignes filename for
+    csv based as 'SCCDownload-{y}-{md}-{t}.csv'
+
+    Should force the filename to be 'SCCDownload.csv'?
+
+    This was originally defined in scc/scc_unit_id.py.
+
+    payload = {
+      "format": "CSV",
+      "sortFacet": "scc level one",
+      "filename": "SCCDownload.csv",
+      }
+    """
     fname = pooch.retrieve(
         url="https://sor-scc-api.epa.gov/sccwebservices/v1/SCC?format=CSV&sortFacet=scc+level+one&filename=SCCDownload.csv",
         known_hash="sha256:607d8575ee23d7b054143ac30c49e5f96f91303c48bdf26c40d53094716fb178",
