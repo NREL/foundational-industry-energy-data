@@ -1,4 +1,3 @@
-import requests
 import re
 import json
 import gzip
