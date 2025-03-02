@@ -1,3 +1,6 @@
+# Dynamic version
+fied/_version.py
+
 /data/*
 !/data/dir_structure.md
 *.pyc

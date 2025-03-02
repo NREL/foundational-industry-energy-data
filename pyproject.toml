@@ -6,6 +6,8 @@ requires = [
 build-backend = 'setuptools.build_meta'
 
 [project]
+name = "fied"
+dynamic = ["version"]
 authors = [
   {name = "Colin McMillan"},
   {name = "Gui Castelao", email = "gpimenta@nrel.gov"}
@@ -14,7 +16,6 @@ maintainers = [
   {name = "Gui Castelao", email = "gpimenta@nrel.gov"}
 	]
 description = "Add a short description here"
-name = "fied"
 requires-python = ">= 3.9"
 version = "0.0.1"
 dependencies = [
@@ -151,3 +152,9 @@ max-doc-length = 72
 convention = "numpy"
 
 [tool.ruff.lint.per-file-ignores]
+
+[tool.setuptools]
+packages = ["fied"]
+
+[tool.setuptools_scm]
+version_file = "fied/_version.py"
