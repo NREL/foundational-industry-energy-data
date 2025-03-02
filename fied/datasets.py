@@ -14,6 +14,72 @@ import pooch
 from pooch import HTTPDownloader
 
 
+def fetch_frs(combined=True):
+    """Fetch the Facility Registry Service (FRS) dataset from EPA
+
+    NOTE: This dataset might be updated frequently. The current
+    downloaded files are only 20 days old. If the updates are too
+    frequent, it might be cumbersome to keep the hash up to date (but
+    still important for reproducibility).
+
+    Combined file was ~732 MB on Dec 2022, and ~1.2 GB on Feb 2025.
+
+    Parameters
+    ----------
+    combined : bool, optional
+        If True, download the combined dataset, by default True.
+        Otherwise, download the single dataset.
+    """
+    if combined:
+        url = "https://ordsext.epa.gov/FLA/www3/state_files/national_combined.zip"
+        knwon_hash = "sha256:3575cc51c8fa44daa25382871515e068db42645f2e683a80e1238bf5200502ab"
+        members = [
+            "NATIONAL_ALTERNATIVE_NAME_FILE.CSV",
+            "NATIONAL_CONTACT_FILE.CSV",
+            "NATIONAL_ENVIRONMENTAL_INTEREST_FILE.CSV",
+            "NATIONAL_FACILITY_FILE.CSV",
+            "NATIONAL_MAILING_ADDRESS_FILE.CSV",
+            "NATIONAL_NAICS_FILE.CSV",
+            "NATIONAL_ORGANIZATION_FILE.CSV",
+            "NATIONAL_PROGRAM_FILE.CSV",
+            "NATIONAL_SIC_FILE.CSV",
+            "NATIONAL_SUPP_INTEREST_FILE.CSV",
+        ]
+    else:
+        url = (
+            "https://ordsext.epa.gov/FLA/www3/state_files/national_single.zip"
+        )
+        knwon_hash = "sha256:1c41e349dfcf7f4ac4db2eb99b0814eb89cab980bf4880ad427fdfe289eaa979"
+        members = ["NATIONAL_SINGLE.CSV"]
+
+    fnames = pooch.retrieve(
+        url=url,
+        known_hash=knwon_hash,
+        path=pooch.os_cache("FIED") / "FRS",
+        downloader=HTTPDownloader(progressbar=True),
+        processor=pooch.Unzip(members=members),
+    )
+
+    return fnames
+
+
+def fetch_zip_codes():
+    """Fetch the ZIP Code dataset from USPS
+
+    This was originally used by frs_extraction's call_all_fips() on
+    demand, i.e. it accessed the remote file every time it was needed,
+    thus creating a permanent dependency on that service.
+    """
+    fname = pooch.retrieve(
+        url="https://postalpro.usps.com/mnt/glusterfs/2022-12/ZIP_Locale_Detail.xls",
+        known_hash="sha256:fd0689f6801a2d5291354a9d6c25af3656b863c2462b445ba4d4595b024cd5a9",
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True),
+    )
+
+    return pd.read_excel(fname)
+
+
 def fetch_nei_2017():
     """Fetch the 2017 National Emissions Inventory (NEI)
 
