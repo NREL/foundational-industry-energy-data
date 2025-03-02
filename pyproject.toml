@@ -8,6 +8,7 @@ build-backend = 'setuptools.build_meta'
 [project]
 name = "fied"
 dynamic = ["version"]
+readme = "README.md"
 authors = [
   {name = "Colin McMillan"},
   {name = "Gui Castelao", email = "gpimenta@nrel.gov"}
