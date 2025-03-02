@@ -14,6 +14,52 @@ import pooch
 from pooch import HTTPDownloader
 
 
+def fetch_frs(combined=True):
+    """Fetch the Facility Registry Service (FRS) datase
+
+    NOTE: It looks like this dataset is updated frequently. The current
+    download is only 20 days old. If the updates are too frequent, it
+    might be impractical to validate the hash.
+
+    Parameters
+    ----------
+    combined : bool, optional
+        If True, download the combined dataset, by default True.
+        Otherwise, download the single dataset.
+    """
+    if combined:
+        url = "https://ordsext.epa.gov/FLA/www3/state_files/national_combined.zip"
+        knwon_hash = "sha256:3575cc51c8fa44daa25382871515e068db42645f2e683a80e1238bf5200502ab"
+        members = [
+            "NATIONAL_ALTERNATIVE_NAME_FILE.CSV",
+            "NATIONAL_CONTACT_FILE.CSV",
+            "NATIONAL_ENVIRONMENTAL_INTEREST_FILE.CSV",
+            "NATIONAL_FACILITY_FILE.CSV",
+            "NATIONAL_MAILING_ADDRESS_FILE.CSV",
+            "NATIONAL_NAICS_FILE.CSV",
+            "NATIONAL_ORGANIZATION_FILE.CSV",
+            "NATIONAL_PROGRAM_FILE.CSV",
+            "NATIONAL_SIC_FILE.CSV",
+            "NATIONAL_SUPP_INTEREST_FILE.CSV",
+        ]
+    else:
+        url = (
+            "https://ordsext.epa.gov/FLA/www3/state_files/national_single.zip"
+        )
+        knwon_hash = "sha256:1c41e349dfcf7f4ac4db2eb99b0814eb89cab980bf4880ad427fdfe289eaa979"
+        members = ["NATIONAL_SINGLE.CSV"]
+
+    fnames = pooch.retrieve(
+        url=url,
+        known_hash=knwon_hash,
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True),
+        processor=pooch.Unzip(members=members),
+    )
+
+    return fnames
+
+
 def fetch_nei_2017():
     """Fetch the 2017 National Emissions Inventory (NEI)
 
