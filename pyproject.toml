@@ -47,6 +47,11 @@ dependencies = [
   "tqdm>=4.67.1,<5",
 ]
 
+[project.urls]
+homepage = "https://github.com/NREL/foundational-industry-energy-data"
+documentation = "https://nrel.github.io/foundational-industry-energy-data/"
+repository = "https://github.com/NREL/foundational-industry-energy-data"
+
 [tool.pixi.project]
 channels = ["conda-forge", "anaconda", "main"]
 platforms = ["osx-arm64", "linux-64", "win-64"]
