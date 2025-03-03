@@ -9,9 +9,10 @@ thinking on optimization and removing redundancies.
 """
 
 import pandas as pd
+from pathlib import Path
 import pooch
-
 from pooch import HTTPDownloader
+from stream_unzip import stream_unzip
 
 
 def fetch_frs(combined=True):
@@ -83,16 +84,47 @@ def fetch_zip_codes():
 def fetch_nei_2017():
     """Fetch the 2017 National Emissions Inventory (NEI)
 
-    Currently only download the zip file, which uses an unconventional
-    compression, thus it can't be processed by Pooch's Unzip processor."""
-    fname = pooch.retrieve(
+    Temporary solution to deal with the unconventional compression
+    deflate64.
+    """
+    fzname = pooch.retrieve(
         url="https://gaftp.epa.gov/air/nei/2017/data_summaries/2017v1/2017neiJan_facility_process_byregions.zip",
         known_hash="sha256:8f015ea29fc82e17c370a316020ad76ebb7df16aaeea3fc24425647b0edcb7c9",
         path=pooch.os_cache("FIED"),
         downloader=HTTPDownloader(progressbar=True, verify=False),
     )
 
-    return fname
+    members = ["point_unknown.csv", "point_12345.csv", "point_678910.csv"]
+
+    # Temporary solution
+    def zipped_chunks(filename, chunk_size=65536):
+        with open(filename, "rb") as f:
+            while True:
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                yield chunk
+
+    path = Path(fzname + ".unzip")
+
+    if path.exists():
+        output = [
+            f for f in path.iterdir() if f.is_file() and (f.name in members)
+        ]
+        return [str(f) for f in output]
+
+    path.mkdir()
+    output = []
+    for fname, fsize, chunks in stream_unzip(zipped_chunks(fzname)):
+        print(f"Unzipping {fname.decode()}")
+        outname = path / fname.decode()
+        with open(outname, "wb") as f:
+            for c in chunks:
+                f.write(c)
+        if fname.decode() in members:
+            output.append(str(outname))
+
+    return output
 
 
 def fetch_nei_2020():
