@@ -140,7 +140,19 @@ def fetch_nei_2020():
         downloader=HTTPDownloader(progressbar=True, verify=False),
     )
 
-    members = ["point_unknown.csv", "point_1.csv", "point_2.csv", "point_3.csv", "point_4.csv", "point_5.csv", "point_6.csv", "point_7.csv", "point_8.csv", "point_9.csv", "point_10.csv"]
+    members = [
+        "point_unknown.csv",
+        "point_1.csv",
+        "point_2.csv",
+        "point_3.csv",
+        "point_4.csv",
+        "point_5.csv",
+        "point_6.csv",
+        "point_7.csv",
+        "point_8.csv",
+        "point_9.csv",
+        "point_10.csv",
+    ]
 
     # Temporary solution
     def zipped_chunks(filename, chunk_size=65536):
