@@ -132,9 +132,6 @@ def fetch_nei_2020():
 
     Temporary solution to deal with the unconventional compression
     deflate64.
-
-    Currently only download the zip file, which uses an unconventional
-    compression, thus it can't be processed by Pooch's Unzip processor.
     """
     fzname = pooch.retrieve(
         url="https://gaftp.epa.gov/air/nei/2020/data_summaries/2020nei_facility_process_byregions.zip",
