@@ -130,16 +130,59 @@ def fetch_nei_2017():
 def fetch_nei_2020():
     """Fetch the 2020 National Emissions Inventory (NEI)
 
-    Currently only download the zip file, which uses an unconventional
-    compression, thus it can't be processed by Pooch's Unzip processor."""
-    fname = pooch.retrieve(
+    Temporary solution to deal with the unconventional compression
+    deflate64.
+    """
+    fzname = pooch.retrieve(
         url="https://gaftp.epa.gov/air/nei/2020/data_summaries/2020nei_facility_process_byregions.zip",
         known_hash="sha256:1264392ef859801fef7349b796937a974bfcbdaee1f6e8f69c0686b8e6bc9b7d",
         path=pooch.os_cache("FIED"),
         downloader=HTTPDownloader(progressbar=True, verify=False),
     )
 
-    return fname
+    members = [
+        "point_unknown.csv",
+        "point_1.csv",
+        "point_2.csv",
+        "point_3.csv",
+        "point_4.csv",
+        "point_5.csv",
+        "point_6.csv",
+        "point_7.csv",
+        "point_8.csv",
+        "point_9.csv",
+        "point_10.csv",
+    ]
+
+    # Temporary solution
+    def zipped_chunks(filename, chunk_size=65536):
+        with open(filename, "rb") as f:
+            while True:
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                yield chunk
+
+    path = Path(fzname + ".unzip")
+
+    if path.exists():
+        output = [
+            f for f in path.iterdir() if f.is_file() and (f.name in members)
+        ]
+        return [str(f) for f in output]
+
+    path.mkdir()
+    output = []
+    for fname, fsize, chunks in stream_unzip(zipped_chunks(fzname)):
+        print(f"Unzipping {fname.decode()}")
+        outname = path / fname.decode()
+        with open(outname, "wb") as f:
+            for c in chunks:
+                f.write(c)
+        if fname.decode() in members:
+            output.append(str(outname))
+
+    return output
 
 
 def fetch_emission():
