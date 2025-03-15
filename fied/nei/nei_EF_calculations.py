@@ -393,24 +393,17 @@ class NEI ():
             logging.info('Reading NEI data from zipfiles')
 
             nei_data = pd.DataFrame()
-           
-            if year == '2017':
 
-                for f in os.listdir(os.path.join(self._nei_folder_path,str(year))):
+            if year == '2017':
+                for f in fetch_nei_2017():
 
                     if '.csv' in f:
-                        
-                        if f == 'point_unknown_2017.csv':
+
+                        if os.path.basename(f) == 'point_unknown.csv':
                             continue
 
                         else:
-
-                            data = pd.read_csv(
-                                    os.path.join(
-                                        os.path.join(self._nei_folder_path,str(year)), f
-                                        ),
-                                    low_memory=False
-                                    )
+                            data = pd.read_csv(f, low_memory=False)
 
                             data.columns = data.columns.str.strip()
                             data.columns = data.columns.str.replace(' ', '_')
@@ -462,22 +455,15 @@ class NEI ():
                     nei_data = nei_data.append(data, sort=False)
 
             elif year == '2020':
-
-                for f in os.listdir(os.path.join(self._nei_folder_path,str(year))):
+                for f in fetch_nei_2020():
 
                     if '.csv' in f:
-        
-                        if f == 'point_unknown_2020.csv':
+
+                        if os.path.basename(f) == 'point_unknown.csv':
                             continue
 
                         else:
-
-                            data = pd.read_csv(
-                                    os.path.join(
-                                        os.path.join(self._nei_folder_path,str(year)), f
-                                        ),
-                                    low_memory=False
-                                    )
+                            data = pd.read_csv(f, low_memory=False)
 
                             data.columns = data.columns.str.strip()
                             data.columns = data.columns.str.replace(' ', '_')
