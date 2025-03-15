@@ -27,7 +27,6 @@ class NEI ():
     Uses NEI Emissions Factors (EFs) and, if not listed, WebFire EFs
 
     Returns file: 'NEI_unit_throughput_and_energy.csv'
-
     """
 
     def __init__(self):
@@ -35,7 +34,7 @@ class NEI ():
         logging.basicConfig(level=logging.INFO)
 
         self._FIEDPATH = Path(__file__).parents[1]
-        
+
         self._nei_data_path = Path(self._FIEDPATH, "data/NEI/nei_ind_data.csv")
 
         self._unit_conv_path = Path(self._FIEDPATH, "nei/unit_conversions.yml")
@@ -46,7 +45,7 @@ class NEI ():
         self._scc_units_path = Path(self._FIEDPATH, "scc/iden_scc.csv")
 
         self._data_source = 'NEI'
-        
+
         self._cap_conv = {
             'energy': {  # Convert to MJ
                 'MMBtu/hr': 8760 * 1055.87,
@@ -410,11 +409,11 @@ class NEI ():
                                 'pollutant_type(s)': 'pollutant_type',
                                 'region': 'epa_region_code'
                                 }, inplace=True)
-                            
+
                         full_unit = []
                         full_method = []
                         partial_unit = []
-                        partial_method = []    
+                        partial_method = []
 
                         # unit types & emissions calc methods in point_678910.csv are truncated; 
                         # match to full unit type names in point_12345.csv
