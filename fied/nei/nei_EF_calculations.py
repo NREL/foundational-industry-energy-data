@@ -13,7 +13,7 @@ toolspath = str(Path(__file__).parents[1]/"tools")
 sys.path.append(toolspath)
 from misc_tools import Tools
 
-from datasets import fetch_webfirefactors
+from datasets import fetch_nei_2017, fetch_nei_2020, fetch_webfirefactors
 
 
 logging.basicConfig(level=logging.INFO)
@@ -27,7 +27,6 @@ class NEI ():
     Uses NEI Emissions Factors (EFs) and, if not listed, WebFire EFs
 
     Returns file: 'NEI_unit_throughput_and_energy.csv'
-
     """
 
     def __init__(self):
@@ -35,23 +34,18 @@ class NEI ():
         logging.basicConfig(level=logging.INFO)
 
         self._FIEDPATH = Path(__file__).parents[1]
-        
+
         self._nei_data_path = Path(self._FIEDPATH, "data/NEI/nei_ind_data.csv")
-        self._nei_folder_path = Path(self._FIEDPATH,'data/NEI')
-        
-        # self._nei_data_path = os.path.abspath('./data/NEI/nei_ind_data.csv')
 
         self._unit_conv_path = Path(self._FIEDPATH, "nei/unit_conversions.yml")
-        # self._unit_conv_path = os.path.abspath('./nei/unit_conversions.yml')
 
         with open(self._unit_conv_path) as file:
             self._unit_conv = yaml.load(file, Loader=yaml.SafeLoader)
 
         self._scc_units_path = Path(self._FIEDPATH, "scc/iden_scc.csv")
-        # self._scc_units_path = os.path.abspath('./scc/iden_scc.csv')
 
         self._data_source = 'NEI'
-        
+
         self._cap_conv = {
             'energy': {  # Convert to MJ
                 'MMBtu/hr': 8760 * 1055.87,
@@ -393,24 +387,17 @@ class NEI ():
             logging.info('Reading NEI data from zipfiles')
 
             nei_data = pd.DataFrame()
-           
-            if year == '2017':
 
-                for f in os.listdir(os.path.join(self._nei_folder_path,str(year))):
+            if year == '2017':
+                for f in fetch_nei_2017():
 
                     if '.csv' in f:
-                        
-                        if f == 'point_unknown_2017.csv':
+
+                        if os.path.basename(f) == 'point_unknown.csv':
                             continue
 
                         else:
-
-                            data = pd.read_csv(
-                                    os.path.join(
-                                        os.path.join(self._nei_folder_path,str(year)), f
-                                        ),
-                                    low_memory=False
-                                    )
+                            data = pd.read_csv(f, low_memory=False)
 
                             data.columns = data.columns.str.strip()
                             data.columns = data.columns.str.replace(' ', '_')
@@ -422,11 +409,11 @@ class NEI ():
                                 'pollutant_type(s)': 'pollutant_type',
                                 'region': 'epa_region_code'
                                 }, inplace=True)
-                            
+
                         full_unit = []
                         full_method = []
                         partial_unit = []
-                        partial_method = []    
+                        partial_method = []
 
                         # unit types & emissions calc methods in point_678910.csv are truncated; 
                         # match to full unit type names in point_12345.csv
@@ -462,22 +449,15 @@ class NEI ():
                     nei_data = nei_data.append(data, sort=False)
 
             elif year == '2020':
-
-                for f in os.listdir(os.path.join(self._nei_folder_path,str(year))):
+                for f in fetch_nei_2020():
 
                     if '.csv' in f:
-        
-                        if f == 'point_unknown_2020.csv':
+
+                        if os.path.basename(f) == 'point_unknown.csv':
                             continue
 
                         else:
-
-                            data = pd.read_csv(
-                                    os.path.join(
-                                        os.path.join(self._nei_folder_path,str(year)), f
-                                        ),
-                                    low_memory=False
-                                    )
+                            data = pd.read_csv(f, low_memory=False)
 
                             data.columns = data.columns.str.strip()
                             data.columns = data.columns.str.replace(' ', '_')
