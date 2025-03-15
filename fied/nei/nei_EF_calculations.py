@@ -37,18 +37,13 @@ class NEI ():
         self._FIEDPATH = Path(__file__).parents[1]
         
         self._nei_data_path = Path(self._FIEDPATH, "data/NEI/nei_ind_data.csv")
-        self._nei_folder_path = Path(self._FIEDPATH,'data/NEI')
-        
-        # self._nei_data_path = os.path.abspath('./data/NEI/nei_ind_data.csv')
 
         self._unit_conv_path = Path(self._FIEDPATH, "nei/unit_conversions.yml")
-        # self._unit_conv_path = os.path.abspath('./nei/unit_conversions.yml')
 
         with open(self._unit_conv_path) as file:
             self._unit_conv = yaml.load(file, Loader=yaml.SafeLoader)
 
         self._scc_units_path = Path(self._FIEDPATH, "scc/iden_scc.csv")
-        # self._scc_units_path = os.path.abspath('./scc/iden_scc.csv')
 
         self._data_source = 'NEI'
         
