@@ -250,3 +250,25 @@ def fetch_scc():
     )
 
     return pd.read_csv(fname)
+
+def fetch_naics(naics_vintage=2022):
+    # naics_url = f'https://www.census.gov/naics/{naics_vintage}NAICS/6-digit_{naics_vintage}_Codes.xlsx'
+    if naics_vintage == 2022:
+        url = "https://github.com/NREL/foundational-industry-energy-data/raw/refs/heads/naics_codes/6-digit_2022_Codes.xlsx"
+        known_hash="sha256:3e3c90d4d36d874c0fd2da22a222c794654dbfa404320304152f5317781aefb7"
+    elif naics_vintage == 2017:
+        url = "https://github.com/NREL/foundational-industry-energy-data/raw/refs/heads/naics_codes/6-digit_2017_Codes.xlsx"
+        known_hash="sha256:e314cc95191df4a2dd355944afda35cf287712556ccbe90a15a8f24aa3ef1d81"
+    else:
+        raise NotImplementedError("Only 2017 and 2022 NAICS codes are available.")
+
+    fname = pooch.retrieve(
+        url=url,
+        known_hash=known_hash,
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True, verify=False),
+    )
+
+    return fname
+
+
