@@ -10,9 +10,10 @@ import itertools
 import pandas as pd
 from collections import OrderedDict
 from pathlib import Path
-from naics_selection import NAICS_Identification
 
-import datasets
+from fied.frs.naics_selection import NAICS_Identification
+
+from fied import datasets
 
 logging.basicConfig(level=logging.INFO)
 
