@@ -11,9 +11,8 @@ import pandas as pd
 from collections import OrderedDict
 from pathlib import Path
 
-from fied.frs.naics_selection import NAICS_Identification
-
 from fied import datasets
+from fied.frs.naics_selection import NAICS_Identification
 
 logging.basicConfig(level=logging.INFO)
 
