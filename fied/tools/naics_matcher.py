@@ -1,6 +1,8 @@
 
 import pandas as pd
 
+from fied.datasets import fetch_naics
+
 
 def naics_matcher(naics_column, naics_vintage=2017):
     """
@@ -21,15 +23,7 @@ def naics_matcher(naics_column, naics_vintage=2017):
         Original NAICS matched to 6-digit versions.
     """
 
-    if naics_vintage < 2017:
-        naics_url = f'https://www.census.gov/naics/{naics_vintage}NAICS/6-digit_{naics_vintage}_Codes.xls'
-
-    else:
-        naics_url = f'https://www.census.gov/naics/{naics_vintage}NAICS/6-digit_{naics_vintage}_Codes.xlsx'
-
-    all_naics = pd.read_excel(naics_url, usecols=[0, 1], engine='openpyxl')
-    all_naics.dropna(how='all', axis=1, inplace=True)
-    all_naics.dropna(how='all', axis=0, inplace=True)
+    all_naics = fetch_naics(naics_vintage)
 
     all_naics[f'{naics_vintage} NAICS Code'] = \
         all_naics[f'{naics_vintage} NAICS Code'].astype(int)
