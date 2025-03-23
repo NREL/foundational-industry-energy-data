@@ -269,6 +269,8 @@ def fetch_naics(naics_vintage=2022):
         downloader=HTTPDownloader(progressbar=True, verify=False),
     )
 
-    return fname
+    all_naics = pd.read_excel(fname, usecols=[0, 1], engine='openpyxl')
+    all_naics.dropna(how='all', axis=1, inplace=True)
+    all_naics.dropna(how='all', axis=0, inplace=True)
 
-
+    return all_naics
