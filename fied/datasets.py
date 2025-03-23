@@ -252,7 +252,24 @@ def fetch_scc():
     return pd.read_csv(fname)
 
 def fetch_naics(naics_vintage=2022):
-    # naics_url = f'https://www.census.gov/naics/{naics_vintage}NAICS/6-digit_{naics_vintage}_Codes.xlsx'
+    """Load NAICS codes
+
+    Download and saves for future use the National Industry
+    Classification System (NAICS) codes.
+
+    Those tables are available at https://www.census.gov/naics/ , but
+    there is some issue to systematically download it. For now, let's
+    secure the data and guarantee an automatic procedure by keeping
+    copies of those files in our repository.
+
+    Note the URL for download would be:
+    f'https://www.census.gov/naics/{naics_vintage}NAICS/6-digit_{naics_vintage}_Codes.xlsx'
+
+    Parameters
+    ----------
+    naics_vintage : int, optional (default=2022)
+        NAICS vintage year. Possible choices are 2017 & 2022.
+    """
     if naics_vintage == 2022:
         url = "https://github.com/NREL/foundational-industry-energy-data/raw/refs/heads/naics_codes/6-digit_2022_Codes.xlsx"
         known_hash="sha256:3e3c90d4d36d874c0fd2da22a222c794654dbfa404320304152f5317781aefb7"
