@@ -3,6 +3,13 @@ import geopandas as gpd
 import pandas as pd
 import logging
 
+from fied.datasets import (
+    fetch_shapefile_census_block_groups,
+    fetch_shapefile_congressional_district,
+    fetch_shapefile_county,
+    fetch_shapefile_NHDP,
+)
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -42,26 +49,22 @@ class FiedGIS:
         -------
         gf : geopandas.DataFrame
             gf
-        
+
         """
 
-        if ftype == 'BG':
+        if ftype == "BG":
+            gf = fetch_shapefile_census_block_groups(year, state_fips)
+        elif ftype == "CD":
+            gf = fetch_shapefile_congressional_district(year)
 
-            _url = f'https://www2.census.gov/geo/tiger/TIGER{year}/BG/tl_{year}_{state_fips}_bg.zip'
+        elif ftype == "COUNTY":
+            gf = fetch_shapefile_county(year)
 
-        elif ftype == 'CD':
-            _url = f'https://www2.census.gov/geo/tiger/TIGER{year}/CD/tl_{year}_us_cd115.zip'
-
-        elif ftype == 'COUNTY':
-            _url = f'https://www2.census.gov/geo/tiger/TIGER{year}/COUNTY/tl_{year}_us_county.zip'
-
-        elif ftype == 'HUC': 
-            _url = 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/National/GDB/NHDPlus_H_National_Release_1_GDB.zip'
-        
-        gf = gpd.read_file(_url)
+        elif ftype == "HUC":
+            gf = fetch_shapefile_NHDP()
 
         return gf
-    
+
     @staticmethod
     def merge_coordinates_geom(fied_state, gf, ftype=None, data_source='fied'):
         """"
