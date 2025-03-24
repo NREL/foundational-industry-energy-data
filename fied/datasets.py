@@ -8,8 +8,10 @@ Dev note: Clean and stright datasets access. List all those here before
 thinking on optimization and removing redundancies.
 """
 
-import pandas as pd
 from pathlib import Path
+
+import geopandas as gpd
+import pandas as pd
 import pooch
 from pooch import HTTPDownloader
 from stream_unzip import stream_unzip
@@ -251,6 +253,7 @@ def fetch_scc():
 
     return pd.read_csv(fname)
 
+
 def fetch_naics(naics_vintage=2022):
     """Load NAICS codes
 
@@ -272,12 +275,14 @@ def fetch_naics(naics_vintage=2022):
     """
     if naics_vintage == 2022:
         url = "https://github.com/NREL/foundational-industry-energy-data/raw/refs/heads/naics_codes/6-digit_2022_Codes.xlsx"
-        known_hash="sha256:3e3c90d4d36d874c0fd2da22a222c794654dbfa404320304152f5317781aefb7"
+        known_hash = "sha256:3e3c90d4d36d874c0fd2da22a222c794654dbfa404320304152f5317781aefb7"
     elif naics_vintage == 2017:
         url = "https://github.com/NREL/foundational-industry-energy-data/raw/refs/heads/naics_codes/6-digit_2017_Codes.xlsx"
-        known_hash="sha256:e314cc95191df4a2dd355944afda35cf287712556ccbe90a15a8f24aa3ef1d81"
+        known_hash = "sha256:e314cc95191df4a2dd355944afda35cf287712556ccbe90a15a8f24aa3ef1d81"
     else:
-        raise NotImplementedError("Only 2017 and 2022 NAICS codes are available.")
+        raise NotImplementedError(
+            "Only 2017 and 2022 NAICS codes are available."
+        )
 
     fname = pooch.retrieve(
         url=url,
@@ -286,8 +291,57 @@ def fetch_naics(naics_vintage=2022):
         downloader=HTTPDownloader(progressbar=True, verify=False),
     )
 
-    all_naics = pd.read_excel(fname, usecols=[0, 1], engine='openpyxl')
-    all_naics.dropna(how='all', axis=1, inplace=True)
-    all_naics.dropna(how='all', axis=0, inplace=True)
+    all_naics = pd.read_excel(fname, usecols=[0, 1], engine="openpyxl")
+    all_naics.dropna(how="all", axis=1, inplace=True)
+    all_naics.dropna(how="all", axis=0, inplace=True)
 
     return all_naics
+
+
+def fetch_shapefile_census_block_groups(year, state_fips):
+    fname = pooch.retrieve(
+        url=f"https://www2.census.gov/geo/tiger/TIGER{year}/BG/tl_{year}_{state_fips}_bg.zip",
+        known_hash=None,
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True),
+    )
+    return gpd.read_file(fname)
+
+
+def fetch_shapefile_congressional_district(year):
+    known_hash = {
+        2017: "sha256:b4ae191081b6ae03a03643f2ab8078b21374b825280a6198c910413569c90450",
+    }
+    fname = pooch.retrieve(
+        url=f"https://www2.census.gov/geo/tiger/TIGER{year}/CD/tl_{year}_us_cd115.zip",
+        known_hash=known_hash.get(int(year), None),
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True),
+    )
+    return gpd.read_file(fname)
+
+
+def fetch_shapefile_county(year):
+    known_hash = {
+        2017: "sha256:0417e7ca7bb678e64221336f426fdd361d7ed8bb6f57dad9d85d446aa36df593",
+        2022: "sha256:a48c6e018d80e5557720971831a37120450f02c6d934687ccb3c26314ae8bda6",
+    }
+    fname = pooch.retrieve(
+        url=f"https://www2.census.gov/geo/tiger/TIGER{year}/COUNTY/tl_{year}_us_county.zip",
+        known_hash=known_hash.get(int(year), None),
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True),
+    )
+    return gpd.read_file(fname)
+
+
+def fetch_shapefile_NHDP():
+    """Consider moving to release 2"""
+    fname = pooch.retrieve(
+        url="https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/National/GDB/NHDPlus_H_National_Release_1_GDB.zip",
+        known_hash="sha256:9df49689812d502dcd8812c23bdf4c030c840624ab62e907e517091da9ece8a5",
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True),
+    )
+
+    return gpd.read_file(fname)
