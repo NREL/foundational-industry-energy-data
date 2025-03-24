@@ -253,6 +253,7 @@ def fetch_scc():
 
     return pd.read_csv(fname)
 
+
 def fetch_naics(naics_vintage=2022):
     """Load NAICS codes
 
@@ -274,12 +275,14 @@ def fetch_naics(naics_vintage=2022):
     """
     if naics_vintage == 2022:
         url = "https://github.com/NREL/foundational-industry-energy-data/raw/refs/heads/naics_codes/6-digit_2022_Codes.xlsx"
-        known_hash="sha256:3e3c90d4d36d874c0fd2da22a222c794654dbfa404320304152f5317781aefb7"
+        known_hash = "sha256:3e3c90d4d36d874c0fd2da22a222c794654dbfa404320304152f5317781aefb7"
     elif naics_vintage == 2017:
         url = "https://github.com/NREL/foundational-industry-energy-data/raw/refs/heads/naics_codes/6-digit_2017_Codes.xlsx"
-        known_hash="sha256:e314cc95191df4a2dd355944afda35cf287712556ccbe90a15a8f24aa3ef1d81"
+        known_hash = "sha256:e314cc95191df4a2dd355944afda35cf287712556ccbe90a15a8f24aa3ef1d81"
     else:
-        raise NotImplementedError("Only 2017 and 2022 NAICS codes are available.")
+        raise NotImplementedError(
+            "Only 2017 and 2022 NAICS codes are available."
+        )
 
     fname = pooch.retrieve(
         url=url,
@@ -288,9 +291,9 @@ def fetch_naics(naics_vintage=2022):
         downloader=HTTPDownloader(progressbar=True, verify=False),
     )
 
-    all_naics = pd.read_excel(fname, usecols=[0, 1], engine='openpyxl')
-    all_naics.dropna(how='all', axis=1, inplace=True)
-    all_naics.dropna(how='all', axis=0, inplace=True)
+    all_naics = pd.read_excel(fname, usecols=[0, 1], engine="openpyxl")
+    all_naics.dropna(how="all", axis=1, inplace=True)
+    all_naics.dropna(how="all", axis=0, inplace=True)
 
     return all_naics
 
