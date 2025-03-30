@@ -190,13 +190,22 @@ class NAICS_Identification:
                     'WA-FSIS', 'WI-ESR', 'WDEQ', 'RCRAINFO', 'ECRM', 'PDS', 'EIA-860','ICIS', 
                     'RMP', 'NPDES', 'OSHA-OIS', 'FFEP']
 
-        pgm_naics = pd.pivot_table(
-            data[['REGISTRY_ID', 'PGM_SYS_ACRNM', 'NAICS_CODE']],
-            index='REGISTRY_ID',
-            columns='PGM_SYS_ACRNM'
-            )
+        # Getting around issue of duplicate REGISTRY_IDs in idex for pivoting
+        pgm_naics =  data[['REGISTRY_ID', 'PGM_SYS_ACRNM', 'NAICS_CODE']].copy(deep=True)
+
+        pgm_naics.loc[:, 'key'] = pgm_naics.groupby(['REGISTRY_ID', 'PGM_SYS_ACRNM']).cumcount()
+
+        pgm_naics = pgm_naics.pivot(
+            index=['REGISTRY_ID', 'key'], columns='PGM_SYS_ACRNM', values='NAICS_CODE'
+            ).reset_index('key', drop=True)
+
+        # pgm_naics = pd.pivot(
+        #     data[['REGISTRY_ID', 'PGM_SYS_ACRNM', 'NAICS_CODE']],
+        #     index='REGISTRY_ID',
+        #     columns='PGM_SYS_ACRNM'
+        #     )
         
-        pgm_naics = pgm_naics.droplevel(0, axis=1)
+        # pgm_naics = pgm_naics.droplevel(0, axis=1)
 
         try:
         
