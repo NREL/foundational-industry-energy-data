@@ -24,8 +24,29 @@ Some options are:
 
 ### Installing with PIP
 
+Assuming that you already have Python installed in your system, you most probably have `pip` as well. To verify you can
+
+   ```bash
+   python3 --version
+   ```
+
+   and
+
+   ```bash
+   python3 -m pip --version
+   ```
+
+To confirm that you have Python and PIP installed and learn the versions you have. With that, you can use `pip` to install the `fied` package directly from our repository, i.e. the latest version.
+
    ```bash
    pip install -U git+https://github.com/NREL/foundational-industry-energy-data.git
+   ```
+
+Now you can open python and import the package to check if it was installed correctly.
+
+   ```python
+   import fied
+   print(fied.__version__)
    ```
 
 ### Installing with Pixi (recommended)
@@ -53,9 +74,10 @@ For Windows:
 
     ```bash
     git clone 
-### Installing with pip
 
 Here we provide a Python package with the required
 resources to obtain the used data and the procedures to process it.
 the resources to access the required data
 and the code to process it.
+
+### Installing with Conda
