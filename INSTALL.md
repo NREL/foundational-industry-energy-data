@@ -14,11 +14,18 @@ For development we use `pixi` and our recommended way to install `fied`.
 
 Some options are:
 
-1. [Installing with Pixi (recommended)](#installing-with-pixi-recommended)
-2. [Installing with pip (simplest way)](#installing-with-pip)
-3. [Installing with conda](#installing-with-conda)
+1. [Installing with PIP](#installing-with-pip)
+2. [Installing with Pixi (recommended)](#installing-with-pixi-recommended)
+3. [Installing with Conda](#installing-with-conda)
+
+### Installing with PIP
+
+   ```bash
+   pip install -U git+https://github.com/NREL/foundational-industry-energy-data.git
+   ```
 
 ### Installing with Pixi (recommended)
+
 
 We recommend using `pixi` to manage a Python environment with `fied` and all the required dependencies since it can reproduce exactly what we use for development.
 Other alternatives are to install `fied` with `pip` or `conda`.
