@@ -75,9 +75,19 @@ For Windows:
     ```bash
     git clone 
 
-Here we provide a Python package with the required
-resources to obtain the used data and the procedures to process it.
-the resources to access the required data
-and the code to process it.
+3. Pixi provides support to use virtual environment with all the dependencies
+   required to run `fied`. To do so, pixi uses the information from
+   `pyproject.toml` and `pixi.lock` files, therefore, you need to move to
+   where you cloned the repository. Once there, you can activate your
+   environment by running:
+   ```bash
+   pixi shell
+   ```
+
+   You might notice a `(fied)` prefix in your terminal, which indicates that
+   you are now in the `fied` environment.
+
+   How you can use python from this environment. If you run `python3` you will
+   open a Python built for FIED, with it already installed.
 
 ### Installing with Conda
