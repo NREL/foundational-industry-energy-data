@@ -356,90 +356,94 @@ def fetch_state_FIPS():
         downloader=HTTPDownloader(progressbar=True),
     )
 
-    return pd.read_csv(fname, sep='|', dtype={'STATE': str, 'STUSAB': str})
+    return pd.read_csv(fname, sep="|", dtype={"STATE": str, "STUSAB": str})
 
 
 def fetch_QPC(year):
-        """
-        Quarterly survey began 2008; start with 2010 due to  2007-2009
-        recession.
-        2017_qtr_table_final_q1.xlsx: 9839eb5b32e2722fb3e38f6ad4c29cb678032eb35b44354cf64cfad89e919caa
-        2017_qtr_table_final_q2.xlsx: a06ea334dc2b8d3c1d18e891393a99a1493d1ce313964b7257958c318d63764f
-        2017_qtr_table_final_q3.xlsx: 9af153d11e6ae3ee8376e9f081f894dec98e28ae9b6df1c5aef8161ce912dcc6
-        2017_qtr_table_final_q4.xlsx: e2927a491a1e8a5add954583456474ebb87ece524ae9f9009eb504ed0235ab87
+    """
+    Quarterly survey began 2008; start with 2010 due to  2007-2009
+    recession.
+    2017_qtr_table_final_q1.xlsx: 9839eb5b32e2722fb3e38f6ad4c29cb678032eb35b44354cf64cfad89e919caa
+    2017_qtr_table_final_q2.xlsx: a06ea334dc2b8d3c1d18e891393a99a1493d1ce313964b7257958c318d63764f
+    2017_qtr_table_final_q3.xlsx: 9af153d11e6ae3ee8376e9f081f894dec98e28ae9b6df1c5aef8161ce912dcc6
+    2017_qtr_table_final_q4.xlsx: e2927a491a1e8a5add954583456474ebb87ece524ae9f9009eb504ed0235ab87
 
-        2019_qtr_table_final_q1.xlsx: f3412ae9d6f831eb9bcd55ae3005448232bdb6791ad03d6fc39582574a1ad70e
-        2019_qtr_table_final_q2.xlsx: e5e8d74dbee8c258e8203d4fdcb6b128aa664d51ed7935580c4170dad9976919
-        2019_qtr_table_final_q3.xlsx: 531ad948026713b4a7e000041979cddb81c403f5904113b8aafec78db451230a
-        2019_qtr_table_final_q4.xlsx: ad22ba33893545581061d2677982bf9995492e8cbf850e03cdc760c61e8a81d5
+    2019_qtr_table_final_q1.xlsx: f3412ae9d6f831eb9bcd55ae3005448232bdb6791ad03d6fc39582574a1ad70e
+    2019_qtr_table_final_q2.xlsx: e5e8d74dbee8c258e8203d4fdcb6b128aa664d51ed7935580c4170dad9976919
+    2019_qtr_table_final_q3.xlsx: 531ad948026713b4a7e000041979cddb81c403f5904113b8aafec78db451230a
+    2019_qtr_table_final_q4.xlsx: ad22ba33893545581061d2677982bf9995492e8cbf850e03cdc760c61e8a81d5
 
-        2020-qtr-table-final-q1.xlsx: 619a351a8ae7c39139bab23b3248e41a3476c9674a4fa39b782f31b49e1af022
-        2020-qtr-table-final-q2.xlsx: 3332e6806f6ed8984d71ee3fe2d6c43eeb77c81f4169122f01ed149dd9634ed8
-        2020-qtr-table-final-q3.xlsx: 475f44c9646d6f848d79e709865255d6bc6724e89352e0848f58e3e39fad0690
-        2020_qtr_table_final_q4.xlsx: 93886980180fdf3ec2e5509b5b7e04108311b3a2e85a5c9626b5dfeec87e46e8
+    2020-qtr-table-final-q1.xlsx: 619a351a8ae7c39139bab23b3248e41a3476c9674a4fa39b782f31b49e1af022
+    2020-qtr-table-final-q2.xlsx: 3332e6806f6ed8984d71ee3fe2d6c43eeb77c81f4169122f01ed149dd9634ed8
+    2020-qtr-table-final-q3.xlsx: 475f44c9646d6f848d79e709865255d6bc6724e89352e0848f58e3e39fad0690
+    2020_qtr_table_final_q4.xlsx: 93886980180fdf3ec2e5509b5b7e04108311b3a2e85a5c9626b5dfeec87e46e8
 
-        2022-qtr-table-final-q1.xlsx: a67a278bdab928227dcc006e0c0c94a0f1555c0f18a915d90ae90d56c542be41
-        2022-qtr-table-final-q2.xlsx: 34d50fc8963edb34ade784c918b6d17083ac6a5965c8cf43a23de80a987333eb
-        2022-qtr-table-final-q3.xlsx: fc630bccf8e91e7d53d2feb8e1cc5b63fc9bbdd46c6d95519a4fd5318badd445
-        2022-qtr-table-final-q4.xlsx: ac8bfbb7aa685a8aad0e2433a1a07409eccb946c1c231ac8682e0f36d4767edb
-        """
-        y = str(year)
+    2022-qtr-table-final-q1.xlsx: a67a278bdab928227dcc006e0c0c94a0f1555c0f18a915d90ae90d56c542be41
+    2022-qtr-table-final-q2.xlsx: 34d50fc8963edb34ade784c918b6d17083ac6a5965c8cf43a23de80a987333eb
+    2022-qtr-table-final-q3.xlsx: fc630bccf8e91e7d53d2feb8e1cc5b63fc9bbdd46c6d95519a4fd5318badd445
+    2022-qtr-table-final-q4.xlsx: ac8bfbb7aa685a8aad0e2433a1a07409eccb946c1c231ac8682e0f36d4767edb
+    """
+    y = str(year)
 
-        if year < 2017:
-            excel_ex = '.xls'
+    if year < 2017:
+        excel_ex = ".xls"
+    else:
+        excel_ex = ".xlsx"
+
+    qpc_data = pd.DataFrame()
+
+    base_url = "https://www2.census.gov/programs-surveys/qpc/tables/"
+
+    for q in ["q" + str(n) for n in range(1, 5)]:
+        if (year >= 2017) & (year < 2020):
+            y_url = "{!s}/{!s}_qtr_table_final_"
+
+        # elif year < 2010:
+        #
+        #     y_url = \
+        #         '{!s}/qpc-quarterly-tables/{!s}_qtr_combined_tables_final_'
+
+        elif (year == 2020) & (q == "q4"):
+            y_url = "{!s}/{!s}_qtr_table_final_"
+
+        elif year > 2019:
+            y_url = "{!s}/{!s}-qtr-table-final-"
+
         else:
-            excel_ex = '.xlsx'
+            y_url = "{!s}/qpc-quarterly-tables/{!s}_qtr_table_final_"
 
-        qpc_data = pd.DataFrame()
+        if (year == 2016) & (q == "q4"):
+            url = base_url + y_url.format(y, y) + q + ".xlsx?#"
 
-        base_url = 'https://www2.census.gov/programs-surveys/qpc/tables/'
+        else:
+            url = base_url + y_url.format(y, y) + q + excel_ex
 
-        for q in ['q'+str(n) for n in range(1, 5)]:
+        fname = pooch.retrieve(
+            url, known_hash=None, path=pooch.os_cache("FIED"), progressbar=True
+        )
 
-            if (year >= 2017) & (year<2020):
-                y_url = '{!s}/{!s}_qtr_table_final_'
+        # Excel formatting for 2008 is different than all other years.
+        # Will need to revise skiprows and usecols.
+        try:
+            data = pd.read_excel(
+                fname, sheet_name=1, skiprows=4, usecols=range(0, 7), header=0
+            )
 
-            # elif year < 2010:
-            #
-            #     y_url = \
-            #         '{!s}/qpc-quarterly-tables/{!s}_qtr_combined_tables_final_'
+        except urllib.error.HTTPError:
+            print(f"Problem with {url}")
 
-            elif (year == 2020) & (q=='q4'):
-                y_url = '{!s}/{!s}_qtr_table_final_'
+        data = data.drop(data.columns[2], axis=1)
+        data.columns = [
+            "NAICS",
+            "Description",
+            "Utilization Rate",
+            "UR_Standard Error",
+            "Weekly_op_hours",
+            "Hours_Standard Error",
+        ]
+        data = data.dropna()
+        data["Q"] = q
+        data["Year"] = year
+        qpc_data = qpc_data.append(data, ignore_index=True)
 
-            elif year > 2019:
-                y_url = '{!s}/{!s}-qtr-table-final-'
-
-            else:
-                y_url = '{!s}/qpc-quarterly-tables/{!s}_qtr_table_final_'
-
-            if (year == 2016) & (q == 'q4'):
-                url = base_url + y_url.format(y, y) + q + '.xlsx?#'
-
-            else:
-                url = base_url + y_url.format(y, y) + q + excel_ex
-
-            fname = pooch.retrieve(
-                url, known_hash=None, path=pooch.os_cache("FIED"),
-                progressbar=True)
-
-            #Excel formatting for 2008 is different than all other years.
-            #Will need to revise skiprows and usecols.
-            try:
-                data = pd.read_excel(fname, sheet_name=1, skiprows=4,
-                                     usecols=range(0, 7), header=0)
-
-            except urllib.error.HTTPError:
-                print(f"Problem with {url}")
-
-            data = data.drop(data.columns[2], axis=1)
-            data.columns = ['NAICS', 'Description', 'Utilization Rate',
-                            'UR_Standard Error',
-                            'Weekly_op_hours',
-                            'Hours_Standard Error']
-            data = data.dropna()
-            data['Q'] = q
-            data['Year'] = year
-            qpc_data = qpc_data.append(data, ignore_index=True)
-
-        return qpc_data
+    return qpc_data
