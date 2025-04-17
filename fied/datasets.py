@@ -345,3 +345,15 @@ def fetch_shapefile_NHDP():
     )
 
     return gpd.read_file(fname)
+
+
+def fetch_state_FIPS():
+    """Fetch the state FIPS codes"""
+    fname = pooch.retrieve(
+        url="https://www2.census.gov/geo/docs/reference/state.txt",
+        known_hash="sha256:bea4e03f71a1fa0045ae732aabad11fa541e5932b071c2369bb0d325e8cba5a0",
+        path=pooch.os_cache("FIED"),
+        downloader=HTTPDownloader(progressbar=True),
+    )
+
+    return pd.read_csv(fname, sep='|', dtype={'STATE': str, 'STUSAB': str})
