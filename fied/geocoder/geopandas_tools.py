@@ -8,6 +8,7 @@ from fied.datasets import (
     fetch_shapefile_congressional_district,
     fetch_shapefile_county,
     fetch_shapefile_NHDP,
+    fetch_state_FIPS,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -16,15 +17,7 @@ logging.basicConfig(level=logging.INFO)
 class FiedGIS:
     
     def __init__(self):
-
-        self._statefips = pd.read_csv(
-            'https://www2.census.gov/geo/docs/reference/state.txt',
-            sep='|', dtype={'STATE': str, 'STUSAB': str}
-            )
-        
-        self._statefips = dict(
-            self._statefips[['STUSAB', 'STATE']].values
-            )
+        self._statefips = dict(fetch_state_FIPS()[['STUSAB', 'STATE']].values)
 
     @staticmethod
     def get_shapefile(year=None, state_fips=None, ftype=None):
