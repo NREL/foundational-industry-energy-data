@@ -6,6 +6,8 @@ import sys
 sys.path.append(os.path.abspath(""))
 import tools.naics_matcher
 
+from fied.datasets import fetch_QPC
+
 class QPC:
 
     def __init__(self):
@@ -107,74 +109,7 @@ class QPC:
         Quarterly survey began 2008; start with 2010 due to  2007-2009
         recession.
         """
-        y = str(year)
-
-        if year < 2017:
-
-            excel_ex = '.xls'
-
-        else:
-
-            excel_ex = '.xlsx'
-
-        qpc_data = pd.DataFrame()
-
-        base_url = 'https://www2.census.gov/programs-surveys/qpc/tables/'
-
-        for q in ['q'+str(n) for n in range(1, 5)]:
-
-            if (year >= 2017) & (year<2020):
-
-                y_url = '{!s}/{!s}_qtr_table_final_'
-
-            # elif year < 2010:
-            #
-            #     y_url = \
-            #         '{!s}/qpc-quarterly-tables/{!s}_qtr_combined_tables_final_'
-
-            elif (year == 2020) & (q=='q4'):
-
-                y_url = '{!s}/{!s}_qtr_table_final_'
-
-            elif year > 2019:
-
-                y_url = '{!s}/{!s}-qtr-table-final-'
-            
-            else:
-
-                y_url = '{!s}/qpc-quarterly-tables/{!s}_qtr_table_final_'
-
-            if (year == 2016) & (q == 'q4'):
-
-                url = base_url + y_url.format(y, y) + q + '.xlsx?#'
-
-            else:
-
-                url = base_url + y_url.format(y, y) + q + excel_ex
-
-            #Excel formatting for 2008 is different than all other years.
-            #Will need to revise skiprows and usecols.
-            try:
-                data = pd.read_excel(url, sheet_name=1, skiprows=4,
-                                     usecols=range(0, 7), header=0)
-
-            except urllib.error.HTTPError:
-                print(f"Problem with {url}")
-
-            data.drop(data.columns[2], axis=1, inplace=True)
-
-            data.columns = ['NAICS', 'Description', 'Utilization Rate',
-                            'UR_Standard Error',
-                            'Weekly_op_hours',
-                            'Hours_Standard Error']
-
-            data.dropna(inplace=True)
-
-            data['Q'] = q
-
-            data['Year'] = year
-
-            qpc_data = qpc_data.append(data, ignore_index=True)
+        qpc_data = fetch_QPC(year)
 
         if not include_all:
             # Don't use the aggregate manufacturing NAICS
