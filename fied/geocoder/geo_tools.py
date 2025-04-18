@@ -6,6 +6,8 @@ import os
 import concurrent.futures
 import logging
 
+from fied.datasets import fetch_state_FIPS
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -51,7 +53,7 @@ def fix_county_fips(df):
 
     # Assume that the countyFIPS with len <4 are missing the state FIPS.
     state_fips = pd.read_csv(
-        'https://www2.census.gov/geo/docs/reference/state.txt',
+        fetch_state_FIPS(),
         usecols=[0, 1], names=['statefips', 'stateCode'], sep='|',
         header=0, dtype=str, index_col=['stateCode']
         )

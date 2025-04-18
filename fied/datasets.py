@@ -356,7 +356,7 @@ def fetch_state_FIPS():
         downloader=HTTPDownloader(progressbar=True),
     )
 
-    return pd.read_csv(fname, sep="|", dtype={"STATE": str, "STUSAB": str})
+    return fname
 
 
 def fetch_QPC(year):

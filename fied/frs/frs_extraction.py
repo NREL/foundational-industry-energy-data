@@ -97,9 +97,6 @@ class FRS:
         fips_url = 'https://api.census.gov/data/2010/dec/sf1?'
         fips_params = {'get': 'NAME', 'for': 'county:*'}
 
-        state_abbr_url = \
-            'https://www2.census.gov/geo/docs/reference/state.txts'
-
         try:
             r = requests.get(fips_url, params=fips_params)
 
@@ -113,9 +110,7 @@ class FRS:
             all_fips_df.loc[:, 'state_abbr'] = all_fips_df.state.astype('int')
 
         try:
-            state_abbr = pd.read_csv(
-                state_abbr_url, sep='|'
-                )
+            state_abbr = pd.read_csv(datasets.fetch_state_FIPS(), sep='|')
 
         except urllib.error.HTTPError as e:
             logging.error(f'Error with fips csv: {e}')

@@ -17,7 +17,8 @@ logging.basicConfig(level=logging.INFO)
 class FiedGIS:
     
     def __init__(self):
-        self._statefips = dict(fetch_state_FIPS()[['STUSAB', 'STATE']].values)
+        state_fips = pd.read_csv(fetch_state_FIPS(), sep="|", dtype={"STATE": str, "STUSAB": str})
+        self._statefips = dict(state_fips[['STUSAB', 'STATE']].values)
 
     @staticmethod
     def get_shapefile(year=None, state_fips=None, ftype=None):
