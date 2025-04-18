@@ -6,7 +6,7 @@ import os
 import concurrent.futures
 import logging
 
-from fied.datasets import fetch_state_FIPS()
+from fied.datasets import fetch_state_FIPS
 
 logging.basicConfig(level=logging.INFO)
 
