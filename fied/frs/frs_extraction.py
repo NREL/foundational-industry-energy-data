@@ -586,8 +586,7 @@ class FRS:
 
         return eis
 
-
-if __name__ == '__main__':
+def doit():
     # t_start = time.perf_counter()
     combined = True
 
@@ -599,3 +598,6 @@ if __name__ == '__main__':
 
     # t_stop = time.perf_counter()
     # logging.info(f'Program time: {t_stop - t_start:0.2f} seconds')
+
+if __name__ == '__main__':
+    doit()

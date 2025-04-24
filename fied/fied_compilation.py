@@ -22,6 +22,7 @@ import fied.geocoder.geo_tools
 
 logging.basicConfig(level=logging.INFO)
 
+unit_regex = Tools().unit_regex
 
 def assign_data_quality(df, dqi):
     """
@@ -1266,7 +1267,7 @@ def save_final_data(final_data, year, fpath=None, fformat='csv', comp='gzip'):
     return
 
 
-if __name__ == '__main__':
+def doit():
     year = 2017
 
     SCC_ID().main()
@@ -1324,3 +1325,6 @@ if __name__ == '__main__':
         )
 
     save_final_data(final_data, year)
+
+if __name__ == '__main__':
+    doit()
