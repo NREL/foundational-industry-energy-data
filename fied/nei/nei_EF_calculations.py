@@ -11,9 +11,9 @@ from io import BytesIO
 from pathlib import Path
 toolspath = str(Path(__file__).parents[1]/"tools")
 sys.path.append(toolspath)
-from misc_tools import Tools
+from fied.tools.misc_tools import Tools
 
-from datasets import fetch_nei_2017, fetch_nei_2020, fetch_webfirefactors
+from fied.datasets import fetch_nei_2017, fetch_nei_2020, fetch_webfirefactors
 
 
 logging.basicConfig(level=logging.INFO)

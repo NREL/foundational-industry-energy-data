@@ -7,16 +7,17 @@ import sys
 import pdb
 import pandas as pd
 import numpy as np
-from tools.naics_matcher import naics_matcher
-from tools.misc_tools import FRS_API
-from tools.misc_tools import Tools
-from scc.scc_unit_id import SCC_ID
-from ghgrp.ghgrp_fac_unit import GHGRP_unit_char
-from nei.nei_EF_calculations import NEI
-from frs.frs_extraction import FRS
-from qpc.census_qpc import QPC
-from geocoder.geopandas_tools import FiedGIS
-import geocoder.geo_tools
+
+from fied.tools.naics_matcher import naics_matcher
+from fied.tools.misc_tools import FRS_API
+from fied.tools.misc_tools import Tools
+from fied.scc.scc_unit_id import SCC_ID
+from fied.ghgrp.ghgrp_fac_unit import GHGRP_unit_char
+from fied.nei.nei_EF_calculations import NEI
+from fied.frs.frs_extraction import FRS
+from fied.qpc.census_qpc import QPC
+from fied.geocoder.geopandas_tools import FiedGIS
+import fied.geocoder.geo_tools
 
 
 logging.basicConfig(level=logging.INFO)
@@ -1202,7 +1203,7 @@ def assemble_final_df(final_energy_data, frs_data, qpc_data, year):
 
     final_data = merge_qpc_data(final_data, qpc_data)
 
-    final_data = geocoder.geo_tools.fix_county_fips(final_data)
+    final_data = fied.geocoder.geo_tools.fix_county_fips(final_data)
 
     # This doesn't result in any additional units.
     # missing_units = frs_api.find_unit_data_parallelized(final_data)
