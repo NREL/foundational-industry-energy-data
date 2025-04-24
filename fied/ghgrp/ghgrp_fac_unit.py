@@ -1,4 +1,6 @@
 
+from pathlib import Path
+
 import pandas as pd
 import os
 import yaml
@@ -6,7 +8,7 @@ import json
 from pyxlsb import open_workbook
 import logging
 
-import datasets
+from fied import datasets
 
 class GHGRP_unit_char():
 
@@ -14,7 +16,7 @@ class GHGRP_unit_char():
 
         logging.basicConfig(level=logging.INFO)
 
-        self._data_dir = os.path.abspath('./data/GHGRP/')
+        self._data_dir = os.path.abspath(Path(__file__).parents[1] / 'data' / 'GHGRP/')
 
         self._ghgrp_energy_file = ghgrp_energy_file
 
@@ -35,7 +37,7 @@ class GHGRP_unit_char():
             generic fuel types that have been applied to NEI data.
         """
 
-        with open('./tools/type_standardization.yml', 'r') as file:
+        with open(Path(__file__).parents[1] / 'tools' / 'type_standardization.yml', 'r') as file:
             docs = yaml.safe_load_all(file)
 
             for i, d in enumerate(docs):

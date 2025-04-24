@@ -4,7 +4,7 @@ import os
 import urllib
 import sys
 sys.path.append(os.path.abspath(""))
-import tools.naics_matcher
+from fied.tools.naics_matcher import naics_matcher
 
 from fied.datasets import fetch_QPC
 
@@ -222,7 +222,7 @@ class QPC:
             values=['weeklyOpHoursLow', 'weeklyOpHours', 'weeklyOpHoursHigh']
             )
 
-        naics_6d = tools.naics_matcher.naics_matcher(
+        naics_6d = naics_matcher(
             qpc_data.reset_index().NAICS
             )
 

@@ -586,15 +586,18 @@ class FRS:
 
         return eis
 
-
-if __name__ == '__main__':
+def doit():
     # t_start = time.perf_counter()
     combined = True
 
     frs_methods = FRS()
 
+    os.makedirs(Path(Path(__file__).parents[1], 'data/FRS'), exist_ok=True)
     frs_data_df = frs_methods.import_format_frs(combined=combined)
     frs_data_df.to_csv(Path(Path(__file__).parents[1], 'data/FRS/frs_data_formatted.csv'))
 
     # t_stop = time.perf_counter()
     # logging.info(f'Program time: {t_stop - t_start:0.2f} seconds')
+
+if __name__ == '__main__':
+    doit()
