@@ -1,4 +1,6 @@
 
+import os
+
 import pandas as pd
 import numpy as np
 import re
@@ -630,6 +632,7 @@ class SCC_ID:
     def main(self):
         id_scc = SCC_ID()
         id_scc_df = id_scc.build_id()
+        os.makedirs('./scc', exist_ok=True)
         id_scc_df.to_csv('./scc/iden_scc.csv')
 
 

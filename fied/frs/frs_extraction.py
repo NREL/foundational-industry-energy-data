@@ -593,6 +593,7 @@ if __name__ == '__main__':
 
     frs_methods = FRS()
 
+    os.makedirs(Path(Path(__file__).parents[1], 'data/FRS'), exist_ok=True)
     frs_data_df = frs_methods.import_format_frs(combined=combined)
     frs_data_df.to_csv(Path(Path(__file__).parents[1], 'data/FRS/frs_data_formatted.csv'))
 
