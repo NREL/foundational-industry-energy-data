@@ -2,6 +2,7 @@
 
 import logging
 import os
+from pathlib import Path
 import re
 import sys
 
@@ -1276,7 +1277,8 @@ def doit():
 
     try:
         frs_data = pd.read_csv(
-            './data/FRS/frs_data_formatted.csv', low_memory=False
+            Path(__file__).parent / 'data' / 'FRS' / 'frs_data_formatted.csv',
+            low_memory=False
             )
 
     except FileNotFoundError:
