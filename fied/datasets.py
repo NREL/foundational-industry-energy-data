@@ -48,7 +48,7 @@ def fetch_frs(combined=True):
             "NATIONAL_SIC_FILE.CSV",
             "NATIONAL_SUPP_INTEREST_FILE.CSV",
         ]
-    else: 
+    else:
         url = (
             "https://ordsext.epa.gov/FLA/www3/state_files/national_single.zip"
         )
