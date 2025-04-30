@@ -12,7 +12,7 @@ The first step to recreate FIED is to install the `fied` package as follows.
 
 ## Installation
 
-There are multiple ways to install a Python package.
+There are several ways to install a Python package.
 We strongly recommend using a virtual environment to avoid conflicts with other packages and projects in your system.
 For development we use `pixi` and our recommended way to install `fied`.
 
@@ -24,7 +24,8 @@ Some options are:
 
 ### Installing with PIP
 
-Assuming that you already have Python installed in your system, you most probably have `pip` as well. To verify you can
+Assuming that you already have Python installed in your system, you most probably have `pip` as well.
+To confirm that you have Python and PIP installed and learn the versions you have, you can run
 
    ```bash
    python3 --version
@@ -36,13 +37,20 @@ Assuming that you already have Python installed in your system, you most probabl
    python3 -m pip --version
    ```
 
-To confirm that you have Python and PIP installed and learn the versions you have. With that, you can use `pip` to install the `fied` package directly from our repository, i.e. the latest version.
+With that, you can use `pip` to install the `fied` package directly from our repository, i.e. the latest version.
 
    ```bash
    pip install -U git+https://github.com/NREL/foundational-industry-energy-data.git
    ```
 
-Now you can open python and import the package to check if it was installed correctly.
+Now you can run it on a terminal or use it inside Python.
+In a terminal, you can run
+
+   ```bash
+   fied
+   ```
+
+and in Python import it and re-use as a regular package
 
    ```python
    import fied
@@ -86,8 +94,8 @@ For Windows:
 
    You might notice a `(fied)` prefix in your terminal, which indicates that
    you are now in the `fied` environment.
+   Now you can run the command `fied` to rebuild the dataset locally, or
+   import it in Python as a regular package.
 
-   How you can use python from this environment. If you run `python3` you will
-   open a Python built for FIED, with it already installed.
 
 ### Installing with Conda
