@@ -94,8 +94,7 @@ For Windows:
 
    You might notice a `(fied)` prefix in your terminal, which indicates that
    you are now in the `fied` environment.
-   Now you can run the command `fied` to rebuild the dataset locally, or
-   import it in Python as a regular package.
-
+   Now you can run the command `fied --version` to verify which version you
+   are using, and run `fied` to rebuild the dataset locally.
 
 ### Installing with Conda
