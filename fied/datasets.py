@@ -35,7 +35,9 @@ def fetch_frs(combined=True):
     """
     if combined:
         url = "https://ordsext.epa.gov/FLA/www3/state_files/national_combined.zip"
-        knwon_hash = "sha256:512455a2d234490f828cab1e4fc85b34f62048513f2ea9473c4b0e9123701538"
+        # File changes often, so we need to think in another solution.
+        # knwon_hash = "sha256:512455a2d234490f828cab1e4fc85b34f62048513f2ea9473c4b0e9123701538"
+        knwon_hash = None
         members = [
             "NATIONAL_ALTERNATIVE_NAME_FILE.CSV",
             "NATIONAL_CONTACT_FILE.CSV",
@@ -218,7 +220,9 @@ def fetch_webfirefactors():
     """
     fnames = pooch.retrieve(
         url="https://cfpub.epa.gov/webfire/download/webfirefactors.zip",
-        known_hash="sha256:6abf5fe5ec090777e10c7c6f91c281b1573be5783031759023cb4840aee30269",
+        # File changes often, so we need to think in another solution.
+        # known_hash="sha256:6abf5fe5ec090777e10c7c6f91c281b1573be5783031759023cb4840aee30269",
+        known_hash=None,
         path=pooch.os_cache("FIED"),
         # Temporary solution. Don't verify SSL.
         downloader=HTTPDownloader(progressbar=True, verify=False),
