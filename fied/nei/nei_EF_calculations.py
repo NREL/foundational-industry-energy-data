@@ -30,6 +30,8 @@ class NEI ():
     """
 
     def __init__(self):
+        self.logger = logging.getLogger(f"{__name__}.NEI")
+        self.logger.info("Initializing NEI class")
 
         logging.basicConfig(level=logging.INFO)
 
