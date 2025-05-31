@@ -1298,7 +1298,7 @@ def doit(year: int = 2017):
 
     ghgrp_unit_data = check_registry_id(ghgrp_unit_data, frs_data)
 
-    nei_data = NEI().main(edition=str(year))
+    nei_data = NEI().main(vintage=str(year))
 
     # nei_data = group_nei_by_unit(nei_data)
 

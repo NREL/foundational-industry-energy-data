@@ -1824,12 +1824,12 @@ class NEI ():
 
         return nei_char
 
-    def main(self, edition: str = '2017'):
+    def main(self, vintage: str = '2017'):
 
         nei = NEI()
         logging.info("Getting NEI data...")
         #initialize year argument
-        nei_data = nei.load_nei_data(year=edition)
+        nei_data = nei.load_nei_data(year=vintage)
         iden_scc = nei.load_scc_unittypes()
         webfr = fetch_webfirefactors()
         logging.info("Merging WebFires data...")
