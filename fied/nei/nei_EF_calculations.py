@@ -30,6 +30,8 @@ class NEI ():
     """
 
     def __init__(self):
+        self.logger = logging.getLogger(f"{__name__}.NEI")
+        self.logger.info("Initializing NEI class")
 
         logging.basicConfig(level=logging.INFO)
 
@@ -1822,12 +1824,12 @@ class NEI ():
 
         return nei_char
 
-    def main(self):
+    def main(self, vintage: str = '2017'):
 
         nei = NEI()
         logging.info("Getting NEI data...")
         #initialize year argument
-        nei_data = nei.load_nei_data(year=str(2020))
+        nei_data = nei.load_nei_data(year=vintage)
         iden_scc = nei.load_scc_unittypes()
         webfr = fetch_webfirefactors()
         logging.info("Merging WebFires data...")

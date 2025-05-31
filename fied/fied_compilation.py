@@ -1268,8 +1268,7 @@ def save_final_data(final_data, year, fpath=None, fformat='csv', comp='gzip'):
     return
 
 
-def doit():
-    year = 2017
+def doit(year: int = 2017):
 
     SCC_ID().main()
     fiedgis = FiedGIS()
@@ -1299,7 +1298,7 @@ def doit():
 
     ghgrp_unit_data = check_registry_id(ghgrp_unit_data, frs_data)
 
-    nei_data = NEI().main()
+    nei_data = NEI().main(vintage=str(year))
 
     # nei_data = group_nei_by_unit(nei_data)
 
