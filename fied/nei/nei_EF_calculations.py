@@ -895,10 +895,10 @@ class NEI ():
         """
         idx = (webfr["FORMULA"] == 'FACTOR') | (webfr["FORMULA"].isna())
 
+        # Inform and filter if there are anything other than simple factors
         if (~idx).any():
             p = 1e2 * idx.astype('i').sum() / idx.size
             self.logger.warning(
-                # Add fraction of records to be ignored
                 f"Limiting to {p:.1f}% of WebFires emissions "
                 "(only simple factors)."
                 )
