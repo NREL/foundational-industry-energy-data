@@ -889,6 +889,8 @@ class NEI ():
 
         Notes
         -----
+        Ignoring ~ 5% of WebFires emissions data, because those are not simple
+        factors such as a range.
         1134 records (7.1%) were different after the bugfix.
         """
         idx = (webfr["FORMULA"] == 'FACTOR') | (webfr["FORMULA"].isna())
