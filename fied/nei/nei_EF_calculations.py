@@ -886,8 +886,26 @@ class NEI ():
         Returns
         -------
         nei_emiss : pandas.DataFrame
-        """
 
+        Notes
+        -----
+        Ignoring ~ 5% of WebFires emissions data, because those are not simple
+        factors such as a range.
+        1134 records (7.1%) were different after the bugfix.
+        """
+        idx = (webfr["FORMULA"] == 'FACTOR') | (webfr["FORMULA"].isna())
+
+        # Inform and filter if there are anything other than simple factors
+        if (~idx).any():
+            p = 1e2 * idx.astype('i').sum() / idx.size
+            self.logger.warning(
+                f"Limiting to {p:.1f}% of WebFires emissions "
+                "(only simple factors)."
+                )
+            webfr = webfr[idx].copy(deep=True)
+        else:
+            webfr = webfr.copy(deep=True)
+        webfr["FACTOR"] = webfr["FACTOR"].astype(float)
         # remove duplicate EFs for the same pollutant and SCC; keep max EF
         webfr = webfr.sort_values('FACTOR').drop_duplicates(
             subset=['SCC', 'NEI_POLLUTANT_CODE'], keep='last'
