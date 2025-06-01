@@ -1,4 +1,3 @@
-import requests
 import re
 import json
 import gzip
@@ -267,6 +266,8 @@ class FRS:
         data = NAICS_Identification().assign_all_naics(data)
 
         data['NAICS_CODE'] = data.NAICS_CODE.astype(int)
+
+        data.to_csv("data_naics_check_next.csv")
 
         return data
 
