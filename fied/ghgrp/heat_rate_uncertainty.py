@@ -9,8 +9,10 @@ from importlib_resources import files
 import pandas as pd
 import os
 import numpy as np
-from get_GHGRP_data import get_GHGRP_records
 from sklearn.utils import resample
+
+from fied.ghgrp.get_GHGRP_data import get_GHGRP_records
+
 
 #%%
 class FuelUncertainty:
