@@ -14,6 +14,7 @@ from pathlib import Path
 from fied import datasets
 from fied.frs.naics_selection import NAICS_Identification
 
+module_logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
@@ -25,6 +26,7 @@ class FRS:
     Documentation of FRS data fields:
     https://www.epa.gov/sites/default/files/2015-09/documents/frs_data_dictionary.pdf
     """
+    logger = logging.getLogger(f"{__name__}.{FRS}")
 
     def __init__(self):
 
