@@ -5,13 +5,16 @@ Created on Wed Mar  6 14:26:54 2019
 @author: cmcmilla
 """
 import os
-import logging
-import ghgrp_fac_unit
 import datetime as dt
-from calc_GHGRP_energy import GHGRP
-from calc_GHGRP_AA import subpartAA
+import logging
+from pathlib import Path
+
+from fied.ghgrp import ghgrp_fac_unit
+from fied.ghgrp.calc_GHGRP_energy import GHGRP
+from fied.ghgrp.calc_GHGRP_AA import subpartAA
 
 module_logger = logging.getLogger(__name__)
+
 
 def main(start_year, end_year):
     """
