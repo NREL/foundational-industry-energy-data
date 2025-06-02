@@ -7,10 +7,10 @@ Created on Mon Feb 25 15:19:42 2019
 import logging
 
 import pandas as pd
-import heat_rate_uncertainty as hr_uncert
 import os
 import numpy as np
 
+import fied.ghgrp.heat_rate_uncertainty as hr_uncert
 
 class TierEnergy:
     """
