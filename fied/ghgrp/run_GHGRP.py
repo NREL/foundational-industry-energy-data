@@ -44,13 +44,10 @@ def main(start_year, end_year):
 
     time = dt.datetime.today().strftime("%Y%m%d-%H%M")
 
-    ghgrp_file = f'ghgrp_energy_{time}.parquet'
+    ghgrp_file = Path("data/GHGRP") / f'ghgrp_energy_{time}.parquet'
 
     # Save results
-    energy_ghgrp.to_parquet(
-        os.path.abspath(f'./data/GHGRP/{ghgrp_file}'),
-        engine='pyarrow', compression='gzip'
-        )
+    energy_ghgrp.to_parquet(ghgrp_file, engine='pyarrow', compression='gzip')
 
     return ghgrp_file
 
