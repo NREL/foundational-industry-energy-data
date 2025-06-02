@@ -28,9 +28,9 @@ class NEI ():
 
     Returns file: 'NEI_unit_throughput_and_energy.csv'
     """
+    logger = logging.getLogger(f"{__name__}.NEI")
 
     def __init__(self):
-        self.logger = logging.getLogger(f"{__name__}.NEI")
         self.logger.info("Initializing NEI class")
 
         logging.basicConfig(level=logging.INFO)
@@ -1845,35 +1845,35 @@ class NEI ():
     def main(self, vintage: str = '2017'):
 
         nei = NEI()
-        logging.info("Getting NEI data...")
+        self.logger.info("Getting NEI data...")
         #initialize year argument
         nei_data = nei.load_nei_data(year=vintage)
         iden_scc = nei.load_scc_unittypes()
         webfr = fetch_webfirefactors()
-        logging.info("Merging WebFires data...")
+        self.logger.info("Merging WebFires data...")
         nei_char = nei.match_webfire_to_nei(nei_data, webfr)
-        logging.info("Merging SCC data...")
-        logging.info("Assigning unit and fuel types...")
+        self.logger.info("Merging SCC data...")
+        self.logger.info("Assigning unit and fuel types...")
         nei_char = nei.assign_types(nei_char, iden_scc)
         # nei_char = nei.remove_unit_types(nei_char)  # remove some non-combustion related unit types
-        logging.info("Finding emission factor outliers...")
+        self.logger.info("Finding emission factor outliers...")
         nei_char = nei.detect_and_fix_ef_outliers(nei_char)
-        logging.info("Converting emissions units...")
+        self.logger.info("Converting emissions units...")
         nei_char = nei.convert_emissions_units(nei_char)
-        logging.info("Estimating throughput and energy...")
+        self.logger.info("Estimating throughput and energy...")
         nei_char = nei.calc_unit_throughput_and_energy(nei_char)
         # Use median EF from WebFires as alt approach to estimating energy
         nei_char = nei.apply_median_webfr_ef(nei_char, webfr, cutoff=0.75)  
-        logging.info("Extracting and aggregating GHG emissions")
+        self.logger.info("Extracting and aggregating GHG emissions")
         nei_char.to_pickle('nei_char_pre_med.pkl')
-        logging.info("Final NEI data assembly...")
+        self.logger.info("Final NEI data assembly...")
         med_unit = nei.get_median_throughput_and_energy(nei_char)
         missing_unit = nei.separate_missing_units(nei_char)
 
         nei_char = nei.merge_med_missing(med_unit, missing_unit)
         ghgs = nei.extract_ghg_emissions(nei_char)
 
-        logging.info("Merging and filling GHG emissions")
+        self.logger.info("Merging and filling GHG emissions")
         nei_char = nei.merge_fill_ghg_emissions(ghgs, nei_char)
         nei_char = nei.format_nei_char(nei_char)
         nei_char = nei.find_missing_cap(nei_char)  # Fill in missing capacity data, where possible

@@ -7,6 +7,7 @@ Created on Wed Mar  6 21:12:25 2019
 
 import os
 import logging
+
 import pandas as pd
 import numpy as np
 import get_GHGRP_data
@@ -15,6 +16,7 @@ sys.path.append(f"{os.path.expanduser('~')}/foundational-industry-energy-data/fi
 from geocoder.geopandas_tools import FiedGIS
 from ghg_tiers import TierEnergy
 
+module_logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
@@ -24,6 +26,7 @@ class GHGRP(FiedGIS, TierEnergy):
     facility energy use based on either reported energy use or
     reported greenhouse gas emissions.
     """
+    logger = logging.getLogger(f"{__name__}.GHGRP")
 
     table_dict = {'subpartC': 'C_FUEL_LEVEL_INFORMATION',
                   'subpartD': 'D_FUEL_LEVEL_INFORMATION',
@@ -362,21 +365,22 @@ class GHGRP(FiedGIS, TierEnergy):
             DataFrame of GHGRP subpart data. 
 
         """
-        logging.info(f'Subpart:{subpart}\nFilename: {filename}')
+        self.logger.info(f"Subpart: {subpart}, Filename: {filename}")
 
         ghgrp_data = pd.DataFrame()
 
         table = self.table_dict[subpart]
 
-        logging.info(f'Table: {table}')
+        self.logger.info(f'Table: {table}')
 
         for y in self.years:
 
-            logging.info(f'year: {y}\nTable: {table}')
+            self.logger.info(f'year: {y}; Table: {table}')
 
             filename_y = f'{filename}{y}.csv'
 
             if filename_y in os.listdir(os.path.abspath(self.ghgrp_file_dir)):
+                self.logger.debug(f'Reading {filename_y} from local directory')
 
                 data_y = pd.read_csv(
                     os.path.abspath(
@@ -417,6 +421,7 @@ class GHGRP(FiedGIS, TierEnergy):
         """
 
         if subpart == 'subpartC':
+            self.logger.debug('Importing subpart C data')
 
             filename = self.table_dict[subpart][0:7].lower()
 
@@ -427,6 +432,7 @@ class GHGRP(FiedGIS, TierEnergy):
             return formatted_ghgrp_data
 
         if subpart == 'subpartD':
+            self.logger.debug('Importing subpart D data')
 
             filename = self.table_dict[subpart][0:7].lower()
 
@@ -455,6 +461,7 @@ class GHGRP(FiedGIS, TierEnergy):
             return formatted_ghgrp_data
 
         if subpart == 'subpartV_fac':
+            self.logger.debug('Importing subpart V data')
 
             filename = 'fac_table_'
             ghgrp_data = self.download_or_read_ghgrp_file(subpart, filename)
@@ -463,6 +470,7 @@ class GHGRP(FiedGIS, TierEnergy):
             return formatted_ghgrp_data
 
         if subpart == 'subpartAA_liq':
+            self.logger.debug('Importing subpart AA data')
             filename = 'aa_sl_'
             formatted_ghgrp_data = self.download_or_read_ghgrp_file(subpart, filename)
 
@@ -509,6 +517,8 @@ class GHGRP(FiedGIS, TierEnergy):
         generating units and other combustion sources covered under EPA's
         Acid Rain Program).
         """
+        self.logger.debug('Calculating energy subpart C')
+
         energy_subC = formatted_subC.copy(deep=True)
 
         # Capture energy data reported under Part 75 facilities
@@ -614,6 +624,7 @@ class GHGRP(FiedGIS, TierEnergy):
 
     @staticmethod
     def energy_merge(energy_subC, energy_subD, energy_subAA, all_fac):
+        self.logger.debug('Merging energy data')
 
         merge_cols = list(all_fac.columns.difference(energy_subAA.columns))
 

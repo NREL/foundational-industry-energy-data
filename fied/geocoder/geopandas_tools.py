@@ -1,7 +1,8 @@
 
+import logging
+
 import geopandas as gpd
 import pandas as pd
-import logging
 
 from fied.datasets import (
     fetch_shapefile_census_block_groups,
@@ -11,11 +12,10 @@ from fied.datasets import (
     fetch_state_FIPS,
 )
 
-logging.basicConfig(level=logging.INFO)
-
 
 class FiedGIS:
-    
+    logger = logging.getLogger(f"{__name__}.FiedGIS")
+
     def __init__(self):
         state_fips = pd.read_csv(fetch_state_FIPS(), sep="|", dtype={"STATE": str, "STUSAB": str})
         self._statefips = dict(state_fips[['STUSAB', 'STATE']].values)
@@ -204,7 +204,7 @@ class FiedGIS:
 
             for t in ftypes:
 
-                logging.info(f'Finding {t} for {state}')
+                self.logger.info(f'Finding {t} for {state}')
 
                 gf = FiedGIS.get_shapefile(
                     year=year, state_fips=state_fips,
