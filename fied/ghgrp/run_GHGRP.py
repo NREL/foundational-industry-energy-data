@@ -11,17 +11,21 @@ import datetime as dt
 from calc_GHGRP_energy import GHGRP
 from calc_GHGRP_AA import subpartAA
 
+module_logger = logging.getLogger(__name__)
 
 def main(start_year, end_year):
     """
     """
-    logging.basicConfig(level=logging.INFO)
+    module_logger.info("Starting GHGRP energy calculations")
+    module_logger.debug(f"Start year: {start_year}, End year: {end_year}")
+
     # Uncertainty calculations are not fully operational
     ghgrp = GHGRP((start_year, end_year), calc_uncertainty=False)
 
     ghgrp_data = {}
 
     for k in ghgrp.table_dict.keys():
+        module_logger.debug(f"Processing {k}")
 
         ghgrp_data[k] = ghgrp.import_data(k)
 
