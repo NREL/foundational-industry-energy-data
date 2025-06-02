@@ -26,7 +26,7 @@ class FRS:
     Documentation of FRS data fields:
     https://www.epa.gov/sites/default/files/2015-09/documents/frs_data_dictionary.pdf
     """
-    logger = logging.getLogger(f"{__name__}.{FRS}")
+    logger = logging.getLogger(f"{__name__}.FRS")
 
     def __init__(self):
 
