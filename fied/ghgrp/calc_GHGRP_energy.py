@@ -26,7 +26,7 @@ class GHGRP(FiedGIS, TierEnergy):
     facility energy use based on either reported energy use or
     reported greenhouse gas emissions.
     """
-    logger = logging.getLogger(f"{__name__}.{GHGRP}")
+    logger = logging.getLogger(f"{__name__}.GHGRP")
 
     table_dict = {'subpartC': 'C_FUEL_LEVEL_INFORMATION',
                   'subpartD': 'D_FUEL_LEVEL_INFORMATION',
