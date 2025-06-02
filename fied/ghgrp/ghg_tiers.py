@@ -4,10 +4,11 @@ Created on Mon Feb 25 15:19:42 2019
 
 @author: cmcmilla
 """
+import logging
+
 import pandas as pd
 import heat_rate_uncertainty as hr_uncert
 import os
-import logging
 import numpy as np
 
 
@@ -16,6 +17,7 @@ class TierEnergy:
     Class for methods that estimate combustion energy use from emissions data
     reported to the EPA's GHGRP.
     """
+    logger = logging.getLogger(f"{__name__}.TierEnergy")
 
     def __init__(self, years=None, std_efs=None, calc_uncert=False):
 
@@ -145,12 +147,15 @@ class TierEnergy:
                                                          sort=True)
 
                         else:
-                            logging.info(f'No data file for {file_y}\nDownloading from EPA API')
+                            self.logger.info(
+                                f"No data file for '{file_y}'."
+                                " Downloading from EPA API"
+                            )
                             tier_data = \
                                 hr_uncert.FuelUncertainty(
                                     years=y
                                     ).dl_tier(tier_table)
-                            logging.info(f'DL filepath: {os.path.join(filedir, file_y)}')
+                            self.logger.info(f'DL filepath: {os.path.join(filedir, file_y)}')
                             tier_data.to_csv(
                                 os.path.join(filedir, file_y)
                                 )
@@ -493,7 +498,7 @@ class TierEnergy:
         # Note that reporting for these measurements began in 2014.
         if any(x > 2013 for x in self.years):
 
-            logging.info(f't2hhv_data_annual columns: {self.t2hhv_data_annual.columns}')
+            self.logger.info(f't2hhv_data_annual columns: {self.t2hhv_data_annual.columns}')
 
             hhv_average = pd.DataFrame(self.t2hhv_data_annual.reset_index())
             hhv_average.rename(
@@ -501,7 +506,7 @@ class TierEnergy:
                 inplace=True
                 )
 
-            logging.info(f'hhv_average columns: {hhv_average.columns}')
+            self.logger.info(f'hhv_average columns: {hhv_average.columns}')
     
             hhv_average = hhv_average.groupby(['FUEL_TYPE']).high_heat_value_wa.mean()
 
