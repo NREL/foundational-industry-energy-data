@@ -307,7 +307,7 @@ def fetch_shapefile_census_block_groups(year, state_fips):
         url=f"https://www2.census.gov/geo/tiger/TIGER{year}/BG/tl_{year}_{state_fips}_bg.zip",
         known_hash=None,
         path=pooch.os_cache("FIED"),
-        downloader=HTTPDownloader(progressbar=True),
+        downloader=HTTPDownloader(progressbar=True, verify=False),
     )
     return gpd.read_file(fname)
 
@@ -320,7 +320,7 @@ def fetch_shapefile_congressional_district(year):
         url=f"https://www2.census.gov/geo/tiger/TIGER{year}/CD/tl_{year}_us_cd115.zip",
         known_hash=known_hash.get(int(year), None),
         path=pooch.os_cache("FIED"),
-        downloader=HTTPDownloader(progressbar=True),
+        downloader=HTTPDownloader(progressbar=True, verify=False),
     )
     return gpd.read_file(fname)
 
