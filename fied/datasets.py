@@ -313,12 +313,23 @@ def fetch_shapefile_census_block_groups(year, state_fips):
 
 
 def fetch_shapefile_congressional_district(year):
-    known_hash = {
-        2017: "sha256:b4ae191081b6ae03a03643f2ab8078b21374b825280a6198c910413569c90450",
+    attrs = {
+        2017: {
+            "url": f"https://www2.census.gov/geo/tiger/TIGER{year}/CD/tl_{year}_us_cd115.zip",
+            "known_hash": "sha256:b4ae191081b6ae03a03643f2ab8078b21374b825280a6198c910413569c90450",
+        },
+        2020: {
+            "url": f"https://www2.census.gov/geo/tiger/TIGER{year}/CD/tl_{year}_us_cd116.zip",
+            "known_hash": "sha256:d5d7272f1f89344f291c4c66151a968943e27a597b51dc5ba0ed73bd2652b624",
+        },
+        2022: {
+            "url": f"https://www2.census.gov/geo/tiger/TIGER{year}/CD/tl_{year}_us_cd116.zip",
+            "known_hash": "sha256:c73a461a40399d605f6dc244edbf494ba07d65fe8fe800eb04edbc18dc251f8c",
+        },
     }
     fname = pooch.retrieve(
-        url=f"https://www2.census.gov/geo/tiger/TIGER{year}/CD/tl_{year}_us_cd115.zip",
-        known_hash=known_hash.get(int(year), None),
+        url=attrs[int(year)]["url"],
+        known_hash=attrs[int(year)]["known_hash"],
         path=pooch.os_cache("FIED"),
         downloader=HTTPDownloader(progressbar=True, verify=False),
     )
