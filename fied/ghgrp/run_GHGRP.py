@@ -20,7 +20,7 @@ def main(start_year, end_year):
     module_logger.debug(f"Start year: {start_year}, End year: {end_year}")
 
     # Uncertainty calculations are not fully operational
-    ghgrp = GHGRP((start_year, end_year), calc_uncertainty=False)
+    ghgrp = GHGRP((start_year, end_year), calc_uncertainty=False, fix_county_fips=False)
 
     ghgrp_data = {}
 
