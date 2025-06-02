@@ -13,6 +13,7 @@ from fied.tools.naics_matcher import naics_matcher
 from fied.tools.misc_tools import FRS_API
 from fied.tools.misc_tools import Tools
 from fied.scc.scc_unit_id import SCC_ID
+from fied.ghgrp import run_GHGRP
 from fied.ghgrp.ghgrp_fac_unit import GHGRP_unit_char
 from fied.nei.nei_EF_calculations import NEI
 from fied.frs.frs_extraction import FRS
@@ -1293,7 +1294,8 @@ def doit(year: int = 2017):
     # GHGRP ID
 
     # ghgrp_energy_file = GHGRP.main(year, year)
-    ghgrp_energy_file = "ghgrp_energy_20240110-1837.parquet"
+    ghgrp_energy_file = run_GHGRP.main(year, year)
+    # ghgrp_energy_file = "ghgrp_energy_20240110-1837.parquet"
     ghgrp_unit_data = GHGRP_unit_char(ghgrp_energy_file, year).main()  # format ghgrp energy calculations to fit frs_json schema
 
     ghgrp_unit_data = check_registry_id(ghgrp_unit_data, frs_data)
