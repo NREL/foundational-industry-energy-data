@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 import pandas as pd
 import requests
 import sys
 import time
-import logging
 from requests.adapters import HTTPAdapter, Retry
 
-logging.basicConfig(level=logging.INFO)
+module_logger = logging.getLogger(__name__)
 
 
 def requests_retry_session(retries=3, backoff_factor=0.7, status_forcelist=[500, 502, 504], session=None):
@@ -70,28 +71,29 @@ def get_count(table_url):
         Count of table rows. 
     
     """
+    module_logger.debug(f'Getting row count for {table_url}')
 
     table_url = f'{table_url}/count/json'
 
     t0 = time.time()
     try:  
         r = requests_retry_session().get(table_url)
-        logging.info(f'{r.status_code}')
+        module_logger.info(f"Request status: {r.status_code}")
         # r = requests.get(table_url)
 
     except requests.exceptions.RequestException as e:
-        logging.error(f'{e}\nTable url: {table_url}')
+        module_logger.error(f'{e}\nTable url: {table_url}')
         sys.exit(1)
 
     try:
         row_count = r.json()[0]['TOTALQUERYRESULTS']
 
     except (IndexError, requests.exceptions.JSONDecodeError) as e:
-        logging.error(f'Check API respose: {e}\n{r.status_code}')
+        module_logger.error(f'Check API respose: {e}\n{r.status_code}')
         sys.exit(1)
 
     t1 = time.time()
-    logging.info(f"That took {t1 - t0} seconds")
+    module_logger.info(f'Row count: {row_count} ({(t1 - t0):.1f} seconds)')
 
     return row_count
 
@@ -118,16 +120,17 @@ def get_records(table_url, start_end):
     """
 
     table_url = f'{table_url}/rows/{start_end[0]}:{start_end[1]}/json'
+    module_logger.debug(f'Getting records from {table_url}')
 
     t0 = time.time()
     try:
         r_records = requests_retry_session().get(table_url)
-        logging.info(f'{r_records.status_code}')
+        module_logger.info(f'{r_records.status_code}')
         # r_records = requests.get(table_url)
 
     except requests.exceptions.RequestException as e:
 
-        logging.error(f'{e}\n{table_url}')
+        module_logger.error(f'{e}\n{table_url}')
         sys.exit(1)
 
     try:
@@ -136,11 +139,11 @@ def get_records(table_url, start_end):
 
     except requests.exceptions.JSONDecodeError as e:
 
-        logging.error(f'{e}\nTable URL: {table_url}\n{r_records.content}')
+        module_logger.error(f'{e}\nTable URL: {table_url}\n{r_records.content}')
         sys.exit(1)
 
     t1 = time.time()
-    logging.info(f"That took {t1 - t0} seconds")
+    module_logger.info(f"Got records in {(t1 - t0):.1f} seconds")
 
     return json_data
 
@@ -223,7 +226,7 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
                     requests.get(f'{table_url}/rows/0:{nrecords}/json')
 
             except requests.exceptions.RequestException as e:
-                logging.error(f'{e}, {table_url}')
+                module_logger.error(f'{e}, {table_url}')
                 sys.exit(1)
 
             try:
@@ -232,7 +235,7 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
 
             except requests.exceptions.JSONDecodeError:
 
-                logging.error(f'{r_records.content}')
+                module_logger.error(f'{r_records.content}')
             
             else:
 
