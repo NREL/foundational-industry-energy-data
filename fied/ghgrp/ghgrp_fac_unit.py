@@ -1,4 +1,5 @@
 
+import logging
 from pathlib import Path
 
 import pandas as pd
@@ -6,15 +7,20 @@ import os
 import yaml
 import json
 from pyxlsb import open_workbook
-import logging
 
 from fied import datasets
 
+module_logger = logging.getLogger(__name__)
+
 class GHGRP_unit_char():
+    logger = logging.getLogger(f"{__name__}.GHGRP_unit_char")
 
     def __init__(self, ghgrp_energy_file, reporting_year):
-
-        logging.basicConfig(level=logging.INFO)
+        self.logger.debug(
+            "Initializing GHGRP_unit_char class with "
+            f"energy file: {ghgrp_energy_file}, "
+            f"reporting year: {reporting_year}"
+        )
 
         self._data_dir = os.path.abspath(Path(__file__).parents[1] / 'data' / 'GHGRP/')
 
@@ -109,7 +115,7 @@ class GHGRP_unit_char():
                 )
             
         except XLRDError as e:
-            logging.error(f"{e}")
+            self.logger.error(f"{e}")
 
         else:
 
@@ -178,12 +184,16 @@ class GHGRP_unit_char():
         Formatting (e.g., dropping columns, aggregating fuel types)
         for GHGRP energy estimates, which now include unit capacity data.
         """
+        self.logger.debug("Formatting GHGRP data")
 
         ghgrp_df.loc[:, 'FUEL_TYPE_FINAL'] = pd.concat(
             [ghgrp_df[c].dropna() for c in ['FUEL_TYPE', 'FUEL_TYPE_BLEND', 'FUEL_TYPE_OTHER']],
             axis=0, ignore_index=False
             )
 
+        self.logger.debug(
+            f"Filtering GHGRP data for reporting year {self._reporting_year}"
+        )
         ghgrp_df = ghgrp_df.query("REPORTING_YEAR==@self._reporting_year")
 
         # Harmonize fuel types for GHGRP data
@@ -254,10 +264,10 @@ class GHGRP_unit_char():
             UNIT_TYPE column updated from OCS to a specific
             unit type.
         """
+        filename = os.path.join(self._data_dir, self._ghgrp_energy_file)
+        self.logger.debug(f"Getting unit type from GHGRP data: {filename}")
 
-        ghgrp_df = pd.read_parquet(
-            os.path.join(self._data_dir, self._ghgrp_energy_file)
-            )
+        ghgrp_df = pd.read_parquet(filename)
 
         types = [
             'furnace', 'kiln', 'dryer', 'heater',
@@ -274,7 +284,7 @@ class GHGRP_unit_char():
 
         ocs_units = ocs_units.str.lower()
 
-        logging.info(
+        self.logger.info(
             f'There are {len(ocs_units)} units '
             f'or {len(ocs_units)/len(ghgrp_df):.1%} labelled as OCS'
             )
