@@ -18,7 +18,6 @@ from fied.ghgrp import get_GHGRP_data
 from fied.ghgrp.ghg_tiers import TierEnergy
 
 module_logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 
 class GHGRP(FiedGIS, TierEnergy):
