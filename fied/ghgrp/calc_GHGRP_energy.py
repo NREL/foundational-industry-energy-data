@@ -624,7 +624,7 @@ class GHGRP(FiedGIS, TierEnergy):
 
     @staticmethod
     def energy_merge(energy_subC, energy_subD, energy_subAA, all_fac):
-        self.logger.debug('Merging energy data')
+        module_logger.debug('Merging energy data')
 
         merge_cols = list(all_fac.columns.difference(energy_subAA.columns))
 
