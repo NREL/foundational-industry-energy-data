@@ -56,12 +56,12 @@ class GHGRP(FiedGIS, TierEnergy):
     # List of facilities for correction of combustion emissions from Wood
     # and Wood Residuals for using Subpart C Tier 4 calculation methodology.
     wood_facID = pd.read_csv(
-        files("fied.data.GHGRP").joinpath("WoodRes_correction_facilities.csv")
+        files("fied.data.GHGRP").joinpath("WoodRes_correction_facilities.csv"),
         index_col=['FACILITY_ID']
         )
 
     std_efs = pd.read_csv(
-        files("fied.data.GHGRP").joinpath("EPA_FuelEFs.csv")
+        files("fied.data.GHGRP").joinpath("EPA_FuelEFs.csv"),
         index_col=['Fuel_Type']
         )
 
@@ -70,7 +70,7 @@ class GHGRP(FiedGIS, TierEnergy):
     std_efs = std_efs[~std_efs.index.duplicated()]
 
     MECS_regions = pd.read_csv(
-        files("fied.data.GHGRP").joinpath("US_FIPS_Codes.csv")
+        files("fied.data.GHGRP").joinpath("US_FIPS_Codes.csv"),
         index_col=['COUNTY_FIPS']
         )
 
