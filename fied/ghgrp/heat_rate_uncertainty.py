@@ -5,6 +5,7 @@ Created on Wed Dec  5 21:50:55 2018
 @author: cmcmilla
 """
 
+from importlib_resources import files
 import pandas as pd
 import os
 import numpy as np
@@ -62,7 +63,7 @@ class FuelUncertainty:
                                    'C_T3EQC4C8MONTHLYINPUTS',
                                    'C_T3EQC5C8MONTHLYINPUTS']}
 
-        self.ef_file_path = os.path.abspath('./data/GHGRP/EPA_FuelEFs.csv')
+        self.ef_file_path = files("fied.data.GHGRP").joinpath("EPA_FuelEFs.csv")
 
         if std_efs is None:
 
