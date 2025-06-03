@@ -182,7 +182,15 @@ convention = "numpy"
 [tool.ruff.lint.per-file-ignores]
 
 [tool.setuptools]
+include-package-data = true
 packages = ["fied"]
+
+[tool.setuptools.package-data]
+"fied.data.GHGRP" = [
+  "EPA_FuelEFs.csv",
+  "US_FIPS_Codes.csv",
+  "WoodRes_correction_facilities.csv",
+  ]
 
 [tool.setuptools_scm]
 version_file = "fied/_version.py"
