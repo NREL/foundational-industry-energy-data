@@ -21,8 +21,6 @@ class TierEnergy:
 
     def __init__(self, years=None, std_efs=None, calc_uncert=False):
 
-        logging.basicConfig(level=logging.INFO)
-
         # EPA standard emission factors by fuel type
         if std_efs is None:
             self.std_efs = pd.DataFrame(
