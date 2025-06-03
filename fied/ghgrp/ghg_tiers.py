@@ -320,6 +320,7 @@ class TierEnergy:
         Estimate energy use for facilities reporting emissions using the
         Tier 1 methodology.
         """
+        self.logger.debug("Calculating Tier 1")
 
         tier_column = 'TIER1_CO2_COMBUSTION_EMISSIONS'
 
@@ -645,6 +646,7 @@ class TierEnergy:
         Assemble all the calculations and their results into a single
         dataframe.
         """
+        self.logger.debug("Calculating all tiers")
 
         energy = pd.concat(
             [self.tier1_calc(subpart_c_df), self.tier2_calc(subpart_c_df),
