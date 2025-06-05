@@ -5,13 +5,16 @@ Created on Wed Mar  6 14:26:54 2019
 @author: cmcmilla
 """
 import os
-import logging
-import ghgrp_fac_unit
 import datetime as dt
-from calc_GHGRP_energy import GHGRP
-from calc_GHGRP_AA import subpartAA
+import logging
+from pathlib import Path
+
+from fied.ghgrp import ghgrp_fac_unit
+from fied.ghgrp.calc_GHGRP_energy import GHGRP
+from fied.ghgrp.calc_GHGRP_AA import subpartAA
 
 module_logger = logging.getLogger(__name__)
+
 
 def main(start_year, end_year):
     """
@@ -20,7 +23,7 @@ def main(start_year, end_year):
     module_logger.debug(f"Start year: {start_year}, End year: {end_year}")
 
     # Uncertainty calculations are not fully operational
-    ghgrp = GHGRP((start_year, end_year), calc_uncertainty=False)
+    ghgrp = GHGRP((start_year, end_year), calc_uncertainty=False, fix_county_fips=False)
 
     ghgrp_data = {}
 
@@ -44,13 +47,10 @@ def main(start_year, end_year):
 
     time = dt.datetime.today().strftime("%Y%m%d-%H%M")
 
-    ghgrp_file = f'ghgrp_energy_{time}.parquet'
+    ghgrp_file = Path("data/GHGRP") / f'ghgrp_energy_{time}.parquet'
 
     # Save results
-    energy_ghgrp.to_parquet(
-        os.path.abspath(f'./data/GHGRP/{ghgrp_file}'),
-        engine='pyarrow', compression='gzip'
-        )
+    energy_ghgrp.to_parquet(ghgrp_file, engine='pyarrow', compression='gzip')
 
     return ghgrp_file
 

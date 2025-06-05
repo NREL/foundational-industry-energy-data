@@ -22,9 +22,8 @@ class GHGRP_unit_char():
             f"reporting year: {reporting_year}"
         )
 
-        self._data_dir = os.path.abspath(Path(__file__).parents[1] / 'data' / 'GHGRP/')
-
-        self._ghgrp_energy_file = ghgrp_energy_file
+        self._data_dir = ghgrp_energy_file.parent
+        self._ghgrp_energy_file = ghgrp_energy_file.name
 
         self._data_source = 'GHGRP'
 

@@ -11,14 +11,13 @@ import logging
 from importlib_resources import files
 import pandas as pd
 import numpy as np
-import get_GHGRP_data
 import sys
-sys.path.append(f"{os.path.expanduser('~')}/foundational-industry-energy-data/fied")
-from geocoder.geopandas_tools import FiedGIS
-from ghg_tiers import TierEnergy
+
+from fied.geocoder.geopandas_tools import FiedGIS
+from fied.ghgrp import get_GHGRP_data
+from fied.ghgrp.ghg_tiers import TierEnergy
 
 module_logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 
 class GHGRP(FiedGIS, TierEnergy):
@@ -625,7 +624,7 @@ class GHGRP(FiedGIS, TierEnergy):
 
     @staticmethod
     def energy_merge(energy_subC, energy_subD, energy_subAA, all_fac):
-        self.logger.debug('Merging energy data')
+        module_logger.debug('Merging energy data')
 
         merge_cols = list(all_fac.columns.difference(energy_subAA.columns))
 
