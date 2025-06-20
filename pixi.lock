@@ -3,8 +3,6 @@ environments:
   default:
     channels:
     - url: https://conda.anaconda.org/conda-forge/
-    - url: https://conda.anaconda.org/anaconda/
-    - url: https://conda.anaconda.org/main/
     indexes:
     - https://pypi.org/simple
     packages:
@@ -788,8 +786,6 @@ environments:
   dev:
     channels:
     - url: https://conda.anaconda.org/conda-forge/
-    - url: https://conda.anaconda.org/anaconda/
-    - url: https://conda.anaconda.org/main/
     indexes:
     - https://pypi.org/simple
     packages:
@@ -1681,8 +1677,6 @@ environments:
   doc:
     channels:
     - url: https://conda.anaconda.org/conda-forge/
-    - url: https://conda.anaconda.org/anaconda/
-    - url: https://conda.anaconda.org/main/
     indexes:
     - https://pypi.org/simple
     packages:
@@ -2509,8 +2503,6 @@ environments:
   test:
     channels:
     - url: https://conda.anaconda.org/conda-forge/
-    - url: https://conda.anaconda.org/anaconda/
-    - url: https://conda.anaconda.org/main/
     indexes:
     - https://pypi.org/simple
     packages:
@@ -5023,8 +5015,8 @@ packages:
   timestamp: 1717757963922
 - pypi: ./
   name: fied
-  version: 0.0.5.dev2+g1f8ccee
-  sha256: 20e97331b30f421d5a0ed000386ea0185b42811a820bfc25f43c85877f0211c8
+  version: 0.0.5.dev4+ga5f8a70.d20250620
+  sha256: d8b856b782ab57149a16e22efbd03a93e508adbd7d3d5718e26c3f729b9859dc
   requires_dist:
   - geopandas>=0.12.1
   - matplotlib>=3.6.2
