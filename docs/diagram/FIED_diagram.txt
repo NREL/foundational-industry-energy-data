@@ -139,6 +139,7 @@ digraph UML_Class_diagram {
 
 	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__heat_rate_uncertainty__FuelUncertainty
 	GHGRP__heat_rate_uncertainty__FuelUncertainty -> GHGRP__ghg_tiers__TierEnergy
+	GEOCODER__geopandas_tools__FiedGIS -> GHGRP__calc_GHGRP_energy__GHGRP
 	GHGRP__ghg_tiers__TierEnergy -> GHGRP__calc_GHGRP_energy__GHGRP
 	GHGRP__calc_GHGRP_energy__GHGRP -> ghgrp_energy_parquet
 	ghgrp_energy_parquet -> GHGRP__ghgrp_fac_unit__GHGRP_unit_char
