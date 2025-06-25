@@ -65,7 +65,8 @@ digraph UML_Class_diagram {
 	NEI__nei_EF_calculations__NEI__find_missing_cap -> NEI__nei_EF_calculations__NEI__convert_capacity
 	NEI__nei_EF_calculations__NEI__convert_capacity -> NEI__nei_EF_calculations__NEI__check_estimates
 
-  DATASET_SCCDownload_csv -> SCC__scc_unit_id__SCC_ID
+	DATASETS__fetch_scc -> DATASETS__SCCDownload_csv
+  DATASETS__SCCDownload_csv -> SCC__scc_unit_id__SCC_ID
 	TOOLS__all_fuels -> SCC__scc_unit_id__SCC_ID
 	TOOLS__fuel_type_standardization -> SCC__scc_unit_id__SCC_ID
 	SCC__scc_unit_id__SCC_ID -> SCC__scc_unit_id__SCC_ID__build_id
@@ -195,6 +196,7 @@ digraph UML_Class_diagram {
   DATASETS__fetch_frs[label="datasets.fetch_frs"]
   DATASETS__fetch_scc[label="datasets.fetch_scc"]
   DATASETS__fetch_state_FIPS[label="datasets.fetch_state_FIPS()"]
+  DATASETS__SCCDownload_csv[label="datasets.SCCDownload_csv"]
 
 
 }
