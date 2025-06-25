@@ -339,7 +339,7 @@ class TierEnergy:
             # Issue: There are some cases where df[tier_columm] is an object,
             # despite be all valid numbers. Why that? That can be fixed by
             # calling .astype('float') on the column, but why that happens?
-            df['energy_mmbtu'] = df[tier_column].multiply(1000).divide(
+            df['energy_mmbtu'] = df[tier_column].astype('float').multiply(1000).divide(
                     df['CO2_kgCO2_per_mmBtu']
                     )
 
@@ -424,7 +424,7 @@ class TierEnergy:
                     # Issue: For unknown reason, tier_column is type object,
                     # thus the sum turns int a contatenation of strings, such as
                     # 0.2186.876.70.324.226.713.40.00.20.40.019.846 ...
-                    # df[tier_column] = df[tier_column].astype('float')
+                    df[tier_column] = df[tier_column].astype('float')
 
                     df_no_mmbtu = pd.DataFrame(df[df.energy_mmbtu.isnull()])
 
@@ -500,9 +500,9 @@ class TierEnergy:
         ghg_data = self.filter_data(subpart_c_df, tier_column)
         # Issue: For unknonwn reason, tier_column and TIER3_EQ_C5_FUEL_QTY are
         # type object, thus given unexpected result for sum operations.
-        # ghg_data[tier_column] = ghg_data[tier_column].astype('float')
-        # ghg_data["TIER3_EQ_C5_FUEL_QTY"] = ghg_data["TIER3_EQ_C5_FUEL_QTY"].astype(float)
-        # ghg_data["TIER3_EQ_C8_HHV_GAS"] = ghg_data["TIER3_EQ_C8_HHV_GAS"].astype(float)
+        ghg_data[tier_column] = ghg_data[tier_column].astype('float')
+        ghg_data["TIER3_EQ_C5_FUEL_QTY"] = ghg_data["TIER3_EQ_C5_FUEL_QTY"].astype(float)
+        ghg_data["TIER3_EQ_C8_HHV_GAS"] = ghg_data["TIER3_EQ_C8_HHV_GAS"].astype(float)
 
         energy = pd.DataFrame()
 
