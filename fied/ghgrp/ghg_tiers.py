@@ -642,7 +642,10 @@ class TierEnergy:
 
             # multiply by 10**6 because emission factor in grams and not
             # kilograms
-            df['energy_mmbtu'] = df[tier_column].multiply(10**6).divide(
+            # Issue: For unknown reason, tier_column is type object,
+            # thus given unexpected result for sum operations. Temporary
+            # fix is to convert it to float.
+            df['energy_mmbtu'] = df[tier_column].astype('float').multiply(10**6).divide(
                     df['CH4_gCH4_per_mmBtu']
                     )
 
