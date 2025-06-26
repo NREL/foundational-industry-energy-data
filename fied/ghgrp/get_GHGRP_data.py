@@ -210,6 +210,8 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
                 json_data = get_records(table_url, [rrange[n], rrange[n + 1]])
 
                 ghgrp = ghgrp.append(json_data)
+                # Give a break to the API. It gets overwhelmed easily.
+                time.sleep(3)
 
             records_last = get_records(table_url, [rrange[-1], nrecords])
 
