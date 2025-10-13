@@ -11,7 +11,7 @@ from requests.adapters import HTTPAdapter, Retry
 module_logger = logging.getLogger(__name__)
 
 
-def requests_retry_session(retries=3, backoff_factor=0.7, status_forcelist=[500, 502, 504], session=None):
+def requests_retry_session(retries=5, backoff_factor=3, status_forcelist=[500, 502, 504], session=None):
     """
 
 
@@ -156,6 +156,9 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000, as_pol
     V_GHG_EMITTER_FACILITIES.
     Optional argument to specify number of table rows.
 
+    ATTENTION: This process has been unstable recently, and often requires to
+    re-run a couple times to work.
+
     Parameters
     ----------
     reporting_year : int
@@ -192,12 +195,14 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000, as_pol
     else:
 
         table_url = f'https://enviro.epa.gov/enviro/efservice/{table}/REPORTING_YEAR/{reporting_year}'
+    module_logger.debug(f"Recovering data from {table_url}")
 
     ghgrp = pd.DataFrame()
 
     if rows is None:
 
         nrecords = get_count(table_url)
+        module_logger.debug(f'Expecting get {nrecords} records')
 
         # API doesn't seem to be able to handle calls for more than 1000 rows at a time. 
 
@@ -211,7 +216,7 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000, as_pol
 
                 ghgrp = ghgrp.append(json_data)
                 # Give a break to the API. It gets overwhelmed easily.
-                time.sleep(3)
+                time.sleep(7)
 
             records_last = get_records(table_url, [rrange[-1], nrecords])
 
