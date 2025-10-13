@@ -10,9 +10,11 @@ import logging
 
 from importlib_resources import files
 import pandas as pd
+import polars as pl
 import numpy as np
 import sys
 
+from fied.datasets import fetch_ghgrp_records
 from fied.geocoder.geopandas_tools import FiedGIS
 from fied.ghgrp import get_GHGRP_data
 from fied.ghgrp.ghg_tiers import TierEnergy
@@ -73,15 +75,10 @@ class GHGRP(FiedGIS, TierEnergy):
         index_col=['COUNTY_FIPS']
         )
 
-    try:
-        fac_file_2010 = pd.read_csv(
-            os.path.abspath(os.path.join(file_dir, 'fac_table_2010.csv')),
-            encoding='latin_1'
-            )
-
-    except FileNotFoundError:
-        fac_file_2010 = get_GHGRP_data.get_GHGRP_records(reporting_year=2010, table='V_GHG_EMITTER_FACILITIES')
-        fac_file_2010.to_csv(os.path.abspath(os.path.join(file_dir, 'fac_table_2010.csv')), index=False)
+    fac_file_2010 = fetch_ghgrp_records(
+        year=2010,
+        table="V_GHG_EMITTER_FACILITIES"
+    )
 
     gis = FiedGIS()
 
@@ -225,6 +222,10 @@ class GHGRP(FiedGIS, TierEnergy):
         facdata : pands.DataFrame
             Corrected facility information.
         """
+        # While this function is not transitioned to polars, allow for
+        # reading polars DataFrame.
+        if type(ffile) == pl.dataframe.frame.DataFrame:
+            ffile = ffile.to_pandas()
 
         if type(ffile) == pd.core.frame.DataFrame:
             facdata = ffile.copy(deep=True)
