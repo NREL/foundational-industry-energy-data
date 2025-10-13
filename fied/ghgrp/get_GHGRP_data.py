@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 
 import logging
+import sys
+import time
 
 import pandas as pd
 import requests
-import sys
-import time
 from requests.adapters import HTTPAdapter, Retry
 
 module_logger = logging.getLogger(__name__)
