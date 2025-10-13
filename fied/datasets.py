@@ -8,6 +8,7 @@ Dev note: Clean and stright datasets access. List all those here before
 thinking on optimization and removing redundancies.
 """
 
+import logging
 from pathlib import Path
 
 import geopandas as gpd
@@ -462,3 +463,7 @@ def fetch_QPC(year):
         qpc_data = qpc_data.append(data, ignore_index=True)
 
     return qpc_data
+
+
+def fetch_ghgrp_records(year, table: string):
+    module_logger.debug(f"Fetching GHGRP table {table} for year {year}")
