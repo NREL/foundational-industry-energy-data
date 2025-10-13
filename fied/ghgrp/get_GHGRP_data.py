@@ -4,6 +4,7 @@ import sys
 import time
 
 import pandas as pd
+import polars as pl
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
@@ -147,7 +148,7 @@ def get_records(table_url, start_end):
     return json_data
 
 
-def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
+def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000, as_polars=False):
     """
     Return GHGRP data using EPA RESTful API based on specified reporting year
     and table. Tables of interest are C_FUEL_LEVEL_INFORMATION,
@@ -265,5 +266,8 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
     ghgrp.drop_duplicates(inplace=True)
 
     ghgrp.columns = [c.upper() for c in ghgrp.columns]
+
+    if as_polars:
+        return pl.from_pandas(ghgrp)
 
     return ghgrp
