@@ -1,6 +1,6 @@
-digraph UML_Class_diagram {
+digraph UML_FIED {
 	graph [
-		label="UML Class diagram demo"
+		label="FIED package pipeline"
 		labelloc="t"
 		fontname="Helvetica,Arial,sans-serif"
 	]
