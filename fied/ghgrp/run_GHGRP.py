@@ -50,7 +50,7 @@ def main(start_year, end_year):
     ghgrp_file = Path("data/GHGRP") / f'ghgrp_energy_{time}.parquet'
 
     # Save results
-    energy_ghgrp.to_parquet(ghgrp_file, engine='pyarrow', compression='gzip')
+    energy_ghgrp.astype({"COUNTY_FIPS": "f", "SECONDARY_NAICS_CODE": "f"}).to_parquet(ghgrp_file)
 
     return ghgrp_file
 
