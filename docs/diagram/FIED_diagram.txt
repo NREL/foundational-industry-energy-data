@@ -137,12 +137,14 @@ digraph UML_Class_diagram {
 	GHGRP__calc_GHGRP_energy__GHGRP__download_or_read_ghgrp_file[label="ghgrp.calc_GHGRP_energy.GHGRP.download_or_read_ghgrp_file()"]
 	GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix[label="ghgrp.calc_GHGRP_energy.GHGRP.fac_read_fix()"]
 	GHGRP__calc_GHGRP_energy__GHGRP__format_facilities[label="ghgrp.calc_GHGRP_energy.GHGRP.format_facilities()"]
+	GHGRP__calc_GHGRP_energy__GHGRP__import_data[label="ghgrp.calc_GHGRP_energy.GHGRP.import_data()"]
 
-	GHGRP__calc_GHGRP_energy__GHGRP -> GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010
 	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010
 	GEOCODER__geopandas_tools__FiedGIS -> GHGRP__calc_GHGRP_energy__GHGRP__gis
-	GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010 -> GHGRP__calc_GHGRP_energy__GHGRP__format_facilities
+	GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010 -> GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix
 	GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix -> GHGRP__calc_GHGRP_energy__GHGRP__format_facilities
+	GHGRP__calc_GHGRP_energy__GHGRP__download_or_read_ghgrp_file -> GHGRP__calc_GHGRP_energy__GHGRP__import_data
+	GHGRP__calc_GHGRP_energy__GHGRP__format_facilities -> GHGRP__calc_GHGRP_energy__GHGRP__import_data
 	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__calc_GHGRP_energy__GHGRP
 
 
