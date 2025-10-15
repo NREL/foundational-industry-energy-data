@@ -16,6 +16,92 @@ digraph UML_FIED {
 	FRSE_iff -> FRSE
 	D_FF -> FRSE_iff
 
+
+  FRS__frs_extraction__FRS[label="frs.frs_extraction.FRS"]
+  FRS__frs_extraction__FRS__call_all_fips[label="frs.frs_extraction.FRS.call_all_fips"]
+	FRS__frs_extraction__FRS__import_format_frs[label="frs.frs_extraction.FRS.import_format_frs"]
+	FRS__frs_extraction__FRS__read_frs_csv[label="frs.frs_extraction.FRS.read_frs_csv"]
+	FRS__frs_extraction__FRS__format_naics_csv[label="frs.frs_extraction.FRS.format_naics_csv"]
+	FRS__frs_extraction__FRS__format_program_csv[label="frs.frs_extraction.FRS.format_program_csv"]
+
+
+  FRS__naics_selection__NAICS_Identification__id_naics_pgm[label="frs.naics_selection.NAICS_Identification.id_naics_pgm()"]
+	FRS__naics_selection__NAICS_Identification__assign_all_naics[label="frs.naics_selection.NAICS_Identification.assign_all_naics()"]
+	FRS__naics_selection__NAICS_Identification__split_naics_count[label="frs.naics_selection.NAICS_Identification.split_naics_count()"]
+	FRS__naics_selection__NAICS_Identification__find_max_naics[label="frs.naics_selection.NAICS_Identification.find_max_naics()"]
+	FRS__naics_selection__NAICS_Identification__id_additional_naics[label="frs.naics_selection.NAICS_Identification.id_additional_naics()"]
+
+
+	GHGRP__calc_GHGRP_energy__GHGRP[label="ghgrp.calc_GHGRP_energy.GHGRP"]
+	GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010[label="ghgrp.calc_GHGRP_energy.GHGRP.fac_file_2010"]
+	GHGRP__calc_GHGRP_energy__GHGRP__gis[label="ghgrp.calc_GHGRP_energy.GHGRP.gis"]
+	GHGRP__calc_GHGRP_energy__GHGRP__download_or_read_ghgrp_file[label="ghgrp.calc_GHGRP_energy.GHGRP.download_or_read_ghgrp_file()"]
+	GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix[label="ghgrp.calc_GHGRP_energy.GHGRP.fac_read_fix()"]
+	GHGRP__calc_GHGRP_energy__GHGRP__format_facilities[label="ghgrp.calc_GHGRP_energy.GHGRP.format_facilities()"]
+	GHGRP__calc_GHGRP_energy__GHGRP__import_data[label="ghgrp.calc_GHGRP_energy.GHGRP.import_data()"]
+
+	GEOCODER__geopandas_tools__FiedGIS -> GHGRP__calc_GHGRP_energy__GHGRP
+	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010
+	GEOCODER__geopandas_tools__FiedGIS -> GHGRP__calc_GHGRP_energy__GHGRP__gis
+	GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010 -> GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix
+	GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix -> GHGRP__calc_GHGRP_energy__GHGRP__format_facilities
+	GHGRP__calc_GHGRP_energy__GHGRP__download_or_read_ghgrp_file -> GHGRP__calc_GHGRP_energy__GHGRP__import_data
+	GHGRP__calc_GHGRP_energy__GHGRP__format_facilities -> GHGRP__calc_GHGRP_energy__GHGRP__import_data
+	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__calc_GHGRP_energy__GHGRP
+	GHGRP__ghg_tiers__TierEnergy -> GHGRP__calc_GHGRP_energy__GHGRP
+
+
+	GHGRP__get_GHGRP_data__get_GHGRP_records[label="ghgrp.get_GHGRP_data.get_GHGRP_records()"]
+	GHGRP__get_GHGRP_data__get_count[label="ghgrp.get_GHGRP_data.get_count()"]
+	GHGRP__get_GHGRP_data__get_records[label="ghgrp.get_GHGRP_data.get_records()"]
+	GHGRP__get_GHGRP_data__requests_retry_session[label="ghgrp.get_GHGRP_data.requests_retry_session()"]
+
+	GHGRP__get_GHGRP_data__requests_retry_session -> GHGRP__get_GHGRP_data__get_count
+	GHGRP__get_GHGRP_data__requests_retry_session -> GHGRP__get_GHGRP_data__get_records
+	GHGRP__get_GHGRP_data__get_count -> GHGRP__get_GHGRP_data__get_GHGRP_records
+	GHGRP__get_GHGRP_data__get_records -> GHGRP__get_GHGRP_data__get_GHGRP_records
+
+
+	GHGRP__ghgrp_fac_unit__GHGRP_unit_char[label="ghgrp.ghgrp_fac_unit.GHGRP_unit_char()"]
+	GHGRP__ghgrp_fac_unit__load_fueltype_df[label="ghgrp.ghgrp_fac_unit.load_fueltype_df"]
+	GHGRP__ghgrp_fac_unit__harmonize_fuel_type[label="ghgrp.ghgrp_fac_unit.harmonize_fuel_type"]
+
+	ghgrp_energy_parquet -> GHGRP__ghgrp_fac_unit__GHGRP_unit_char
+
+
+	GHGRP__ghg_tiers__TierEnergy[label="ghgrp.ghg_tiers.TierEnergy"]
+
+	GHGRP__heat_rate_uncertainty__FuelUncertainty -> GHGRP__ghg_tiers__TierEnergy
+
+
+	GHGRP__heat_rate_uncertainty__FuelUncertainty[label="ghgrp.heat_rate_uncertainty.FuelUncertainty"]
+
+	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__heat_rate_uncertainty__FuelUncertainty
+
+	GHGRP__calc_GHGRP_energy__GHGRP -> ghgrp_energy_parquet
+
+
+	TOOLS__all_fuels[label="tools.all_fuels.csv"]
+
+
+	TOOLS__fuel_type_standardization[label="tools.fuel_type_standardization.yaml"]
+
+
+	TOOLS__ghgrp_unit_types[label="tools.ghgrp_unit_types.yaml"]
+
+
+	TOOLS__misc_tools__Tools__unit_regex[label="tools.misc_tools.Tools.unit_regex()"]
+	TOOLS__misc_tools__Tools_char_nei_units[label="tools.misc_tools.Tools_char_nei_units()"]
+
+
+	TOOLS__scc_unit_types[label="tools.scc_unit_types.yaml"]
+
+	TOOLS__scc_unit_types -> TOOLS__misc_tools__Tools_char_nei_units
+
+
+  TOOLS__unit_matcher__UnitsFuels[label="tools.unit_matcher.UnitsFuels"]
+
+
 	DATASETS__fetch_frs -> FRS__frs_extraction__FRS__import_format_frs
 	FRS__frs_extraction__FRS -> FRSE
 	FRS__frs_extraction__FRS__import_format_frs -> FRSE
@@ -104,22 +190,6 @@ digraph UML_FIED {
 	D__scc__frs_data_formatted -> separate_unit_data
 
 
-
-
-  FRS__naics_selection__NAICS_Identification__id_naics_pgm[label="frs.naics_selection.NAICS_Identification.id_naics_pgm()"]
-	FRS__naics_selection__NAICS_Identification__assign_all_naics[label="frs.naics_selection.NAICS_Identification.assign_all_naics()"]
-	FRS__naics_selection__NAICS_Identification__split_naics_count[label="frs.naics_selection.NAICS_Identification.split_naics_count()"]
-	FRS__naics_selection__NAICS_Identification__find_max_naics[label="frs.naics_selection.NAICS_Identification.find_max_naics()"]
-	FRS__naics_selection__NAICS_Identification__id_additional_naics[label="frs.naics_selection.NAICS_Identification.id_additional_naics()"]
-
-
-  FRS__frs_extraction__FRS[label="frs.frs_extraction.FRS"]
-  FRS__frs_extraction__FRS__call_all_fips[label="frs.frs_extraction.FRS.call_all_fips"]
-	FRS__frs_extraction__FRS__import_format_frs[label="frs.frs_extraction.FRS.import_format_frs"]
-	FRS__frs_extraction__FRS__read_frs_csv[label="frs.frs_extraction.FRS.read_frs_csv"]
-	FRS__frs_extraction__FRS__format_naics_csv[label="frs.frs_extraction.FRS.format_naics_csv"]
-	FRS__frs_extraction__FRS__format_program_csv[label="frs.frs_extraction.FRS.format_program_csv"]
-
 	FRSE[label="frs_extraction.py"]
 
 	FRSE_iff[label="frs_methods.import_format_frs"]
@@ -130,49 +200,6 @@ digraph UML_FIED {
 	A_NA_CNA[label="analysis.naics_analysis.compare_naics_assignments"]
 	FRS_naics_selection_id_naics_pgm[label="frs.naics_selection.id_naics_pgm"]
 
-
-	GHGRP__calc_GHGRP_energy__GHGRP[label="ghgrp.calc_GHGRP_energy.GHGRP"]
-	GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010[label="ghgrp.calc_GHGRP_energy.GHGRP.fac_file_2010"]
-	GHGRP__calc_GHGRP_energy__GHGRP__gis[label="ghgrp.calc_GHGRP_energy.GHGRP.gis"]
-	GHGRP__calc_GHGRP_energy__GHGRP__download_or_read_ghgrp_file[label="ghgrp.calc_GHGRP_energy.GHGRP.download_or_read_ghgrp_file()"]
-	GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix[label="ghgrp.calc_GHGRP_energy.GHGRP.fac_read_fix()"]
-	GHGRP__calc_GHGRP_energy__GHGRP__format_facilities[label="ghgrp.calc_GHGRP_energy.GHGRP.format_facilities()"]
-	GHGRP__calc_GHGRP_energy__GHGRP__import_data[label="ghgrp.calc_GHGRP_energy.GHGRP.import_data()"]
-
-	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010
-	GEOCODER__geopandas_tools__FiedGIS -> GHGRP__calc_GHGRP_energy__GHGRP__gis
-	GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010 -> GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix
-	GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix -> GHGRP__calc_GHGRP_energy__GHGRP__format_facilities
-	GHGRP__calc_GHGRP_energy__GHGRP__download_or_read_ghgrp_file -> GHGRP__calc_GHGRP_energy__GHGRP__import_data
-	GHGRP__calc_GHGRP_energy__GHGRP__format_facilities -> GHGRP__calc_GHGRP_energy__GHGRP__import_data
-	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__calc_GHGRP_energy__GHGRP
-
-
-	GHGRP__get_GHGRP_data__get_GHGRP_records[label="ghgrp.get_GHGRP_data.get_GHGRP_records()"]
-	GHGRP__get_GHGRP_data__get_count[label="ghgrp.get_GHGRP_data.get_count()"]
-	GHGRP__get_GHGRP_data__get_records[label="ghgrp.get_GHGRP_data.get_records()"]
-	GHGRP__get_GHGRP_data__requests_retry_session[label="ghgrp.get_GHGRP_data.requests_retry_session()"]
-
-	GHGRP__get_GHGRP_data__requests_retry_session -> GHGRP__get_GHGRP_data__get_count
-	GHGRP__get_GHGRP_data__requests_retry_session -> GHGRP__get_GHGRP_data__get_records
-	GHGRP__get_GHGRP_data__get_count -> GHGRP__get_GHGRP_data__get_GHGRP_records
-	GHGRP__get_GHGRP_data__get_records -> GHGRP__get_GHGRP_data__get_GHGRP_records
-
-
-	GHGRP__ghgrp_fac_unit__GHGRP_unit_char[label="ghgrp.ghgrp_fac_unit.GHGRP_unit_char()"]
-	GHGRP__ghgrp_fac_unit__load_fueltype_df[label="ghgrp.ghgrp_fac_unit.load_fueltype_df"]
-	GHGRP__ghgrp_fac_unit__harmonize_fuel_type[label="ghgrp.ghgrp_fac_unit.harmonize_fuel_type"]
-
-	GHGRP__heat_rate_uncertainty__FuelUncertainty[label="ghgrp.heat_rate_uncertainty.FuelUncertainty"]
-	GHGRP__ghg_tiers__TierEnergy[label="ghgrp.ghg_tiers.TierEnergy"]
-
-
-	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__heat_rate_uncertainty__FuelUncertainty
-	GHGRP__heat_rate_uncertainty__FuelUncertainty -> GHGRP__ghg_tiers__TierEnergy
-	GEOCODER__geopandas_tools__FiedGIS -> GHGRP__calc_GHGRP_energy__GHGRP
-	GHGRP__ghg_tiers__TierEnergy -> GHGRP__calc_GHGRP_energy__GHGRP
-	GHGRP__calc_GHGRP_energy__GHGRP -> ghgrp_energy_parquet
-	ghgrp_energy_parquet -> GHGRP__ghgrp_fac_unit__GHGRP_unit_char
 
 	NEI__nei_EF_calculations__NEI[label="nei.nei_EF_calculations.NEI"]
 	NEI__nei_EF_calculations__NEI__load_nei_data[label="nei.nei_EF_calculations.NEI.load_nei_data()"]
@@ -211,17 +238,6 @@ digraph UML_FIED {
   GEOCODER__geopandas_tools__FiedGIS[label="geocoder.geopandas_tools.FiedGIS"]
 
 	NEI__unit_conversion[label="nei.unit_conversion.yml"]
-
-  TOOLS__unit_matcher__UnitsFuels[label="tools.unit_matcher.UnitsFuels"]
-	TOOLS__all_fuels[label="tools.all_fuels.csv"]
-	TOOLS__fuel_type_standardization[label="tools.fuel_type_standardization.yaml"]
-	TOOLS__ghgrp_unit_types[label="tools.ghgrp_unit_types.yaml"]
-	TOOLS__scc_unit_types[label="tools.scc_unit_types.yaml"]
-
-	TOOLS__misc_tools__Tools__unit_regex[label="tools.misc_tools.Tools.unit_regex()"]
-	TOOLS__misc_tools__Tools_char_nei_units[label="tools.misc_tools.Tools_char_nei_units()"]
-
-	TOOLS__scc_unit_types -> TOOLS__misc_tools__Tools_char_nei_units
 
   DATASETS__fetch_frs[label="datasets.fetch_frs"]
   DATASETS__fetch_scc[label="datasets.fetch_scc"]
