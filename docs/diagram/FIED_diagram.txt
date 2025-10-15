@@ -13,8 +13,6 @@ digraph UML_FIED {
 	edge [fontname="Helvetica,Arial,sans-serif"]
 	edge [arrowhead=vee style=dashed]
 	Client -> Interface1 [label=dependency]
-	FRSE_iff -> FRSE
-	D_FF -> FRSE_iff
 
 
   FRS__frs_extraction__FRS[label="frs.frs_extraction.FRS"]
@@ -193,7 +191,6 @@ digraph UML_FIED {
 	FRSE[label="frs_extraction.py"]
 
 	FRSE_iff[label="frs_methods.import_format_frs"]
-	D_FF[label="datasets.fetch_frs"]
 	D__fetch_webfirefactors[label="datasets.fetch_webfirefactors()"]
 
 	A_NA_LNA[label="analysis.naics_analysis.load_naics_assignments"]
