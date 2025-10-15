@@ -239,8 +239,8 @@ digraph UML_FIED {
 
 	NEI__unit_conversion[label="nei.unit_conversion.yml"]
 
-  DATASETS__fetch_frs[label="datasets.fetch_frs"]
-  DATASETS__fetch_scc[label="datasets.fetch_scc"]
+  DATASETS__fetch_frs[label="datasets.fetch_frs()"]
+  DATASETS__fetch_scc[label="datasets.fetch_scc()"]
   DATASETS__fetch_state_FIPS[label="datasets.fetch_state_FIPS()"]
   DATASETS__SCCDownload_csv[label="datasets.SCCDownload_csv"]
 
