@@ -224,7 +224,7 @@ class GHGRP(FiedGIS, TierEnergy):
         """
         # While this function is not transitioned to polars, allow for
         # reading polars DataFrame.
-        if type(ffile) == pl.dataframe.frame.DataFrame:
+        if isinstance(ffile, pl.DataFrame):
             ffile = ffile.to_pandas()
 
         if type(ffile) == pd.core.frame.DataFrame:
