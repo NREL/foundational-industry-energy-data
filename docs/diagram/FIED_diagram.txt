@@ -196,6 +196,7 @@ digraph UML_FIED {
 	NEI__nei_EF_calculations__NEI__unit_type_selection[label="nei.nei_EF_calculations.NEI.unit_type_selection()"]
 
 	SCC__scc_unit_id__SCC_ID[label="scc.scc_unit_id.SCC_ID"]
+	SCC__scc_unit_id__SCC_ID__main[label="scc.scc_unit_id.SCC_ID.main()"]
 	SCC__scc_unit_id__SCC_ID__build_id[label="scc.scc_unit_id.SCC_ID.build_id()"]
 	SCC__scc_unit_id__SCC_ID__load_complete_scc[label="scc.scc_unit_id.SCC_ID.load_complete_scc()"]
 	SCC__scc_unit_id__SCC_ID__id_external_combustion[label="scc.scc_unit_id.SCC_ID.id_external_combustion()"]
