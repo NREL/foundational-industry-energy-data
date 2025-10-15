@@ -1,17 +1,17 @@
-# -*- coding: utf-8 -*-
 
 import logging
-
-import pandas as pd
-import requests
 import sys
 import time
+
+import pandas as pd
+import polars as pl
+import requests
 from requests.adapters import HTTPAdapter, Retry
 
 module_logger = logging.getLogger(__name__)
 
 
-def requests_retry_session(retries=3, backoff_factor=0.7, status_forcelist=[500, 502, 504], session=None):
+def requests_retry_session(retries=5, backoff_factor=3, status_forcelist=[500, 502, 504], session=None):
     """
 
 
@@ -148,13 +148,16 @@ def get_records(table_url, start_end):
     return json_data
 
 
-def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
+def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000, as_polars=False):
     """
     Return GHGRP data using EPA RESTful API based on specified reporting year
     and table. Tables of interest are C_FUEL_LEVEL_INFORMATION,
     D_FUEL_LEVEL_INFORMATION, c_configuration_level_info, and
     V_GHG_EMITTER_FACILITIES.
     Optional argument to specify number of table rows.
+
+    ATTENTION: This process has been unstable recently, and often requires to
+    re-run a couple times to work.
 
     Parameters
     ----------
@@ -192,12 +195,14 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
     else:
 
         table_url = f'https://enviro.epa.gov/enviro/efservice/{table}/REPORTING_YEAR/{reporting_year}'
+    module_logger.debug(f"Recovering data from {table_url}")
 
     ghgrp = pd.DataFrame()
 
     if rows is None:
 
         nrecords = get_count(table_url)
+        module_logger.debug(f'Expecting get {nrecords} records')
 
         # API doesn't seem to be able to handle calls for more than 1000 rows at a time. 
 
@@ -211,7 +216,7 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
 
                 ghgrp = ghgrp.append(json_data)
                 # Give a break to the API. It gets overwhelmed easily.
-                time.sleep(3)
+                time.sleep(7)
 
             records_last = get_records(table_url, [rrange[-1], nrecords])
 
@@ -266,5 +271,8 @@ def get_GHGRP_records(reporting_year, table, rows=None, api_row_max=1000):
     ghgrp.drop_duplicates(inplace=True)
 
     ghgrp.columns = [c.upper() for c in ghgrp.columns]
+
+    if as_polars:
+        return pl.from_pandas(ghgrp)
 
     return ghgrp

@@ -8,14 +8,20 @@ Dev note: Clean and stright datasets access. List all those here before
 thinking on optimization and removing redundancies.
 """
 
+import logging
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
+import polars as pl
 import pooch
 from pooch import HTTPDownloader
 from stream_unzip import stream_unzip
 
+from fied.ghgrp import get_GHGRP_data
+
+
+module_logger = logging.getLogger(__name__)
 
 def fetch_frs(combined=True):
     """Fetch the Facility Registry Service (FRS) dataset from EPA
@@ -462,3 +468,46 @@ def fetch_QPC(year):
         qpc_data = qpc_data.append(data, ignore_index=True)
 
     return qpc_data
+
+
+def fetch_ghgrp_records(year: int, table: str):
+    """Fetch GHGRP records and cache them for future use
+
+    Parameters
+    ----------
+    year : int
+        Reporting year
+    table: str
+        Table name
+
+    Returns
+    -------
+    pl.DataFrame
+
+    Notes
+    -----
+    1. The data types do not match precisely the output from the
+    original `get_GHGRP_data.get_GHGRP_records()`.
+    2. The original function used `encoding='latin_1'` to read the
+    csv file saved locally.
+    """
+    module_logger.debug(f"Fetching GHGRP table {table} for year {year}")
+
+    basename = f"{table}_{year}.parquet"
+    filename = pooch.os_cache("FIED") / "GHGRP" / basename
+
+    if filename.exists():
+        module_logger.debug(f"Loading cached GHGRP data from {filename}")
+        return pl.read_parquet(filename)
+
+    module_logger.info(f"Downloading GHGRP records for {year} - {table}")
+    records = get_GHGRP_data.get_GHGRP_records(reporting_year=year, table=table, as_polars=True)
+
+    # Guarantee that full path exists
+    filename.parent.mkdir(parents=True, exist_ok=True)
+    module_logger.debug(f"Caching GHGRP data to {filename} for future use")
+    records.write_parquet(filename, compression="zstd", compression_level=22)
+
+    # Return from parquet to guarantee consistent data. If return records directly,
+    # it is vulnerable to changes in get_GHGRP_data.get_GHGRP_records().
+    return pl.read_parquet(filename)

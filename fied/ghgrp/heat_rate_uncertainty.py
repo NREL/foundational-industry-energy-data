@@ -11,6 +11,7 @@ import os
 import numpy as np
 from sklearn.utils import resample
 
+from fied.datasets import fetch_ghgrp_records
 from fied.ghgrp.get_GHGRP_data import get_GHGRP_records
 
 
@@ -104,7 +105,7 @@ class FuelUncertainty:
 
             for y in self.years:
 
-                df = get_GHGRP_records(y, t)
+                df = fetch_ghgrp_records(year=y, table=t).to_pandas()
 
                 tier_df = tier_df.append(df, sort=True, ignore_index=True)
 
