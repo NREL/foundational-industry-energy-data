@@ -229,8 +229,7 @@ def fetch_webfirefactors():
         # File changes often, so we need to think in another solution.
         known_hash="sha256:1eda234b7ef23310dea457adb0612005c50703c51ffdc7497b2fdeea8327fc6a",
         path=pooch.os_cache("FIED"),
-        # Temporary solution. Don't verify SSL.
-        downloader=HTTPDownloader(progressbar=True, verify=False),
+        downloader=HTTPDownloader(progressbar=True, verify=True),
         processor=pooch.Unzip(members=["webfirefactors.csv"]),
     )
 
