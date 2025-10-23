@@ -5097,8 +5097,8 @@ packages:
   timestamp: 1717757963922
 - pypi: ./
   name: fied
-  version: 0.0.6.dev3+g40b86c6f9.d20251013
-  sha256: 00ebd1ca779bf2b5e2da252cdaf94197992ba4a6d97894d805e9b75db0f4e7e9
+  version: 0.0.6.dev6+g206205edf.d20251023
+  sha256: 37a67b9220a7eff09f34dcc8051ebf6baa38dc4e8c53bbe282287a685a682646
   requires_dist:
   - geopandas>=0.12.1
   - matplotlib>=3.6.2
