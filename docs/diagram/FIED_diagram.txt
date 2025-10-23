@@ -240,6 +240,17 @@ digraph UML_FIED {
   DATASETS__fetch_scc[label="datasets.fetch_scc()"]
   DATASETS__fetch_state_FIPS[label="datasets.fetch_state_FIPS()"]
   DATASETS__SCCDownload_csv[label="datasets.SCCDownload_csv"]
+  
+  DATASETS__fetch_ghgrp_records[label="datasets.fetch_ghgrp_records()"]
+  DATASETS__fetch_ghgrp_records -> GHGRP__get_GHGRP_data__get_GHGRP_records
+
+  DATASETS__fetch_shapefile_NHDP[label="datasets.fetch_shapefile_NHDP()"]
+  DATASETS__fetch_shapefile_county[label="datasets.fetch_shapefile_county()"]
+  DATASETS__fetch_zip_codes[label="datasets.fetch_zip_codes()"]
+  
+  FRS__frs_extraction__FRS__build_frs_json[label="frs.frs_extraction.FRS.build_frs_json()"]
+  FRS__frs_extraction__FRS__fix_code[label="frs.frs_extraction.FRS.fix_code()"]
+  FRS__frs_extraction__FRS__fix_code -> FRS__frs_extraction__FRS__build_frs_json
 
 
 }
