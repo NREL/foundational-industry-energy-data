@@ -225,7 +225,7 @@ def fetch_webfirefactors():
         EPA WebFire emissions factors
     """
     fnames = pooch.retrieve(
-        url="https://cfpub.epa.gov/webfire/download/webfirefactors.zip",
+        url="https://cfpub.epa.gov/webfire_downloads/web/webfirefactors.zip",
         # File changes often, so we need to think in another solution.
         # known_hash="sha256:6abf5fe5ec090777e10c7c6f91c281b1573be5783031759023cb4840aee30269",
         known_hash=None,
