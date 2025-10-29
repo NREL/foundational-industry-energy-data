@@ -39,9 +39,14 @@ def _fix_null(df: pl.DataFrame) -> pl.DataFrame:
                 pl.when(pl.col(col) == pl.lit("N"))
                 .then(None)
                 .otherwise(pl.col(col))
-                .cast(pl.Int32)
+                .cast(pl.Int32, strict=True)
                 .alias(col)
             )
+        elif df[col].dtype == pl.Int64:
+            df = df.with_columns(
+                pl.col(col).cast(pl.Int32, strict=True).alias(col)
+            )
+
     return df
 
 
