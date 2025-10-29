@@ -47,7 +47,6 @@ def fetch_cbp_county(year: int):
     artifact = f"{year}/cbp{str(year)[2:]}co.zip"
 
     with tempfile.TemporaryDirectory() as swap:
-        print(swap)
         fnames = Dogbert.fetch(
             artifact, processor=pooch.Unzip(extract_dir=swap)
         )
