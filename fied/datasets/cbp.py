@@ -2,6 +2,7 @@
 
 import polars as pl
 import pooch
+import re
 import requests
 
 
