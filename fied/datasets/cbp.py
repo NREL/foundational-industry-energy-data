@@ -2,8 +2,10 @@
 
 import polars as pl
 import pooch
-import re
 import requests
+
+import re
+import tempfile
 
 
 CBP_DATA_URL = "https://www2.census.gov/programs-surveys/cbp/datasets/{year}/"
