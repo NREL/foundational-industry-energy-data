@@ -10,7 +10,7 @@ import tempfile
 
 CBP_DATA_URL = "https://www2.census.gov/programs-surveys/cbp/datasets/{year}/"
 CBP_API_URL = "https://api.census.gov/data/{year}/cbp"
-SIZE_HEADER_RULE = re.compile("(n<5)|(n\d+_\d+)|(n1000_\d)")
+SIZE_HEADER_RULE = re.compile("(n<5)|(n\d+_\d+)|(n1000(_\d)?)")
 
 Dogbert = pooch.create(
     path=pooch.os_cache("FIED") / "CBP",
