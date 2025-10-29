@@ -34,7 +34,7 @@ def _fix_null(df: pl.DataFrame) -> pl.DataFrame:
     """
     columns = (c for c in df.columns if SIZE_HEADER_RULE.match(c))
     for col in columns:
-        if df[col].dtype == str:
+        if df[col].dtype == pl.String:
             df = df.with_columns(
                 pl.when(pl.col(col) == pl.lit("N"))
                 .then(None)
