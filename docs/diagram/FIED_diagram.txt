@@ -252,5 +252,46 @@ digraph UML_FIED {
   FRS__frs_extraction__FRS__fix_code[label="frs.frs_extraction.FRS.fix_code()"]
   FRS__frs_extraction__FRS__fix_code -> FRS__frs_extraction__FRS__build_frs_json
 
+  // cli.py file (completed)
+  CLI__main[label="cli.main()"]
+  FRS__frs_extraction_doit -> CLI__main
+  FIED_COMPILATION__doit -> CLI__main
+  
+  // fied_comlation.py file (completed)
+  FIED_COMPILATION_check_registry_id[label="fied_compilation.check_registry_id()"]
+  SOURCE_GHGRP_EPA -> FIED_COMPILATION_check_registry_id
+  SOURCE_FRS_EPA -> FIED_COMPILATION_check_registry_id
+  FIED_COMPILATION_melt_multiple_ids[label="fied_compilation.melt_multiple_ids()"]
+  SOURCE_FRS_EPA -> FIED_COMPILATION_melt_multiple_ids
+  FIED_COMPILATION_blend_estimates[label="fied_compilation.melt_multiple_ids()"]
+  SOURCE_GHGRP_EPA -> FIED_COMPILATION_blend_estimates
+  FIED_COMPILATION_reconcile_shared_nonocs[label="fied_compilation.reconcile_shared_nonocs()"]
+  SOURCE_GHGRP_EPA -> FIED_COMPILATION_reconcile_shared_nonocs
+  FIED_COMPILATION_id_nei_units_ocs[label="fied_compilation.id_nei_units_ocs()"]
+  SOURCE_GHGRP_EPA -> FIED_COMPILATION_id_nei_units_ocs
+  FIED_COMPILATION_id_ghgrp_units[label="fied_compilation.id_ghgrp_units()"]
+  SOURCE_GHGRP_EPA -> FIED_COMPILATION_id_ghgrp_units
+  FIED_COMPILATION_allocate_shared_ocs[label="fied_compilation_allocate_shared_ocs()"]
+  SOURCE_GHGRP_EPA -> FIED_COMPILATION_allocate_shared_ocs
+  FIED_COMPILATION_separate_unit_data[label="fied_compilation.separate_unit_data()"]
+  SOURCE_GHGRP_EPA -> FIED_COMPILATION_separate_unit_data
+  SOURCE_FRS_EPA -> FIED_COMPILATION_separate_unit_data
+  FIED_COMPILATION_assemble_final_df[label="fied_compilation.assemble_final_df()"]
+  SOURCE_FRS_EPA -> FIED_COMPILATION_assemble_final_df
+  FIED_COMPILATION_doit[label="fied_compilation.doit()"]
+  SCC__scc_unit_id__SCC_ID__main -> FIED_COMPILATION_doit
+  GHGRP__run_GHGRP_main -> FIED_COMPILATION_doit
+  SOURCE_GHGRP_EPA -> FIED_COMPILATION_doit
+  GHGRP__ghgrp_fac_unit__GHGRP_unit_char -> FIED_COMPILATION_doit
+  NEI__nei_EF_calculations__NEI__main -> FIED_COMPILATION_doit
+  QPC__census_qpc__QPC__main -> FIED_COMPILATION_doit 
+
+  // QPC census_qpc.py (to be updated more)
+  QPC__census_qpc__QPC__main[label="qpc.census_qpc.QPC.main()"]
+
+  // Source datasets nodes from the PDF (to be updated more)
+  SOURCE_GHGRP_EPA[label="source_ghgrp_epa"]
+  SOURCE_FRS_EPA[label="source_frs_epa"]
+
 
 }
