@@ -16,11 +16,16 @@ digraph UML_FIED {
 
 
   FRS__frs_extraction__FRS[label="frs.frs_extraction.FRS"]
+  SOURCE_FRS_EPA -> FRS__frs_extraction__FRS
   FRS__frs_extraction__FRS__call_all_fips[label="frs.frs_extraction.FRS.call_all_fips"]
 	FRS__frs_extraction__FRS__import_format_frs[label="frs.frs_extraction.FRS.import_format_frs"]
 	FRS__frs_extraction__FRS__read_frs_csv[label="frs.frs_extraction.FRS.read_frs_csv"]
 	FRS__frs_extraction__FRS__format_naics_csv[label="frs.frs_extraction.FRS.format_naics_csv"]
 	FRS__frs_extraction__FRS__format_program_csv[label="frs.frs_extraction.FRS.format_program_csv"]
+  
+  FRS__frs_extraction_doit[label="frs.frs_extraction.doit()"]
+  FRS__frs_extraction__FRS -> FRS__frs_extraction_doit
+  FRS__frs_extraction__FRS__import_format_frs -> FRS__frs_extraction_doit
 
 
   FRS__naics_selection__NAICS_Identification__id_naics_pgm[label="frs.naics_selection.NAICS_Identification.id_naics_pgm()"]
@@ -249,6 +254,7 @@ digraph UML_FIED {
   DATASETS__fetch_zip_codes[label="datasets.fetch_zip_codes()"]
   DATASETS__fetch_shapefile_census_block_groups[label="datasets.fetch_shapefile_census_block_groups()"]
   DATASETS__fetch_shapefile_congressional_district[label="datasets.fetch_shapefile_congressional_district()"]
+  DATASETS__fetch_naics[label="datasets.fetch_naics()"]
   
   FRS__frs_extraction__FRS__build_frs_json[label="frs.frs_extraction.FRS.build_frs_json()"]
   FRS__frs_extraction__FRS__fix_code[label="frs.frs_extraction.FRS.fix_code()"]
@@ -321,7 +327,12 @@ digraph UML_FIED {
   GEOCODER__geopandas_tools__FiedGIS_merge_coordinates_geom[label="geocoder.geopandas_tools.FiedGIS.merge_coordinates_geom()"]
   GEOCODER__geopandas_tools__FiedGIS_merge_coordinates_geom -> GEOCODER__geopandas_tools__FiedGIS_merge_geom
 
-  // Tools.naics_matcher (to be updated)
+  // Tools.naics_matcher file
   TOOLS__naics_matcher__naics_matcher[label="tools.naics_matcher.naics_matcher()"]
+  DATASETS__fetch_naics -> TOOLS__naics_matcher__naics_matcher
+
+  // Tools.misc_tools.py file
+  TOOLS__misc_tools__FRS_API[label="tools.misc_tools.FRS_API"]
+  SOURCE_FRS_EPA -> TOOLS__misc_tools__FRS_API
 
 }
