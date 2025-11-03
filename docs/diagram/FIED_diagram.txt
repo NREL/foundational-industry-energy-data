@@ -232,13 +232,13 @@ digraph UML_FIED {
   D__scc__iden_scc[label="data/scc/iden_scc.csv"]
   D__scc__frs_data_formatted[label="data/FRS/frs_data_formatted.csv"]
 
-  GEOCODER__geopandas_tools__FiedGIS[label="geocoder.geopandas_tools.FiedGIS"]
 
-	NEI__unit_conversion[label="nei.unit_conversion.yml"]
+  NEI__unit_conversion[label="nei.unit_conversion.yml"]
 
   DATASETS__fetch_frs[label="datasets.fetch_frs()"]
   DATASETS__fetch_scc[label="datasets.fetch_scc()"]
   DATASETS__fetch_state_FIPS[label="datasets.fetch_state_FIPS()"]
+  DATASETS__fetch_QPC[label="datasets.fetch_QPC()"]
   DATASETS__SCCDownload_csv[label="datasets.SCCDownload_csv"]
   
   DATASETS__fetch_ghgrp_records[label="datasets.fetch_ghgrp_records()"]
@@ -278,6 +278,7 @@ digraph UML_FIED {
   SOURCE_FRS_EPA -> FIED_COMPILATION_separate_unit_data
   FIED_COMPILATION_assemble_final_df[label="fied_compilation.assemble_final_df()"]
   SOURCE_FRS_EPA -> FIED_COMPILATION_assemble_final_df
+  GEOCODER__geo_tools_fix_county_fips -> FIED_COMPILATION_assemble_final_df
   FIED_COMPILATION_doit[label="fied_compilation.doit()"]
   SCC__scc_unit_id__SCC_ID__main -> FIED_COMPILATION_doit
   GHGRP__run_GHGRP_main -> FIED_COMPILATION_doit
@@ -288,10 +289,21 @@ digraph UML_FIED {
 
   // QPC census_qpc.py (to be updated more)
   QPC__census_qpc__QPC__main[label="qpc.census_qpc.QPC.main()"]
+  QPC__census_qpc__QPC__get_qpc_data[label="qpc.census_qpc.QPC.get_qpc_data()"]
+  DATASETS__fetch_QPC -> QPC__census_qpc__QPC__get_qpc_data
+  QPC__census_qpc__QPC__format_foundational[label="qpc.census_qpc.format_foundational()"]
+  TOOLS__naics_matcher__naics_matcher -> QPC__census_qpc__QPC__format_foundational
 
   // Source datasets nodes from the PDF (to be updated more)
   SOURCE_GHGRP_EPA[label="source_ghgrp_epa"]
   SOURCE_FRS_EPA[label="source_frs_epa"]
 
+  // Geocoder module (to be updated more)
+  GEOCODER__geopandas_tools__FiedGIS[label="geocoder.geopandas_tools.FiedGIS"]
+  GEOCODER__geo_tools_fix_county_fips[label="geocoder.geo_tools.fix_county_fips()"]
+
+  // Tools.naics_matcher (to be updated)
+  TOOLS__naics_matcher__naics_matcher[label="tools.naics_matcher.naics_matcher()"]
 
 }
+
