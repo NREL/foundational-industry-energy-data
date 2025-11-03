@@ -177,7 +177,7 @@ digraph UML_FIED {
 	SCC__scc_unit_id__SCC_ID__id_industrial_processes -> D__scc__iden_scc
 
 
-	DATASETS__fetch_state_FIPS -> GEOCODER__geopandas_tools__FiedGIS
+	
 	D__scc__frs_data_formatted -> check_registry_id
 	ghgrp_energy_file -> GHGRP__ghgrp_fac_unit__GHGRP_unit_char
 	TOOLS__fuel_type_standardization -> GHGRP__ghgrp_fac_unit__GHGRP_unit_char
@@ -247,6 +247,8 @@ digraph UML_FIED {
   DATASETS__fetch_shapefile_NHDP[label="datasets.fetch_shapefile_NHDP()"]
   DATASETS__fetch_shapefile_county[label="datasets.fetch_shapefile_county()"]
   DATASETS__fetch_zip_codes[label="datasets.fetch_zip_codes()"]
+  DATASETS__fetch_shapefile_census_block_groups[label="datasets.fetch_shapefile_census_block_groups()"]
+  DATASETS__fetch_shapefile_congressional_district[label="datasets.fetch_shapefile_congressional_district()"]
   
   FRS__frs_extraction__FRS__build_frs_json[label="frs.frs_extraction.FRS.build_frs_json()"]
   FRS__frs_extraction__FRS__fix_code[label="frs.frs_extraction.FRS.fix_code()"]
@@ -287,23 +289,39 @@ digraph UML_FIED {
   NEI__nei_EF_calculations__NEI__main -> FIED_COMPILATION_doit
   QPC__census_qpc__QPC__main -> FIED_COMPILATION_doit 
 
-  // QPC census_qpc.py (to be updated more)
+  // QPC census_qpc.py (completed)
   QPC__census_qpc__QPC__main[label="qpc.census_qpc.QPC.main()"]
   QPC__census_qpc__QPC__get_qpc_data[label="qpc.census_qpc.QPC.get_qpc_data()"]
   DATASETS__fetch_QPC -> QPC__census_qpc__QPC__get_qpc_data
   QPC__census_qpc__QPC__format_foundational[label="qpc.census_qpc.format_foundational()"]
   TOOLS__naics_matcher__naics_matcher -> QPC__census_qpc__QPC__format_foundational
 
+  
   // Source datasets nodes from the PDF (to be updated more)
   SOURCE_GHGRP_EPA[label="source_ghgrp_epa"]
   SOURCE_FRS_EPA[label="source_frs_epa"]
 
-  // Geocoder module (to be updated more)
+  // Geocoder module 
+  // 1. geo_tools.py file (completed)
+  GEOCODER__geo_tools__fix_county_fips[label="geocoder.geo_tools.fix_county_fips()"]
+  DATASETS__fetch_state_FIPS -> GEOCODER__geo_tools__fix_county_fips
+  GEOCODER__geo_tools__find_missing_congress[label="geocoder.geo_tools.find_missing_congress()"]
+  SOURCE_FRS_EPA -> GEOCODER__geo_tools__find_missing_congress
+
+  // 2. geopandas_tools.py file 
   GEOCODER__geopandas_tools__FiedGIS[label="geocoder.geopandas_tools.FiedGIS"]
-  GEOCODER__geo_tools_fix_county_fips[label="geocoder.geo_tools.fix_county_fips()"]
+  DATASETS__fetch_state_FIPS -> GEOCODER__geopandas_tools__FiedGIS
+  GEOCODER__geopandas_tools__FiedGIS__get_shapefile[label="geocgeocoder.geopandas_tools.FiedGIS.get_shapefile()"]
+  DATASETS__fetch_shapefile_census_block_groups -> GEOCODER__geopandas_tools__FiedGIS__get_shapefile
+  DATASETS__fetch_shapefile_congressional_district -> GEOCODER__geopandas_tools__FiedGIS__get_shapefile
+  DATASETS__fetch_shapefile_county -> GEOCODER__geopandas_tools__FiedGIS__get_shapefile
+  DATASETS__fetch_shapefile_NHDP -> GEOCODER__geopandas_tools__FiedGIS__get_shapefile
+  GEOCODER__geopandas_tools__FiedGIS_merge_geom[label="geocoder.geopandas_tools.FiedGIS.merge_geom()"]
+  GEOCODER__geopandas_tools__FiedGIS__get_shapefile -> GEOCODER__geopandas_tools__FiedGIS_merge_geom
+  GEOCODER__geopandas_tools__FiedGIS_merge_coordinates_geom[label="geocoder.geopandas_tools.FiedGIS.merge_coordinates_geom()"]
+  GEOCODER__geopandas_tools__FiedGIS_merge_coordinates_geom -> GEOCODER__geopandas_tools__FiedGIS_merge_geom
 
   // Tools.naics_matcher (to be updated)
   TOOLS__naics_matcher__naics_matcher[label="tools.naics_matcher.naics_matcher()"]
 
 }
-
