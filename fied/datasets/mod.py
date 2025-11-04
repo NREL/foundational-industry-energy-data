@@ -23,6 +23,7 @@ from fied.ghgrp import get_GHGRP_data
 
 module_logger = logging.getLogger(__name__)
 
+
 def fetch_frs(combined=True):
     """Fetch the Facility Registry Service (FRS) dataset from EPA
 
@@ -499,7 +500,9 @@ def fetch_ghgrp_records(year: int, table: str):
         return pl.read_parquet(filename)
 
     module_logger.info(f"Downloading GHGRP records for {year} - {table}")
-    records = get_GHGRP_data.get_GHGRP_records(reporting_year=year, table=table, as_polars=True)
+    records = get_GHGRP_data.get_GHGRP_records(
+        reporting_year=year, table=table, as_polars=True
+    )
 
     # Guarantee that full path exists
     filename.parent.mkdir(parents=True, exist_ok=True)
