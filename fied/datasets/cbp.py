@@ -51,7 +51,16 @@ def _fix_null(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def fetch_cbp_county(year: int):
-    """Fetch County Business Patterns data for a given year."""
+    """Fetch County Business Patterns data for a given year.
+
+    Saves locally the zipped file to keep cache smaller and unzips
+    every time it is called.
+
+    Parameters
+    ----------
+    year : int
+        Year of the CBP data to fetch.
+    """
     artifact = f"{year}/cbp{str(year)[2:]}co.zip"
 
     with tempfile.TemporaryDirectory() as swap:
