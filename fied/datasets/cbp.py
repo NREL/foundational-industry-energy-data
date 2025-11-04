@@ -8,7 +8,7 @@ import re
 import tempfile
 
 
-CBP_DATA_URL = "https://www2.census.gov/programs-surveys/cbp/datasets/{year}/"
+CBP_DATA_URL = "https://www2.census.gov/programs-surveys/cbp/datasets/"
 CBP_API_URL = "https://api.census.gov/data/{year}/cbp"
 SIZE_HEADER_RULE = re.compile("(n<5)|(n\d+_\d+)|(n1000(_\d)?)")
 
