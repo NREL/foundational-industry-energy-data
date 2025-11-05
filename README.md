@@ -37,31 +37,19 @@ Due to the nature of how they are provided, several data sets must be manually d
 
     * `ghgrp_fac_unit.py` will unzip and format these data.
 
-### Environment
+### Installation
 
-`fied_environment.yml` is the conda environment used when creating the foundational dataset. Its key dependencies include:
-
-* `python=3.9.18=h6244533_0`
-* `pandas=1.2.0=py39h2e25243_1`
-* `numpy=1.23.4=py39hbccbffa_1`
-* `geopandas=0.12.1=pyhd8ed1ab_1`
-* `openpyxl=3.0.10=py39h2bbff1b_0`
+To prepare your environment to compile the FIED, please follow the instructions in INSTALL.md .
 
 ## Compiling the FIED
 
-In addition to manually downloading the above datasets, executing the calulations and data compilation requires two steps after activating the fied environment.
+Once the FIED Python package is installed, you will have access to a command
+that will download all the necessary data and process it to create the FIED dataset.
 
-1. `./frs/frs_extraction.py`. This will download, extract, and format EPA FRS data. The resulting csv should be saved in `data/FRS/`.
-2. `fied_compilation.py`. This will execute all of the remaining steps for compiling the foundational data set.
+For instance, from the terminal, you can run:
 
-So, from the terminal or Anaconda prompt:
-
-```text
-conda activate fied
-
-python ./frs/frs_extraction.py
-
-python fied_compilation.py
+```bash
+fied --vintage=2020
 ```
 
 ## Directory Navigation
