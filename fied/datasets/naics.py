@@ -11,7 +11,7 @@ module_logger = logging.getLogger(__name__)
 
 
 def fetch_naics(naics_vintage=2022):
-    """Load NAICS codes
+    """Load 6-digit NAICS codes
 
     Download and saves for future use the National Industry
     Classification System (NAICS) codes from
