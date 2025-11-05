@@ -6,7 +6,6 @@ from .mod import (
     fetch_emission,
     fetch_webfirefactors,
     fetch_scc,
-    fetch_naics,
     fetch_shapefile_census_block_groups,
     fetch_shapefile_congressional_district,
     fetch_shapefile_county,
@@ -17,3 +16,4 @@ from .mod import (
 )
 
 from .cbp import fetch_cbp_county
+from .naics import fetch_naics
