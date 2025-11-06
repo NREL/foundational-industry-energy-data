@@ -172,13 +172,13 @@ digraph UML_FIED {
 	TOOLS__misc_tools__Tools__unit_regex -> NEI__nei_EF_calculations__NEI__assign_types
 	NEI__nei_EF_calculations__NEI__remove_unit_types -> NEI__nei_EF_calculations__NEI__assign_types
 	NEI__nei_EF_calculations__NEI__unit_type_selection -> NEI__nei_EF_calculations__NEI__assign_types
-	D__fetch_webfirefactors -> NEI__nei_EF_calculations__NEI__match_webfire_to_nei
+	DATASETS__fetch_webfirefactors -> NEI__nei_EF_calculations__NEI__match_webfire_to_nei
 	NEI__nei_EF_calculations__NEI__match_webfire_to_nei -> NEI__nei_EF_calculations__NEI__assign_types
 	NEI__nei_EF_calculations__NEI__assign_types -> NEI__nei_EF_calculations__NEI__detect_and_fix_ef_outliers
 	NEI__nei_EF_calculations__NEI__detect_and_fix_ef_outliers -> NEI__nei_EF_calculations__NEI__convert_emissions_units
 	NEI__nei_EF_calculations__NEI__convert_emissions_units -> NEI__nei_EF_calculations__NEI__calc_unit_throughput_and_energy
 	NEI__nei_EF_calculations__NEI__calc_unit_throughput_and_energy -> NEI__nei_EF_calculations__NEI__apply_median_webfr_ef
-	D__fetch_webfirefactors -> NEI__nei_EF_calculations__NEI__apply_median_webfr_ef
+	DATASETS__fetch_webfirefactors -> NEI__nei_EF_calculations__NEI__apply_median_webfr_ef
 	NEI__nei_EF_calculations__NEI__apply_median_webfr_ef -> NEI__nei_EF_calculations__NEI__get_median_throughput_and_energy
 	NEI__nei_EF_calculations__NEI__get_median_throughput_and_energy -> NEI__nei_EF_calculations__NEI__merge_med_missing
 	NEI__nei_EF_calculations__NEI__apply_median_webfr_ef -> NEI__nei_EF_calculations__NEI__separate_missing_units
@@ -232,7 +232,7 @@ digraph UML_FIED {
 	FRSE[label="frs_extraction.py"]
 
 	FRSE_iff[label="frs_methods.import_format_frs"]
-	D__fetch_webfirefactors[label="datasets.fetch_webfirefactors()"]
+	DATASETS__fetch_webfirefactors[label="datasets.fetch_webfirefactors()"]
 
 	A_NA_LNA[label="analysis.naics_analysis.load_naics_assignments"]
 	A_NA_CNA[label="analysis.naics_analysis.compare_naics_assignments"]
@@ -241,6 +241,8 @@ digraph UML_FIED {
 
 	NEI__nei_EF_calculations__NEI[label="nei.nei_EF_calculations.NEI"]
 	NEI__nei_EF_calculations__NEI__load_nei_data[label="nei.nei_EF_calculations.NEI.load_nei_data()"]
+	DATASETS__fetch_nei_2017 -> NEI__nei_EF_calculations__NEI__load_nei_data
+	DATASETS__fetch_nei_2020 -> NEI__nei_EF_calculations__NEI__load_nei_data
 	NEI__nei_EF_calculations__NEI__load_scc_unittypes[label="nei.nei_EF_calculations.NEI.load_scc_unittypes()"]
 	NEI__nei_EF_calculations__NEI__match_webfire_to_nei[label="nei.nei_EF_calculations.NEI.match_webfire_to_nei()"]
 	NEI__nei_EF_calculations__NEI__detect_and_fix_ef_outliers[label="nei.nei_EF_calculations.NEI.detect_and_fix_ef_outliers()"]
@@ -262,6 +264,8 @@ digraph UML_FIED {
 
 	SCC__scc_unit_id__SCC_ID[label="scc.scc_unit_id.SCC_ID"]
 	SCC__scc_unit_id__SCC_ID__main[label="scc.scc_unit_id.SCC_ID.main()"]
+	SCC__scc_unit_id__SCC_ID -> SCC__scc_unit_id__SCC_ID__main
+	SCC__scc_unit_id__SCC_ID__build_id -> SCC__scc_unit_id__SCC_ID__main
 	SCC__scc_unit_id__SCC_ID__build_id[label="scc.scc_unit_id.SCC_ID.build_id()"]
 	SCC__scc_unit_id__SCC_ID__load_complete_scc[label="scc.scc_unit_id.SCC_ID.load_complete_scc()"]
 	SCC__scc_unit_id__SCC_ID__id_external_combustion[label="scc.scc_unit_id.SCC_ID.id_external_combustion()"]
@@ -292,6 +296,8 @@ digraph UML_FIED {
   DATASETS__fetch_shapefile_congressional_district[label="datasets.fetch_shapefile_congressional_district()"]
   DATASETS__fetch_naics[label="datasets.fetch_naics()"]
   DATASETS__fetch_emission[label="datasets.fetch_emission()"]
+  DATASETS__fetch_nei_2017[label="datasets.fetch_nei_2017()"]
+  DATASETS__fetch_nei_2020[label="datasets.fetch_nei_2020()"]
   
   FRS__frs_extraction__FRS__build_frs_json[label="frs.frs_extraction.FRS.build_frs_json()"]
   FRS__frs_extraction__FRS__fix_code[label="frs.frs_extraction.FRS.fix_code()"]
