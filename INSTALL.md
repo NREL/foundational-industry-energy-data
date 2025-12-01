@@ -20,7 +20,6 @@ Some options are:
 
 1. [Installing with PIP](#installing-with-pip)
 2. [Installing with Pixi (recommended)](#installing-with-pixi-recommended)
-3. [Installing with Conda](#installing-with-conda)
 
 ### Installing with PIP
 
@@ -96,5 +95,3 @@ For Windows:
    you are now in the `fied` environment.
    Now you can run the command `fied --version` to verify which version you
    are using, and run `fied` to rebuild the dataset locally.
-
-### Installing with Conda
