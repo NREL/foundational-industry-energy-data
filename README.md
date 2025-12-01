@@ -52,6 +52,9 @@ For instance, from the terminal, you can run:
 fied --vintage=2020
 ```
 
+Note that old versions of the FIED package required manual data download,
+which is not required anymore.
+
 ## Directory Navigation
 
 The underlying submodules and data are organized as follows:
