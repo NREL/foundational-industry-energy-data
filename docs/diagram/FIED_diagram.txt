@@ -16,27 +16,44 @@ digraph UML_FIED {
 
 
   FRS__frs_extraction__FRS[label="frs.frs_extraction.FRS"]
+  SOURCE__FRS_EPA -> FRS__frs_extraction__FRS
   FRS__frs_extraction__FRS__call_all_fips[label="frs.frs_extraction.FRS.call_all_fips"]
 	FRS__frs_extraction__FRS__import_format_frs[label="frs.frs_extraction.FRS.import_format_frs"]
 	FRS__frs_extraction__FRS__read_frs_csv[label="frs.frs_extraction.FRS.read_frs_csv"]
 	FRS__frs_extraction__FRS__format_naics_csv[label="frs.frs_extraction.FRS.format_naics_csv"]
 	FRS__frs_extraction__FRS__format_program_csv[label="frs.frs_extraction.FRS.format_program_csv"]
+  
+  FRS__frs_extraction_doit[label="frs.frs_extraction.doit()"]
+  FRS__frs_extraction__FRS -> FRS__frs_extraction_doit
+  FRS__frs_extraction__FRS__import_format_frs -> FRS__frs_extraction_doit
 
-
+  FRS_naics_selection__NAICS_Identification[label="frs.naics_selection.NAICS_Identification"]
+  SOURCE__FRS_EPA -> FRS_naics_selection__NAICS_Identification
   FRS__naics_selection__NAICS_Identification__id_naics_pgm[label="frs.naics_selection.NAICS_Identification.id_naics_pgm()"]
 	FRS__naics_selection__NAICS_Identification__assign_all_naics[label="frs.naics_selection.NAICS_Identification.assign_all_naics()"]
 	FRS__naics_selection__NAICS_Identification__split_naics_count[label="frs.naics_selection.NAICS_Identification.split_naics_count()"]
 	FRS__naics_selection__NAICS_Identification__find_max_naics[label="frs.naics_selection.NAICS_Identification.find_max_naics()"]
 	FRS__naics_selection__NAICS_Identification__id_additional_naics[label="frs.naics_selection.NAICS_Identification.id_additional_naics()"]
-
+	
+	FRS__naics_selection__NAICS_Identification__find_max_naics -> FRS__naics_selection__NAICS_Identification__assign_all_naics
+	FRS__naics_selection__NAICS_Identification__split_naics_count -> FRS__naics_selection__NAICS_Identification__assign_all_naics
+	FRS__naics_selection__NAICS_Identification__id_naics_pgm -> FRS__naics_selection__NAICS_Identification__assign_all_naics
+	FRS__naics_selection__NAICS_Identification__id_additional_naics -> FRS__naics_selection__NAICS_Identification__assign_all_naics
 
 	GHGRP__calc_GHGRP_energy__GHGRP[label="ghgrp.calc_GHGRP_energy.GHGRP"]
+	DATASETS__fetch_ghgrp_records -> GHGRP__calc_GHGRP_energy__GHGRP
+	SOURCE__GHGRP_EPA -> GHGRP__calc_GHGRP_energy__GHGRP
 	GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010[label="ghgrp.calc_GHGRP_energy.GHGRP.fac_file_2010"]
 	GHGRP__calc_GHGRP_energy__GHGRP__gis[label="ghgrp.calc_GHGRP_energy.GHGRP.gis"]
 	GHGRP__calc_GHGRP_energy__GHGRP__download_or_read_ghgrp_file[label="ghgrp.calc_GHGRP_energy.GHGRP.download_or_read_ghgrp_file()"]
+	GHGRP__get_GHGRP_data__get_records -> GHGRP__calc_GHGRP_energy__GHGRP__download_or_read_ghgrp_file
 	GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix[label="ghgrp.calc_GHGRP_energy.GHGRP.fac_read_fix()"]
 	GHGRP__calc_GHGRP_energy__GHGRP__format_facilities[label="ghgrp.calc_GHGRP_energy.GHGRP.format_facilities()"]
+	GHGRP__calc_GHGRP_energy__GHGRP__format_emissions[label="ghgrp.calc_GHGRP_energy.GHGRP.format_emissions()"]
 	GHGRP__calc_GHGRP_energy__GHGRP__import_data[label="ghgrp.calc_GHGRP_energy.GHGRP.import_data()"]
+	GHGRP__calc_GHGRP_energy__GHGRP__calc_energy_subC[label="ghgrp.calc_GHGRP_energy.GHGRP.calc_energy_subC()"]
+	GHGRP__ghg_tiers__TierEnergy_calc_all_tiers -> GHGRP__calc_GHGRP_energy__GHGRP__calc_energy_subC
+	GHGRP__ghg_tiers__TierEnergy_calc_all_tiers[label="ghgrp.ghg_tiers.TierEnergy.calc_all_tiers()"]
 
 	GEOCODER__geopandas_tools__FiedGIS -> GHGRP__calc_GHGRP_energy__GHGRP
 	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010
@@ -44,7 +61,7 @@ digraph UML_FIED {
 	GHGRP__calc_GHGRP_energy__GHGRP__fac_file_2010 -> GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix
 	GHGRP__calc_GHGRP_energy__GHGRP__fac_read_fix -> GHGRP__calc_GHGRP_energy__GHGRP__format_facilities
 	GHGRP__calc_GHGRP_energy__GHGRP__download_or_read_ghgrp_file -> GHGRP__calc_GHGRP_energy__GHGRP__import_data
-	GHGRP__calc_GHGRP_energy__GHGRP__format_facilities -> GHGRP__calc_GHGRP_energy__GHGRP__import_data
+	GHGRP__calc_GHGRP_energy__GHGRP__format_emissions -> GHGRP__calc_GHGRP_energy__GHGRP__import_data
 	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__calc_GHGRP_energy__GHGRP
 	GHGRP__ghg_tiers__TierEnergy -> GHGRP__calc_GHGRP_energy__GHGRP
 
@@ -53,7 +70,9 @@ digraph UML_FIED {
 	GHGRP__get_GHGRP_data__get_count[label="ghgrp.get_GHGRP_data.get_count()"]
 	GHGRP__get_GHGRP_data__get_records[label="ghgrp.get_GHGRP_data.get_records()"]
 	GHGRP__get_GHGRP_data__requests_retry_session[label="ghgrp.get_GHGRP_data.requests_retry_session()"]
-
+	
+	SOURCE__GHGRP_EPA -> GHGRP__get_GHGRP_data__get_records
+	SOURCE__GHGRP_EPA -> GHGRP__get_GHGRP_data__get_GHGRP_records
 	GHGRP__get_GHGRP_data__requests_retry_session -> GHGRP__get_GHGRP_data__get_count
 	GHGRP__get_GHGRP_data__requests_retry_session -> GHGRP__get_GHGRP_data__get_records
 	GHGRP__get_GHGRP_data__get_count -> GHGRP__get_GHGRP_data__get_GHGRP_records
@@ -61,10 +80,19 @@ digraph UML_FIED {
 
 
 	GHGRP__ghgrp_fac_unit__GHGRP_unit_char[label="ghgrp.ghgrp_fac_unit.GHGRP_unit_char()"]
+	SOURCE__GHGRP_EPA -> GHGRP__ghgrp_fac_unit__GHGRP_unit_char
 	GHGRP__ghgrp_fac_unit__load_fueltype_df[label="ghgrp.ghgrp_fac_unit.load_fueltype_df"]
-	GHGRP__ghgrp_fac_unit__harmonize_fuel_type[label="ghgrp.ghgrp_fac_unit.harmonize_fuel_type"]
-
+	GHGRP__ghgrp_fac_unit__harmonize_fuel_type[label="ghgrp.ghgrp_fac_unit.harmonize_fuel_type()"]
+	GHGRP__ghgrp_fac_unit__get_unit_capacity[label="ghgrp.ghgrp_fac_unit.get_unit_capacity()"]
+	DATASETS__fetch_emission -> GHGRP__ghgrp_fac_unit__get_unit_capacity
 	ghgrp_energy_parquet -> GHGRP__ghgrp_fac_unit__GHGRP_unit_char
+	GHGRP__ghgrp_fac_unit__get_unit_type[label="ghgrp.ghgrp_fac_unit.get_unit_type()"]
+	GHGRP__ghgrp_fac_unit__format_ghgrp_df[label="ghgrp.ghgrp_fac_unit.format_ghgrp_df()"]
+	GHGRP__ghgrp_fac_unit__main[label="ghgrp.ghgrp_fac_unit.main()"]
+	GHGRP__ghgrp_fac_unit__get_unit_type -> GHGRP__ghgrp_fac_unit__main
+	GHGRP__ghgrp_fac_unit__get_unit_capacity -> GHGRP__ghgrp_fac_unit__main
+	GHGRP__ghgrp_fac_unit__format_ghgrp_df -> GHGRP__ghgrp_fac_unit__main
+	
 
 
 	GHGRP__ghg_tiers__TierEnergy[label="ghgrp.ghg_tiers.TierEnergy"]
@@ -73,10 +101,23 @@ digraph UML_FIED {
 
 
 	GHGRP__heat_rate_uncertainty__FuelUncertainty[label="ghgrp.heat_rate_uncertainty.FuelUncertainty"]
-
+	GHGRP__heat_rate_uncertainty__FuelUncertainty__dl_tier[label="ghgrp.heat_rate_uncertainty.FuelUncertainty.dl_tier()"]
+	DATASETS__fetch_ghgrp_records -> GHGRP__heat_rate_uncertainty__FuelUncertainty__dl_tier
+	SOURCE__GHGRP_EPA -> GHGRP__heat_rate_uncertainty__FuelUncertainty
 	GHGRP__get_GHGRP_data__get_GHGRP_records -> GHGRP__heat_rate_uncertainty__FuelUncertainty
 
 	GHGRP__calc_GHGRP_energy__GHGRP -> ghgrp_energy_parquet
+
+	GHGRP__onsite_food[label="ghgrp.onsite_food"]
+	GHGRP__calc_GHGRP_energy__GHGRP -> GHGRP__onsite_food
+	GHGRP__calc_GHGRP_AA__subpartAA[label="ghgrp.calc_GHGRP_AA.subpartAA"]
+	GHGRP__calc_GHGRP_AA__subpartAA -> GHGRP__onsite_food
+
+	GHGRP__run_GHGRP_main[label="ghgrp.run_GHGRP.main()"]
+	GHGRP__calc_GHGRP_energy__GHGRP -> GHGRP__run_GHGRP_main
+	GHGRP__calc_GHGRP_AA__subpartAA -> GHGRP__run_GHGRP_main
+	GHGRP__ghgrp_fac_unit__GHGRP_unit_char -> GHGRP__run_GHGRP_main
+
 
 
 	TOOLS__all_fuels[label="tools.all_fuels.csv"]
@@ -131,13 +172,13 @@ digraph UML_FIED {
 	TOOLS__misc_tools__Tools__unit_regex -> NEI__nei_EF_calculations__NEI__assign_types
 	NEI__nei_EF_calculations__NEI__remove_unit_types -> NEI__nei_EF_calculations__NEI__assign_types
 	NEI__nei_EF_calculations__NEI__unit_type_selection -> NEI__nei_EF_calculations__NEI__assign_types
-	D__fetch_webfirefactors -> NEI__nei_EF_calculations__NEI__match_webfire_to_nei
+	DATASETS__fetch_webfirefactors -> NEI__nei_EF_calculations__NEI__match_webfire_to_nei
 	NEI__nei_EF_calculations__NEI__match_webfire_to_nei -> NEI__nei_EF_calculations__NEI__assign_types
 	NEI__nei_EF_calculations__NEI__assign_types -> NEI__nei_EF_calculations__NEI__detect_and_fix_ef_outliers
 	NEI__nei_EF_calculations__NEI__detect_and_fix_ef_outliers -> NEI__nei_EF_calculations__NEI__convert_emissions_units
 	NEI__nei_EF_calculations__NEI__convert_emissions_units -> NEI__nei_EF_calculations__NEI__calc_unit_throughput_and_energy
 	NEI__nei_EF_calculations__NEI__calc_unit_throughput_and_energy -> NEI__nei_EF_calculations__NEI__apply_median_webfr_ef
-	D__fetch_webfirefactors -> NEI__nei_EF_calculations__NEI__apply_median_webfr_ef
+	DATASETS__fetch_webfirefactors -> NEI__nei_EF_calculations__NEI__apply_median_webfr_ef
 	NEI__nei_EF_calculations__NEI__apply_median_webfr_ef -> NEI__nei_EF_calculations__NEI__get_median_throughput_and_energy
 	NEI__nei_EF_calculations__NEI__get_median_throughput_and_energy -> NEI__nei_EF_calculations__NEI__merge_med_missing
 	NEI__nei_EF_calculations__NEI__apply_median_webfr_ef -> NEI__nei_EF_calculations__NEI__separate_missing_units
@@ -177,7 +218,7 @@ digraph UML_FIED {
 	SCC__scc_unit_id__SCC_ID__id_industrial_processes -> D__scc__iden_scc
 
 
-	DATASETS__fetch_state_FIPS -> GEOCODER__geopandas_tools__FiedGIS
+	
 	D__scc__frs_data_formatted -> check_registry_id
 	ghgrp_energy_file -> GHGRP__ghgrp_fac_unit__GHGRP_unit_char
 	TOOLS__fuel_type_standardization -> GHGRP__ghgrp_fac_unit__GHGRP_unit_char
@@ -191,7 +232,7 @@ digraph UML_FIED {
 	FRSE[label="frs_extraction.py"]
 
 	FRSE_iff[label="frs_methods.import_format_frs"]
-	D__fetch_webfirefactors[label="datasets.fetch_webfirefactors()"]
+	DATASETS__fetch_webfirefactors[label="datasets.fetch_webfirefactors()"]
 
 	A_NA_LNA[label="analysis.naics_analysis.load_naics_assignments"]
 	A_NA_CNA[label="analysis.naics_analysis.compare_naics_assignments"]
@@ -200,6 +241,8 @@ digraph UML_FIED {
 
 	NEI__nei_EF_calculations__NEI[label="nei.nei_EF_calculations.NEI"]
 	NEI__nei_EF_calculations__NEI__load_nei_data[label="nei.nei_EF_calculations.NEI.load_nei_data()"]
+	DATASETS__fetch_nei_2017 -> NEI__nei_EF_calculations__NEI__load_nei_data
+	DATASETS__fetch_nei_2020 -> NEI__nei_EF_calculations__NEI__load_nei_data
 	NEI__nei_EF_calculations__NEI__load_scc_unittypes[label="nei.nei_EF_calculations.NEI.load_scc_unittypes()"]
 	NEI__nei_EF_calculations__NEI__match_webfire_to_nei[label="nei.nei_EF_calculations.NEI.match_webfire_to_nei()"]
 	NEI__nei_EF_calculations__NEI__detect_and_fix_ef_outliers[label="nei.nei_EF_calculations.NEI.detect_and_fix_ef_outliers()"]
@@ -209,7 +252,7 @@ digraph UML_FIED {
 	NEI__nei_EF_calculations__NEI__get_median_throughput_and_energy[label="nei.nei_EF_calculations.NEI.get_median_throughput_and_energy()"]
 	NEI__nei_EF_calculations__NEI__separate_missing_units[label="nei.nei_EF_calculations.NEI.separate_missing_units()"]
 	NEI__nei_EF_calculations__NEI__merge_med_missing[label="nei.nei_EF_calculations.NEI.merge_med_missing()"]
-	NEI__nei_EF_calculations__NEI__extract_ghg_emissions[label="nei.nei_EF_calculations.NEI.extract_ghg_emissions(()"]
+	NEI__nei_EF_calculations__NEI__extract_ghg_emissions[label="nei.nei_EF_calculations.NEI.extract_ghg_emissions()"]
 	NEI__nei_EF_calculations__NEI__merge_fill_ghg_emissions[label="nei.nei_EF_calculations.NEI.merge_fill_ghg_emissions()"]
 	NEI__nei_EF_calculations__NEI__format_nei_char[label="nei.nei_EF_calculations.NEI.format_nei_char()"]
 	NEI__nei_EF_calculations__NEI__find_missing_cap[label="nei.nei_EF_calculations.NEI.find_missing_cap()"]
@@ -221,6 +264,8 @@ digraph UML_FIED {
 
 	SCC__scc_unit_id__SCC_ID[label="scc.scc_unit_id.SCC_ID"]
 	SCC__scc_unit_id__SCC_ID__main[label="scc.scc_unit_id.SCC_ID.main()"]
+	SCC__scc_unit_id__SCC_ID -> SCC__scc_unit_id__SCC_ID__main
+	SCC__scc_unit_id__SCC_ID__build_id -> SCC__scc_unit_id__SCC_ID__main
 	SCC__scc_unit_id__SCC_ID__build_id[label="scc.scc_unit_id.SCC_ID.build_id()"]
 	SCC__scc_unit_id__SCC_ID__load_complete_scc[label="scc.scc_unit_id.SCC_ID.load_complete_scc()"]
 	SCC__scc_unit_id__SCC_ID__id_external_combustion[label="scc.scc_unit_id.SCC_ID.id_external_combustion()"]
@@ -232,14 +277,114 @@ digraph UML_FIED {
   D__scc__iden_scc[label="data/scc/iden_scc.csv"]
   D__scc__frs_data_formatted[label="data/FRS/frs_data_formatted.csv"]
 
-  GEOCODER__geopandas_tools__FiedGIS[label="geocoder.geopandas_tools.FiedGIS"]
 
-	NEI__unit_conversion[label="nei.unit_conversion.yml"]
+  NEI__unit_conversion[label="nei.unit_conversion.yml"]
 
   DATASETS__fetch_frs[label="datasets.fetch_frs()"]
   DATASETS__fetch_scc[label="datasets.fetch_scc()"]
   DATASETS__fetch_state_FIPS[label="datasets.fetch_state_FIPS()"]
+  DATASETS__fetch_QPC[label="datasets.fetch_QPC()"]
   DATASETS__SCCDownload_csv[label="datasets.SCCDownload_csv"]
+  
+  DATASETS__fetch_ghgrp_records[label="datasets.fetch_ghgrp_records()"]
+  DATASETS__fetch_ghgrp_records -> GHGRP__get_GHGRP_data__get_GHGRP_records
 
+  DATASETS__fetch_shapefile_NHDP[label="datasets.fetch_shapefile_NHDP()"]
+  DATASETS__fetch_shapefile_county[label="datasets.fetch_shapefile_county()"]
+  DATASETS__fetch_zip_codes[label="datasets.fetch_zip_codes()"]
+  DATASETS__fetch_shapefile_census_block_groups[label="datasets.fetch_shapefile_census_block_groups()"]
+  DATASETS__fetch_shapefile_congressional_district[label="datasets.fetch_shapefile_congressional_district()"]
+  DATASETS__fetch_naics[label="datasets.fetch_naics()"]
+  DATASETS__fetch_emission[label="datasets.fetch_emission()"]
+  DATASETS__fetch_nei_2017[label="datasets.fetch_nei_2017()"]
+  DATASETS__fetch_nei_2020[label="datasets.fetch_nei_2020()"]
+  
+  FRS__frs_extraction__FRS__build_frs_json[label="frs.frs_extraction.FRS.build_frs_json()"]
+  FRS__frs_extraction__FRS__fix_code[label="frs.frs_extraction.FRS.fix_code()"]
+  FRS__frs_extraction__FRS__fix_code -> FRS__frs_extraction__FRS__build_frs_json
+
+  // cli.py file (completed)
+  CLI__main[label="cli.main()"]
+  FRS__frs_extraction_doit -> CLI__main
+  FIED_COMPILATION__doit -> CLI__main
+  
+  // fied_comlation.py file (completed)
+  FIED_COMPILATION_check_registry_id[label="fied_compilation.check_registry_id()"]
+  SOURCE__GHGRP_EPA -> FIED_COMPILATION_check_registry_id
+  SOURCE__FRS_EPA -> FIED_COMPILATION_check_registry_id
+  FIED_COMPILATION_melt_multiple_ids[label="fied_compilation.melt_multiple_ids()"]
+  SOURCE__FRS_EPA -> FIED_COMPILATION_melt_multiple_ids
+  FIED_COMPILATION_blend_estimates[label="fied_compilation.melt_multiple_ids()"]
+  SOURCE__GHGRP_EPA -> FIED_COMPILATION_blend_estimates
+  FIED_COMPILATION_reconcile_shared_nonocs[label="fied_compilation.reconcile_shared_nonocs()"]
+  SOURCE__GHGRP_EPA -> FIED_COMPILATION_reconcile_shared_nonocs
+  FIED_COMPILATION_id_nei_units_ocs[label="fied_compilation.id_nei_units_ocs()"]
+  SOURCE__GHGRP_EPA -> FIED_COMPILATION_id_nei_units_ocs
+  FIED_COMPILATION_id_ghgrp_units[label="fied_compilation.id_ghgrp_units()"]
+  SOURCE__GHGRP_EPA -> FIED_COMPILATION_id_ghgrp_units
+  FIED_COMPILATION_allocate_shared_ocs[label="fied_compilation_allocate_shared_ocs()"]
+  SOURCE__GHGRP_EPA -> FIED_COMPILATION_allocate_shared_ocs
+  FIED_COMPILATION_separate_unit_data[label="fied_compilation.separate_unit_data()"]
+  SOURCE__GHGRP_EPA -> FIED_COMPILATION_separate_unit_data
+  SOURCE__FRS_EPA -> FIED_COMPILATION_separate_unit_data
+  FIED_COMPILATION_assemble_final_df[label="fied_compilation.assemble_final_df()"]
+  SOURCE__FRS_EPA -> FIED_COMPILATION_assemble_final_df
+  GEOCODER__geo_tools_fix_county_fips -> FIED_COMPILATION_assemble_final_df
+  FIED_COMPILATION_doit[label="fied_compilation.doit()"]
+  SCC__scc_unit_id__SCC_ID__main -> FIED_COMPILATION_doit
+  GHGRP__run_GHGRP_main -> FIED_COMPILATION_doit
+  SOURCE__GHGRP_EPA -> FIED_COMPILATION_doit
+  GHGRP__ghgrp_fac_unit__GHGRP_unit_char -> FIED_COMPILATION_doit
+  NEI__nei_EF_calculations__NEI__main -> FIED_COMPILATION_doit
+  QPC__census_qpc__QPC__main -> FIED_COMPILATION_doit 
+
+  // QPC census_qpc.py (completed)
+  QPC__census_qpc__QPC__main[label="qpc.census_qpc.QPC.main()"]
+  QPC__census_qpc__QPC__get_qpc_data[label="qpc.census_qpc.QPC.get_qpc_data()"]
+  DATASETS__fetch_QPC -> QPC__census_qpc__QPC__get_qpc_data
+  QPC__census_qpc__QPC__format_foundational[label="qpc.census_qpc.format_foundational()"]
+  TOOLS__naics_matcher__naics_matcher -> QPC__census_qpc__QPC__format_foundational
+
+  
+  // Source datasets nodes from the PDF (SOURCE__DataSource_Agency) (CB - Census Bureau)
+  SOURCE__GHGRP_EPA[label="source.ghgrp_epa"]
+  SOURCE__FRS_EPA[label="source.frs_epa"] // doesn't exist in the table though
+  SOURCE__MonthlyEnergyReview_EIA[label="source.monthlyenergyreview_eia"]
+  SOURCE__SEDS_EIA[label="source.seds_eia"]
+  SOURCE__MECS_EIA[label="source.mecs_eia"]
+  SOURCE__EIA923_EIA[label="source.eia923_eia"]
+  SOURCE__CensusAgriculture_USDA[label="source.censusagriculture_usda"]
+  SOURCE__AgricultureSurvey_USDA[label="source.agriculturesurvey_usda"]
+  SOURCE__EconomicCensus_CB[label="source.economiccensus_cb"]
+  SOURCE__Manufacturers_CB[label="source.manufacturers_cb"]
+  SOURCE__CBP_CB[label="source.cbp_cb"]
+
+  // Geocoder module 
+  // 1. geo_tools.py file (completed)
+  GEOCODER__geo_tools__fix_county_fips[label="geocoder.geo_tools.fix_county_fips()"]
+  DATASETS__fetch_state_FIPS -> GEOCODER__geo_tools__fix_county_fips
+  GEOCODER__geo_tools__find_missing_congress[label="geocoder.geo_tools.find_missing_congress()"]
+  SOURCE__FRS_EPA -> GEOCODER__geo_tools__find_missing_congress
+
+  // 2. geopandas_tools.py file 
+  GEOCODER__geopandas_tools__FiedGIS[label="geocoder.geopandas_tools.FiedGIS"]
+  DATASETS__fetch_state_FIPS -> GEOCODER__geopandas_tools__FiedGIS
+  GEOCODER__geopandas_tools__FiedGIS__get_shapefile[label="geocgeocoder.geopandas_tools.FiedGIS.get_shapefile()"]
+  DATASETS__fetch_shapefile_census_block_groups -> GEOCODER__geopandas_tools__FiedGIS__get_shapefile
+  DATASETS__fetch_shapefile_congressional_district -> GEOCODER__geopandas_tools__FiedGIS__get_shapefile
+  DATASETS__fetch_shapefile_county -> GEOCODER__geopandas_tools__FiedGIS__get_shapefile
+  DATASETS__fetch_shapefile_NHDP -> GEOCODER__geopandas_tools__FiedGIS__get_shapefile
+  GEOCODER__geopandas_tools__FiedGIS_merge_geom[label="geocoder.geopandas_tools.FiedGIS.merge_geom()"]
+  GEOCODER__geopandas_tools__FiedGIS__get_shapefile -> GEOCODER__geopandas_tools__FiedGIS_merge_geom
+  GEOCODER__geopandas_tools__FiedGIS_merge_coordinates_geom[label="geocoder.geopandas_tools.FiedGIS.merge_coordinates_geom()"]
+  GEOCODER__geopandas_tools__FiedGIS_merge_coordinates_geom -> GEOCODER__geopandas_tools__FiedGIS_merge_geom
+
+  // Tools.naics_matcher file
+  TOOLS__naics_matcher__naics_matcher[label="tools.naics_matcher.naics_matcher()"]
+  DATASETS__fetch_naics -> TOOLS__naics_matcher__naics_matcher
+
+  // Tools.misc_tools.py file
+  TOOLS__misc_tools__FRS_API[label="tools.misc_tools.FRS_API"]
+  SOURCE__FRS_EPA -> TOOLS__misc_tools__FRS_API
 
 }
