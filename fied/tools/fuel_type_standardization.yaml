@@ -1,37 +1,37 @@
 --- # Fuel Types
-Propane Gas: 
+Propane Gas:
   fuelTypeLv1: Hydrocarbon gas liquids
   fuelTypeLv2: Propane gas
   fied_2017: lpgHGL
-Natural Gas (Weighted U.S. Average): 
+Natural Gas (Weighted U.S. Average):
   fuelTypeLv1: Natural gas
   fuelTypeLv2: Natural gas
   fied_2017: naturalGas
 Wood and Wood Residuals (dry basis):
   fuelTypeLv1: Biomass
   fuelTypeLv2: Wood and wood residuals
-  fied_2017: Biomass 
-Distillate Fuel Oil No. 2: 
+  fied_2017: Biomass
+Distillate Fuel Oil No. 2:
   fuelTypeLv1: Petroleum products
   fuelTypeLv2: Distillate fuel oil No. 2
-  fied_2017: diesel 
-Liquefied petroleum gases (LPG): 
+  fied_2017: diesel
+Liquefied petroleum gases (LPG):
   fuelTypeLv1: Petroleum products
   fuelTypeLv2: Liquefied petroleum gases
-  fied_2017: lpgHGL 
-Propane: 
+  fied_2017: lpgHGL
+Propane:
   fuelTypeLv1: Hydrocarbon gas liquids
   fuelTypeLv2: Propane
-  fied_2017: lpgHGL 
+  fied_2017: lpgHGL
 Motor Gasoline:
   fuelTypeLv1: Hydrocarbon gas liquids
   fuelTypeLv2: Gasoline
   fied_2017: Gasoline
-Other Oil (>401 deg F): 
+Other Oil (>401 deg F):
   fuelTypeLv1: Petroleum products
   fuelTypeLv2: Other oil (>401 deg F)
   fied_2017: Other
-Other Biomass Gases: 
+Other Biomass Gases:
   fuelTypeLv1: Bioimass
   fuelTypeLv2: Other biomass gases
   fied_2017: Biomass
@@ -69,7 +69,7 @@ Bagasse:
   fuelTypeLv2: Bagasse
 Biodiesel (100%):
   fied_2017: Other
-  fuelTypeLv1: Biomass 
+  fuelTypeLv1: Biomass
   fuelTypeLv2: biodiesel
 Biogenic Process Derived Fuel (PDF):
   fied_2017: Other
@@ -364,7 +364,7 @@ Oil Fired:
   fuelTypeLv1: Petroleum products
   fuelTypeLv2: Residual fuel oil No. 6
 Oilfield Gas:
-  fied_2017: Other 
+  fied_2017: Other
   fuelTypeLv1: Other
   fuelTypeLv2: Oilfield gas
 Other Gaseous Fuel:
@@ -392,11 +392,11 @@ Petrochemical Feedstocks:
   fuelTypeLv1: Petroleum products
   fuelTypeLv2: Petrochemical feedstocks
 Petroleum Coke:
-  fied_2017: Other 
+  fied_2017: Other
   fuelTypeLv1: Petroleum products
   fuelTypeLv2: Petcoke
 Butane/Propane Mixture:
-  fied_2017: Other 
+  fied_2017: Other
   fuelTypeLv1: Hydrocarbon gas liquids
   fuelTypeLv2: Butane and propane mix
 Plastics:
@@ -425,7 +425,7 @@ Recovered Solvents:
   fuelTypeLv2: Solvents
 Refinery Fuel Gas:
   fied_2017: Other
-  fuelTypeLv1: Other 
+  fuelTypeLv1: Other
   fuelTypeLv2: Fuel gas
 Refinery Fuel Gas 1:
   fied_2017: Other
@@ -844,16 +844,16 @@ pet_coke:
   fuelTypeLv1: Petroleum products
   fuelTypeLv2: Petcoke
 petroleum coke:
-  fied_2017: Other 
+  fied_2017: Other
   fuelTypeLv1: Petroleum products
   fuelTypeLv2: Petcoke
 process gas:
   fied_2017: Other
-  fuelTypeLv1: Other 
+  fuelTypeLv1: Other
   fuelTypeLv2: Process gas
 process_gas:
   fied_2017: Other
-  fuelTypeLv1: Other 
+  fuelTypeLv1: Other
   fuelTypeLv2: Process gas
 propane:
   fied_2017: lpgHGL
@@ -931,7 +931,7 @@ Blast Furnace Gas (BFG):
   fied_2017: lpgHgl
   fuelTypeLv1: Hydrocarbon gas liquids
   fuelTypeLv2: Butand and propane mix
-Other: 
+Other:
   fied_2017: Other
   fuelTypeLv1: Other
   fuelTypeLv2: Other
@@ -994,7 +994,7 @@ Jet Fuel:
 Jet Kerosene:
   fied_2017: Other
   fuelTypeLv1: Petroleum products
-  fuelTypeLv2: Jet kerosene 
+  fuelTypeLv2: Jet kerosene
 Jet Naphtha:
   fied_2017: Other
   fuelTypeLv1: Petroleum products
@@ -1099,7 +1099,7 @@ Waste Gas:
   fied_2017: Other
   fuelTypeLv1: Other
   fuelTypeLv2: Waste gas
-Natural Gas Liquids:  
+Natural Gas Liquids:
   fied_2017: lpgHgl
   fuelTypeLv1: Petroleum products
   fuelTypeLv2: Natural gas liquid
