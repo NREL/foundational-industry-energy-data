@@ -827,8 +827,8 @@ class SCC_ID:
     def main(self):
         id_scc = SCC_ID()
         id_scc_df = id_scc.build_id()
-        os.makedirs('./scc', exist_ok=True)
-        id_scc_df.to_csv('./scc/iden_scc.csv')
+        os.makedirs(self._FIEDPATH / 'scc', exist_ok=True)
+        id_scc_df.to_csv(self._FIEDPATH / 'scc' / 'iden_scc.csv')
 
 
 if __name__ == '__main__':
