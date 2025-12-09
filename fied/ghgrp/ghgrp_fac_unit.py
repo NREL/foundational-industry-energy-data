@@ -2,6 +2,7 @@
 import logging
 from pathlib import Path
 
+from importlib_resources import files
 import pandas as pd
 import numpy as np
 import os
@@ -25,7 +26,8 @@ class GHGRP_unit_char():
         )
 
         self._data_dir = ghgrp_energy_file.parent
-        self._fuels_path = Path(__file__).parents[1] / 'tools' / 'type_standardization.yml'
+        self._fuels_path = files("fied.tools").joinpath(
+            "fuel_type_standardization.yaml")
         self._ghgrp_energy_file = ghgrp_energy_file.name
 
 
