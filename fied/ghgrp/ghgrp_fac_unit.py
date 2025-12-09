@@ -11,7 +11,8 @@ import json
 from pyxlsb import open_workbook
 
 from fied import datasets
-from unit_matcher import Units
+from fied.tools.unit_matcher import UnitsFuels as Units
+
 
 module_logger = logging.getLogger(__name__)
 
