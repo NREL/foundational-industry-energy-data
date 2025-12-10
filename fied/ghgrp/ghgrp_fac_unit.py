@@ -2,13 +2,17 @@
 import logging
 from pathlib import Path
 
+from importlib_resources import files
 import pandas as pd
+import numpy as np
 import os
 import yaml
 import json
 from pyxlsb import open_workbook
 
 from fied import datasets
+from fied.tools.unit_matcher import UnitsFuels as Units
+
 
 module_logger = logging.getLogger(__name__)
 
@@ -23,64 +27,84 @@ class GHGRP_unit_char():
         )
 
         self._data_dir = ghgrp_energy_file.parent
+        self._fuels_path = files("fied.tools").joinpath(
+            "fuel_type_standardization.yaml")
         self._ghgrp_energy_file = ghgrp_energy_file.name
+
 
         self._data_source = 'GHGRP'
 
         self._reporting_year = reporting_year
 
-    def load_fueltype_dict(self):
+    def load_fueltype_df(self):
         """
         Opens and loads a yaml that specifies the mapping of
         GHGRP fuel types to standard fuel types that have
-        aready been applied to NEI data.
+        aready been applied to NEI data. This has been expanded
+        to include two levels of fuel types over the original one 
+        level.
 
         Returns
         -------
-        fuel_dict : dictionary
-            Dictionary of mappings between GHGRP fuel types and
+        fuel_types : pandas.DataFrame
+            DataFrame of mappings between GHGRP fuel types and
             generic fuel types that have been applied to NEI data.
         """
 
-        with open(Path(__file__).parents[1] / 'tools' / 'type_standardization.yml', 'r') as file:
-            docs = yaml.safe_load_all(file)
+        with open(self._fuels_path, 'r') as file:
+            fuel_types = pd.DataFrame.from_dict(
+                yaml.safe_load(file),
+                orient='index'
+                )
 
-            for i, d in enumerate(docs):
-                if i == 0:
-                    fuel_dict = d
-                else:
-                    continue
+        fuel_types.reset_index(inplace=True)
 
-        return fuel_dict
+        fuel_types.rename(columns={'index': 'FUEL_TYPE_FINAL'}, inplace=True)
+
+        return fuel_types
 
     # #TODO make into a tools method
-    def harmonize_fuel_type(self, ghgrp_unit_data, fuel_type_column):
+    def harmonize_fuel_type(self, ghgrp_df, fuel_type_column):
         """
         Applies fuel type mapping to fuel types reported under GHGRP.
 
         Parameters
         ----------
-        ghgrp_unit_data : pandas.DataFrame
+        ghgrp_df : pandas.DataFrame
 
         fuel_type_column : str
             Name of column containing fuel types.
 
         Returns
         -------
-        ghgrp_unit_data : pandas.DataFrame
+        ghgrp_df : pandas.DataFrame
 
         """
 
-        fuel_dict = self.load_fueltype_dict()
+        fuel_types = self.load_fueltype_df()
 
-        ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
+        ghgrp_df.loc[:, 'FUEL_TYPE_FINAL'] = pd.concat(
+            [ghgrp_df[c].dropna() for c in ['FUEL_TYPE', 'FUEL_TYPE_BLEND', 'FUEL_TYPE_OTHER']],
+            axis=0, ignore_index=False
+            )
+
+        ghgrp_df = ghgrp_df.query("REPORTING_YEAR==@self._reporting_year")
+
+        ghgrp_df = pd.merge(
+            ghgrp_df, 
+            fuel_types,
+            on='FUEL_TYPE_FINAL',
+            how='left'
+            )
+
+        # ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
 
         # drop any fuelTypes that are null
-        ghgrp_unit_data = ghgrp_unit_data.where(
-            ghgrp_unit_data[fuel_type_column] != 'None'
-            ).dropna(how='all')
+        # ghgrp_unit_data = ghgrp_unit_data.where(
+        #     ghgrp_unit_data[fuel_type_column] != 'None'
+        #     ).dropna(how='all')
 
-        return ghgrp_unit_data
+        return ghgrp_df
 
 
     # TODO fix up code for getting capacity data
@@ -110,7 +134,7 @@ class GHGRP_unit_char():
             ghgrp_ind = pd.read_excel(
                 unit_data_file_path,
                 engine='pyxlsb', sheet_name='UNIT_DATA',
-                skiprows=6
+                skiprows=6, na_values=""
                 )
             
         except XLRDError as e:
@@ -140,10 +164,13 @@ class GHGRP_unit_char():
             overwrite=True
             )
 
+        ghgrp_ind.to_pickle("ghgrp_ind.pkl")
+
         # Industrial facilities aleady selected in FRS data.
-        ghgrp_ind = ghgrp_ind.where(
-            ghgrp_ind['Reporting Year'].isin(ghgrp_df.REPORTING_YEAR)
-            ).dropna(how='all')
+        ghgrp_ind = ghgrp_ind[ghgrp_ind["Reporting Year"] == self._reporting_year].copy(deep=True)
+        # ghgrp_ind = ghgrp_ind.where(
+        #     ghgrp_ind['Reporting Year'].isin(ghg/rp_df.REPORTING_YEAR)
+        #     ).dropna(how='all')
 
         ghgrp_ind.update(
             ghgrp_ind['Unit Maximum Rated Heat Input (mmBTU/hr)'].replace(
@@ -182,23 +209,21 @@ class GHGRP_unit_char():
         """
         Formatting (e.g., dropping columns, aggregating fuel types)
         for GHGRP energy estimates, which now include unit capacity data.
+
+        Parameters
+        ----------
+        ghgrp_df : pandas.DataFrame
+
+        Returns
+        -------
+        ghgrp_df : pandas.DataFrame
+
+
         """
         self.logger.debug("Formatting GHGRP data")
 
-        ghgrp_df.loc[:, 'FUEL_TYPE_FINAL'] = pd.concat(
-            [ghgrp_df[c].dropna() for c in ['FUEL_TYPE', 'FUEL_TYPE_BLEND', 'FUEL_TYPE_OTHER']],
-            axis=0, ignore_index=False
-            )
-
-        self.logger.debug(
-            f"Filtering GHGRP data for reporting year {self._reporting_year}"
-        )
-        ghgrp_df = ghgrp_df.query("REPORTING_YEAR==@self._reporting_year")
-
-        # Harmonize fuel types for GHGRP data
-        ghgrp_df = self.harmonize_fuel_type(ghgrp_df, 'FUEL_TYPE_FINAL')
-
-        ghgrp_df.to_csv('ghgrp_emissions.csv')
+        # The groupby below was originally missing facilities that do 
+        # not have values for max capacity and/or FRS registry ID.
 
         # Aggregate. Units may combust multiple types of 
         # fuels and have multiple observations (estimates)
@@ -208,13 +233,14 @@ class GHGRP_unit_char():
         # found in the GHGRP unit data xlsb file.
         ghgrp_df = ghgrp_df.groupby(
             ['FACILITY_ID', 'FRS_REGISTRY_ID', 'REPORTING_YEAR',
-             'FUEL_TYPE_FINAL', 'fuelTypeStd', 'UNIT_NAME',
-             'UNIT_TYPE', 'MAX_CAP_MMBTU_per_HOUR'], as_index=False
+             'FUEL_TYPE_FINAL', 'fuelTypeLv1', 'fuelTypeLv2', 'UNIT_NAME',
+             'unitTypeLv1', 'unitTypeLv2', 'MAX_CAP_MMBTU_per_HOUR'], as_index=False,
+             dropna=False
              )[['TJ_TOTAL', 'MTCO2e_TOTAL']].sum()
-
+    
         ghgrp_df.loc[:, "energyMJ"] = ghgrp_df.TJ_TOTAL * 10**6
 
-        ghgrp_df.loc[:, 'designCapacity'] = None
+        ghgrp_df['designCapacity'] = np.nan
 
         for item in ghgrp_df.MAX_CAP_MMBTU_per_HOUR.iteritems():
 
@@ -242,7 +268,7 @@ class GHGRP_unit_char():
             'FUEL_TYPE_FINAL': 'fuelType',
             'UNIT_NAME': 'unitName',
             'FRS_REGISTRY_ID': 'registryID',
-            'UNIT_TYPE': 'unitType',
+            # 'UNIT_TYPE': 'unitType',
             'MTCO2e_TOTAL': 'ghgsTonneCO2e'
             }, inplace=True)
 
@@ -250,120 +276,127 @@ class GHGRP_unit_char():
 
         return ghgrp_df
 
-    def get_unit_type(self):
-        """
-        Use unit name to deterimine unit type for
-        unit types that are defined as OCS (Other combustion source).
+    # def get_unit_type(self):
+    #     """
+    #     Use unit name to deterimine unit type for
+    #     unit types that are defined as OCS (Other combustion source).
 
 
-        Returns
-        -------
-        ghgrp_df : pandas.DataFrame
-            Dataframe from GHGRP energy calculations with
-            UNIT_TYPE column updated from OCS to a specific
-            unit type.
-        """
-        filename = os.path.join(self._data_dir, self._ghgrp_energy_file)
-        self.logger.debug(f"Getting unit type from GHGRP data: {filename}")
+    #     Returns
+    #     -------
+    #     ghgrp_df : pandas.DataFrame
+    #         Dataframe from GHGRP energy calculations with
+    #         UNIT_TYPE column updated from OCS to a specific
+    #         unit type.
+    #     """
 
-        ghgrp_df = pd.read_parquet(filename)
+    #     ghgrp_df = pd.read_parquet(
+    #         os.path.join(self._data_dir, self._ghgrp_energy_file)
+    #         )
 
-        types = [
-            'furnace', 'kiln', 'dryer', 'heater',
-            'oven', 'calciner', 'stove', 'htr', 'furn',
-            'cupola', 'boiler', 'turbine', 'building heat', 'space heater',
-            'engine', 'compressor', 'pump', 'rice', 'generator',
-            'hot water', 'crane', 'water heater',
-            'comfort heater', 'RTO', 'TODF', 'oxidizer', 'RCO'
-            ]
+    #     types = [
+    #         'furnace', 'kiln', 'dryer', 'heater',
+    #         'oven', 'calciner', 'stove', 'htr', 'furn',
+    #         'cupola', 'boiler', 'turbine', 'building heat', 'space heater',
+    #         'engine', 'compressor', 'pump', 'rice', 'generator',
+    #         'hot water', 'crane', 'water heater',
+    #         'comfort heater', 'RTO', 'TODF', 'oxidizer', 'RCO'
+    #         ]
 
-        ocs_units = ghgrp_df.query(
-            "UNIT_TYPE == 'OCS (Other combustion source)'"
-            ).UNIT_NAME
+    #     ocs_units = ghgrp_df.query(
+    #         "UNIT_TYPE == 'OCS (Other combustion source)'"
+    #         ).UNIT_NAME
 
-        ocs_units = ocs_units.str.lower()
+    #     ocs_units = ocs_units.str.lower()
 
-        self.logger.info(
-            f'There are {len(ocs_units)} units '
-            f'or {len(ocs_units)/len(ghgrp_df):.1%} labelled as OCS'
-            )
+    #     logging.info(
+    #         f'There are {len(ocs_units)} units '
+    #         f'or {len(ocs_units)/len(ghgrp_df):.1%} labelled as OCS'
+    #         )
 
-        # Assume boilers will be the most typical combustion unit type
-        # pd.Series.str.find returns -1 where a string is not found
-        # Not perfect, as approach assigns "boiler" to units that are 
-        # aggregations, e.g., "GP-1 Boilers / Afterburners"
-        named_units = pd.concat(
-            [pd.Series(ocs_units.str.find(t), name=t) for t in types],
-            axis=1, ignore_index=False
-            )
+    #     # Assume boilers will be the most typical combustion unit type
+    #     # pd.Series.str.find returns -1 where a string is not found
+    #     # Not perfect, as approach assigns "boiler" to units that are 
+    #     # aggregations, e.g., "GP-1 Boilers / Afterburners"
+    #     named_units = pd.concat(
+    #         [pd.Series(ocs_units.str.find(t), name=t) for t in types],
+    #         axis=1, ignore_index=False
+    #         )
 
-        # Matched will show as NaN
-        named_units = named_units.where(named_units == -1)
+    #     # Matched will show as NaN
+    #     named_units = named_units.where(named_units == -1)
 
-        for c in named_units.columns:
-            named_units[c].fillna(c, inplace=True)
+    #     for c in named_units.columns:
+    #         named_units[c].fillna(c, inplace=True)
 
-        named_units.replace(
-            {
-                'furn': 'furnace', 'htr': 'heater',
-                'hot water': 'water heater',
-                'rice': 'engine', 'comfort heater': 'space heater'
-            }, inplace=True
-            )
+    #     named_units.replace(
+    #         {
+    #             'furn': 'furnace', 'htr': 'heater',
+    #             'hot water': 'water heater',
+    #             'rice': 'engine', 'comfort heater': 'space heater'
+    #         }, inplace=True
+    #         )
 
-        named_units = named_units.where(named_units != -1)
-        named_units = named_units.apply(lambda x: x.dropna(), axis=0)
+    #     named_units = named_units.where(named_units != -1)
+    #     named_units = named_units.apply(lambda x: x.dropna(), axis=0)
 
-        sing_types = named_units.count(axis=1)
-        sing_types = sing_types.where(sing_types == 1).dropna()
-        sing_types = pd.DataFrame(
-            named_units.loc[sing_types.index, :]
-            )
+    #     sing_types = named_units.count(axis=1)
+    #     sing_types = sing_types.where(sing_types == 1).dropna()
+    #     sing_types = pd.DataFrame(
+    #         named_units.loc[sing_types.index, :]
+    #         )
 
-        mult_types = named_units.count(axis=1)
-        mult_types = mult_types.where(mult_types > 1).dropna()
-        mult_types = pd.DataFrame(
-            named_units.loc[mult_types.index, :]
-            )
-        mult_types['unit_type_iden'] = False
+    #     mult_types = named_units.count(axis=1)
+    #     mult_types = mult_types.where(mult_types > 1).dropna()
+    #     mult_types = pd.DataFrame(
+    #         named_units.loc[mult_types.index, :]
+    #         )
+    #     mult_types['unit_type_iden'] = False
 
-        ocs_units = pd.concat(
-            [ocs_units,
-             pd.Series(index=ocs_units.index, name='unit_type_iden')],
-            axis=1
-            )
+    #     ocs_units = pd.concat(
+    #         [ocs_units,
+    #          pd.Series(index=ocs_units.index, name='unit_type_iden')],
+    #         axis=1
+    #         )
 
-        # TODO why isn't sing_types.apply(lambda x: x.dropna()), result_type='reduce')
-        # returning a series? Should be a faster approach than this loop
-        for i in sing_types.index:
-            ocs_units.loc[i, 'unit_type_iden'] = \
-                sing_types.loc[i, :].dropna().values[0]
+    #     # TODO why isn't sing_types.apply(lambda x: x.dropna()), result_type='reduce')
+    #     # returning a series? Should be a faster approach than this loop
+    #     for i in sing_types.index:
+    #         ocs_units.loc[i, 'unit_type_iden'] = \
+    #             sing_types.loc[i, :].dropna().values[0]
 
-        for t in ['boiler', 'furnace', 'kiln', 'calciner', 'dryer', 'stove',
-                  'space heater', 'water heater', 'turbine', 'generator',
-                  'engine', 'cupola', 'compressor', 'pump', 'building heat',
-                  'space heater', 'oxidizer']:
+    #     for t in ['boiler', 'furnace', 'kiln', 'calciner', 'dryer', 'stove',
+    #               'space heater', 'water heater', 'turbine', 'generator',
+    #               'engine', 'cupola', 'compressor', 'pump', 'building heat',
+    #               'space heater', 'oxidizer']:
 
-            mult_types.unit_type_iden.update(
-                mult_types[t]
-                )
+    #         mult_types.unit_type_iden.update(
+    #             mult_types[t]
+    #             )
 
-            ocs_units.unit_type_iden.update(
-                mult_types.unit_type_iden
-                )
+    #         ocs_units.unit_type_iden.update(
+    #             mult_types.unit_type_iden
+    #             )
 
-            mult_types = mult_types.where(
-                mult_types.unit_type_iden != t
-                ).dropna(subset=['unit_type_iden'])
+    #         mult_types = mult_types.where(
+    #             mult_types.unit_type_iden != t
+    #             ).dropna(subset=['unit_type_iden'])
 
-        ghgrp_df.UNIT_TYPE.update(ocs_units.unit_type_iden)
+    #     ghgrp_df.UNIT_TYPE.update(ocs_units.unit_type_iden)
 
-        return ghgrp_df
+    #     return ghgrp_df
 
     def main(self):
 
-        ghgrp_df = self.get_unit_type()
+        ghgrp_df = pd.read_parquet(
+            os.path.join(self._data_dir, self._ghgrp_energy_file)
+            )
+        # Characterize unit types
+        ghgrp_df = Units().char_ghgrp_units(ghgrp_df)
+        # ghgrp_df = self.get_unit_type()
         ghgrp_df = self.get_unit_capacity(ghgrp_df)
+        # Harmonize fuel types for GHGRP data
+        ghgrp_df = self.harmonize_fuel_type(ghgrp_df, 'FUEL_TYPE_FINAL')
         ghgrp_df = self.format_ghgrp_df(ghgrp_df)
 
         ghgrp_df.to_csv(
@@ -376,8 +409,7 @@ class GHGRP_unit_char():
 
 
 if __name__ == '__main__':
-    # ghgrp_energy_file = 'ghgrp_energy_20240110-1837.parquet'
-    ghgrp_energy_file = 'all_ghgrp_energy.parquet'
-    reporting_year = 2022
+    ghgrp_energy_file = 'ghgrp_energy_20240110-1837.parquet'
+    reporting_year = 2017
     ghgrp_df = GHGRP_unit_char(ghgrp_energy_file, reporting_year).main()
-    ghgrp_df.to_csv('formatted_ghgrp_unit_data_2022_DECARB.csv')
+    ghgrp_df.to_pickle('formatted_ghgrp_unit_data_test.pkl')

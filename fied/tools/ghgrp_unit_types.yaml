@@ -1,0 +1,212 @@
+
+%YAML 1.1
+---
+# Default, EPA-defined unit types
+OCS (Other combustion source):
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Other combustion
+OB (Boiler, other):
+  unitTypeLv1: Boiler
+  unitTypeLv2: Other boiler
+F (Furnace):
+  unitTypeLv1: Furnace
+  unitTypeLv2: Furnace
+ICI (Incinerator, commercial and industrial):
+  unitTypeLv1: Incinerator
+  unitTypeLv2: Incinerator commercial and industrial
+S (Stoker Boiler):
+  unitTypeLv1: Boiler
+  unitTypeLv2: Stoker boiler
+OFB (Fluidized bed, other):
+  unitTypeLv1: Boiler
+  unitTypeLv2: Fluidized bed other
+PRH (Process Heater):
+  unitTypeLv1: Process heater
+  unitTypeLv2: Process heater
+BFB (Boiler, bubbling fluidized bed):
+  unitTypeLv1: Boiler
+  unitTypeLv2: Boiler bubbling fluidized bed
+PCT (Pulverized coal, tangentially-fired):
+  unitTypeLv1: Boiler
+  unitTypeLv2: Pulverized coal tangentially-fired
+PCWD (Pulverized coal, wall-fired, dry bottom):
+  unitTypeLv1: Boiler
+  unitTypeLv2: Pulverized coal wall-fired dry bottom
+CH (Comfort heater):
+  unitTypeLv1: Space heater
+  unitTypeLv2: Comfort heater
+HMH (Heater, heat medium for heat exchange):
+  unitTypeLv1: Process heater
+  unitTypeLv2: Heater heat medium for heat exchange
+K (Kiln):
+  unitTypeLv1: Kiln
+  unitTypeLv2: Kiln
+NGLH (Heater, natural gas line):
+  unitTypeLv1: Process heater
+  unitTypeLv2: Heater natural gas line
+PCO (Pulverized coal, other):
+  unitTypeLv1: Boiler
+  unitTypeLv2: Pulverized coal other
+PD (Product or intermediate product dryer):
+  unitTypeLv1: Dryer
+  unitTypeLv2: Product or intermediate product dryer
+SCCT (CT (Turbine, simple cycle combustion)):
+  unitTypeLv1: Turbine
+  unitTypeLv2: Turbine simple cycle combustion
+TODF (Thermal oxidizer, direct fired, no heat recovery):
+  unitTypeLv1: Thermal oxidizer
+  unitTypeLv2: Thermal oxidizer direct fired no heat recovery
+C (Calciner):
+  unitTypeLv1: Calciner
+  unitTypeLv2: Calciner
+CCCT (CC (Turbine, combined cycle)):
+  unitTypeLv1: Turbine
+  unitTypeLv2: Turbine combined cycle
+FLR (Flare):
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Flare
+HWH (Heater, hot water):
+  unitTypeLv1: Space heater
+  unitTypeLv2: Hot water heater
+O (Oven):
+  unitTypeLv1: Oven 
+  unitTypeLv2: Oven
+PFB (Boiler, pressurized fluidized bed):
+  unitTypeLv1: Boiler
+  unitTypeLv2: Boiler pressurized fluidized bed
+RICE (Reciprocating internal combustion engine):
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: Reciprocating internal combustion engine
+RTO (Regenerative thermal oxidizer):
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Regenerative thermal oxidizer
+RCO (Regenerative catalytic oxidizer):
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Regenerative catalytic oxidizer
+CFB (Boiler, circulating fluidized bed):
+  unitTypeLv1: Boiler
+  unitTypeLv2: Boiler circulating fluidized bed
+CF (Cyclone Furnace):
+  unitTypeLv1: Furnace
+  unitTypeLv2: Cyclone furnace
+Q (Other Subpart Q combustion sources not otherwise listed.):
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Other subpart q combustion sources not otherwise listed
+CatH (Heater,  catalytic):
+  unitTypeLv1: Process heater
+  unitTypeLv2: Heater catalytic
+MWC (Municipal waste combustor):
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Municipal waste combustor
+FeFL (Subpart Q - ladle reheater):
+  unitTypeLv1: Process heater
+  unitTypeLv2: Ladle reheater
+HPPU (hydrogen production process units):
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Hydrogen production process units
+COB (By-product recovery coke oven battery combustion stacks):
+  unitTypeLv1: Other combustion
+  unitTypeLv2: By-product recovery coke oven battery combustion stacks
+II (Incinerator, institutional):
+  unitTypeLv1: Incinerator
+  unitTypeLv2: Incinerator institutional
+PCWW (Pulverized coal, wall-fired, wet bottom):
+  unitTypeLv1: Boiler
+  unitTypeLv2: Pulverized coal wall-fired wet bottom
+Electricity Generator:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Other combustion
+Chemical Recovery Combustion Unit:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Other combustion
+Chemical Recovery Furnace:
+  unitTypeLv1: Furnace
+  unitTypeLv2: Furnace
+Pulp Mill Lime Kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Kiln
+---
+# Non-standardized unit types found in UNIT_NAME field
+ICE:
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: Internal combustion engine
+RICE:
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: Reciprocating internal combustion engine
+HTR:
+  unitTypeLv1: Process heater
+  unitTypeLv2: Process heater
+Water Heater:
+  unitTypeLv1: Space heater
+  unitTypeLv2: Water heater
+kiln:
+  unitTypeLv1: Kiln
+  unitTypeLv2: Kiln
+dryer:
+  unitTypeLv1: Dryer
+  unitTypeLv2: Dryer
+oven:
+  unitTypeLv1: Oven
+  unitTypeLv2: Oven
+furnace:
+  unitTypeLv1: Furnace
+  unitTypeLv2: Furance
+boiler:
+  unitTypeLv1: Boiler
+  unitTypeLv2: Boiler
+incinerator:
+  unitTypeLv1: Incinerator
+  unitTypeLv2: Incincerator
+flare:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Flare
+heater:
+  unitTypeLv1: Process heater
+  unitTypeLv2: Heater
+calciner:
+  unitTypeLv1: Calciner
+  unitTypeLv2: Calciner
+turbine: 
+  unitTypeLv1: Turbine
+  unitTypeLv2: Turbine
+stove:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Stove
+distillation:
+  unitTypeLv1: Other
+  unitTypeLv2: Distillation
+other combustion:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Other combustion
+engine\s:
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: Engines
+generator:
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: Generator
+oxidizer:
+  unitTypeLv1: Thermal oxidizer
+  unitTypeLv2: Oxidizer
+pump:
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: Pump
+compressor:
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: Compressor
+building heat: 
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Building heat
+cupola:
+  unitTypeLv1: Furnace
+  unitTypeLv2: Cupola
+broil:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Broiler
+reciprocating:
+  unitTypeLv1: Internal combustion engine
+  unitTypeLv2: Reciprocating internal combustion engine
+roaster:
+  unitTypeLv1: Other combustion
+  unitTypeLv2: Roaster
+
+    
