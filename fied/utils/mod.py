@@ -1,5 +1,7 @@
 """Module with utilities to support FIED"""
 
+import functools
+
 import pandas as pd
 import polars as pl
 
@@ -47,6 +49,7 @@ def expect_polars(func):
     called with a pandas DataFrame.
     """
 
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         new_args = [
             _pandas_to_polars(arg) if _is_pandas(arg) else arg for arg in args
@@ -80,6 +83,7 @@ def expect_pandas(func):
     called with a polars DataFrame.
     """
 
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         new_args = [
             _polars_to_pandas(arg) if _is_polars(arg) else arg for arg in args
