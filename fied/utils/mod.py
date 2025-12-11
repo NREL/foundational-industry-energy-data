@@ -30,7 +30,7 @@ def _polars_to_pandas(df: pl.DataFrame) -> pd.DataFrame:
 def expect_polars(func):
     """Decorator to convert pandas DataFrame to polars DataFrame
 
-    This decorator is intendend to support a gradual transition from
+    This decorator is intended to support a gradual transition from
     pandas to polars. It converts any pandas DataFrame arguments to
     polars. Therefore, it allows new functions based on polars to
     operate in a legacy codebase that still uses pandas.
@@ -63,7 +63,7 @@ def expect_polars(func):
 def expect_pandas(func):
     """Decorator to convert polars DataFrame to pandas DataFrame
 
-    This decorator is intendend to support a gradual transition from
+    This decorator is intended to support a gradual transition from
     pandas to polars. It converts any polars DataFrame arguments to
     pandas. Therefore, it allows legacy functions based on pandas to
     operate in a codebase that is transitioning to polars.
