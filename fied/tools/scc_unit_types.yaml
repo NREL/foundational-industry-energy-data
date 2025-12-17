@@ -95,22 +95,22 @@ gas-fired malt kiln:
   unitTypeLv1: Kiln
   unitTypeLv2: Malt kiln
 direct-fired dryer - produces corn gluten feed:
-  unitTypeLv1: Dyer
+  unitTypeLv1: Dryer
   unitTypeLv2: Corn gluten feed dryer, direct
 indirect-fired dryer - produces corn gluten feed:
-  unitTypeLv1: Dyer
+  unitTypeLv1: Dryer
   unitTypeLv2: Corn gluten feed dryer, indirect
 direct-fired dryer - produces corn gluten meal:
-  unitTypeLv1: Dyer
+  unitTypeLv1: Dryer
   unitTypeLv2: Corn gluten meal dryer, direct
 indirect-fired dryer - produces corn gluten meal:
-  unitTypeLv1: Dyer
+  unitTypeLv1: Dryer
   unitTypeLv2: Corn gluten meal dryer, indirect
 brewers grain dryer:
   unitTypeLv1: Dryer 
   unitTypeLv2: Brewers grain dryer
 pulp dryer:
-  unitTypeLv1: Dyer
+  unitTypeLv1: Dryer
   unitTypeLv2: Pulp dryer
 lime kiln:
   unitTypeLv1: Kiln
