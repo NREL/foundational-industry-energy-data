@@ -12,6 +12,7 @@ from pathlib import Path
 toolspath = str(Path(__file__).parents[1]/"tools")
 sys.path.append(toolspath)
 from fied.tools.misc_tools import Tools
+from fied.tools import unit_matcher
 
 from fied.datasets import fetch_nei_2017, fetch_nei_2020, fetch_webfirefactors
 
@@ -38,7 +39,6 @@ class NEI ():
         self._FIEDPATH = Path(__file__).parents[1]
 
         self._nei_data_path = Path(self._FIEDPATH, "data/NEI/nei_ind_data.csv")
-
         self._unit_conv_path = Path(self._FIEDPATH, "nei/unit_conversions.yml")
 
         with open(self._unit_conv_path) as file:
@@ -71,7 +71,8 @@ class NEI ():
                 }
             }
         
-        self.unit_regex = Tools().unit_regex
+        self.unit_regex = unit_matcher.UnitsFuels().unit_regex
+        self.match_fuel_type = unit_matcher.UnitsFuels().match_fuel_type
 
     def find_missing_cap(self, df):
         """
@@ -519,20 +520,31 @@ class NEI ():
         """
 
         iden_scc = pd.read_csv(self._scc_units_path, index_col=0)
-        iden_scc.reset_index(drop=True, inplace=True)
+        # iden_scc.reset_index(drop=True, inplace=True)
+
+        iden_scc = iden_scc[~iden_scc.scc_level_one.isin(
+            ['Miscellaneous Area Sources', 'Mobile Sources','very misc']
+            )]
 
         iden_scc.loc[:, 'SCC'] = iden_scc.SCC.astype('int64')
 
+        # iden_scc.rename(columns={
+        #     'unit_type': 'scc_unit_type',
+        #     'fuel_type': 'scc_fuel_type'}, inplace=True
+        #     )
+
         iden_scc.rename(columns={
-            'unit_type': 'scc_unit_type',
-            'fuel_type': 'scc_fuel_type'}, inplace=True
+            'unit_type_lv1': 'scc_unit_type_lv1',
+            'fuel_type_lv1': 'scc_fuel_type_lv1',
+            'unit_type_lv2': 'scc_unit_type_lv2',
+            'fuel_type_lv2': 'scc_fuel_type_lv2'}, inplace=True
             )
 
         return iden_scc
     
     def extract_ghg_emissions(self, nei_data):
         """
-        Capture GHG emissions (i.e., CO2, CH4, N2O)
+        Capture GHG idenemissions (i.e., CO2, CH4, N2O)
         reported under NEI. Convert to tonnes CO2 equivalent (tonnesCO2e)
 
         
@@ -637,10 +649,6 @@ class NEI ():
             nei_data[nei_data.ghgsTonneCO2eQ2.isnull()][['energy_MJ_q0','energy_MJ_q2', 'energy_MJ_q3']].multiply(nei_data.ef, axis=0)/1000
 
         emissions.columns = ['ghgsTonneCO2eQ0', 'ghgsTonneCO2eQ2', 'ghgsTonneCO2eQ3']
-
-        # Drop values that are >25,000 metric tons. If these values are not
-        # errors, then they will be picked up by the inclusion of GHGRP unit emissions
-        # emissions = emissions.query("ghgsTonneCO2eQ3 < 25000 ")
 
         nei_data.update(emissions)
 
@@ -951,7 +959,7 @@ class NEI ():
 
         if (series['nei_unit_type_std'] == 'other'):
 
-            if (series['scc_unit_type_std'] == 'other'):
+            if (series['scc_unit_type_std'] == 'Other'):
 
                 if(series['desc_unit_type_std'] == 'other'):
 
@@ -1130,7 +1138,8 @@ class NEI ():
 
         # merge SCC descriptions of unit and fuel types with NEI SCCs
         nei = nei.merge(
-            iden_scc[['SCC', 'scc_unit_type', 'scc_fuel_type']],
+            iden_scc[['SCC', 'scc_unit_type_lv1', 'scc_unit_type_lv2', 
+                      'scc_fuel_type_lv1', 'scc_fuel_type_lv2']],
             left_on='scc',
             right_on='SCC',
             how='left'
@@ -1143,10 +1152,12 @@ class NEI ():
             lambda x: self.unit_regex(x)
             )
 
-        # Remove non-combustion, non-electricity unit types
+        # Remove non-combustion, non-electricity unit types (e.g., storage tanks)
         nei = self.remove_unit_types(nei)
         
-        # unit_desc types are already "standardized." Do same for nei and scc types.
+        # unit_desc types are already "standardized." Do same for nei.
+        # TODO the unit types already in the NEI should be "standardized" (i.e., have a level 1 unit type applied).
+        # There also needs to be a level 2 unit type introduced based on the level 1 unit type. 
         for c in ['nei_unit_type', 'scc_unit_type']:
 
             unit_map = nei[c].dropna().drop_duplicates().copy(deep=True)
@@ -1308,8 +1319,6 @@ class NEI ():
             NEI with mass and throughput coversion factors. 
     
         """
-        #TODO refactor to condense code (many common elements between NEI and
-        #WebFire)
 
         # map unit of emissions and EFs in NEI/WebFire to unit conversion key
         # convert NEI total emissions value to LB
@@ -1715,15 +1724,23 @@ class NEI ():
             have a standardized fuel type.
         """
 
-        fuel_dict = self.load_fueltype_dict()
+        matched_fuels = pd.DataFrame(
+            index=ghgrp_unit_data.index(), 
+            columns=['fuelTypeLv1', 'fuelTypeLv2']
+            )
 
-        ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
+        for r, v in ghgrp_unit_data[fuel_type_column].iterrows():
+            matched_fuels.loc[r, ['fuelTypeLv1', 'fuelTypeLv2']] = self.match_fuel_type(v)
 
+        # fuel_dict = self.load_fueltype_dict()
 
+        # ghgrp_unit_data.loc[:, 'fuelTypeStd'] = ghgrp_unit_data[fuel_type_column].map(fuel_dict)
+
+        ghgrp_unit_data = ghgrp_unit_data.join(matched_fuels)
         # drop any fuelTypes that are null
-        ghgrp_unit_data = ghgrp_unit_data.where(
-            ghgrp_unit_data[fuel_type_column] != 'None'
-            ).dropna(how='all')
+        # ghgrp_unit_data = ghgrp_unit_data.where(
+        #     ghgrp_unit_data[fuel_type_column] != 'None'
+        #     ).dropna(how='all')
 
         return ghgrp_unit_data
 
@@ -1769,9 +1786,15 @@ class NEI ():
                 df[f'throughput_TON_{q}'] * 0.907  # Convert to metric tonnes
 
         keep_cols = [
-            'eis_facility_id', 'eis_unit_id', 'SCC',
-            'unit_type_final', 'unit_description', 'design_capacity',
-            'design_capacity_uom', 'fuel_type', 'eis_process_id',
+            'eis_facility_id', 
+            'eis_unit_id', 
+            'SCC',
+            'unit_type_final', 
+            'unit_description', 
+            'design_capacity',
+            'design_capacity_uom', 
+            'fuel_type', 
+            'eis_process_id',
             'process_description',
             'energy_MJ_q0', 'energy_MJ_q2', 'energy_MJ_q3',
             'throughputTonneQ0', 'throughputTonneQ2', 'throughputTonneQ3',
@@ -1886,4 +1909,5 @@ class NEI ():
 if __name__ == '__main__':
 
     nei_char = NEI().main()
+    # NEI().main()
     nei_char.to_csv('formatted_estimated_nei_updated.csv')
